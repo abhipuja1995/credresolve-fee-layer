@@ -2,6 +2,7 @@
   "name": "credresolve-fee-layer",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "CredResolve Universal Fee Wrapper for Blackbaud Billing Management (SKY API)",
   "workspaces": [
     "server",
@@ -13,8 +14,15 @@
     "dev:client": "npm run dev --prefix client",
     "postinstall": "npm install --prefix server --include=dev && npm install --prefix client --include=dev",
     "build": "npm run build --prefix server && npm run build --prefix client",
-    "start": "node server/dist/index.js",
+    "start": "npm start --prefix server",
     "test": "npm test --prefix server"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "uuid": "^11.1.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
