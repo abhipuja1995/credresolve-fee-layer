@@ -22,6 +22,7 @@ export const App: React.FC = () => {
   const [fees, setFees] = useState<UniversalFeeDefinition[]>([]);
   const [students, setStudents] = useState<StudentAccount[]>([]);
   const [charges, setCharges] = useState<StudentCharge[]>([]);
+  const [batches, setBatches] = useState<import('./types/index.js').IngestionJobRecord[]>([]);
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isStandaloneParentView, setIsStandaloneParentView] = useState(false);
@@ -80,12 +81,13 @@ export const App: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [ctx, ft, fList, sList, cList] = await Promise.all([
+      const [ctx, ft, fList, sList, cList, bList] = await Promise.all([
         api.getContext(),
         api.getFeeTypes(),
         api.getFees(),
         api.getStudents(),
-        api.getCharges()
+        api.getCharges(),
+        api.getBatches()
       ]);
 
       setContext(ctx);
@@ -93,6 +95,7 @@ export const App: React.FC = () => {
       setFees(fList);
       setStudents(sList);
       setCharges(cList);
+      setBatches(bList);
 
       if (ctx.environment.branding) {
         applyTheme(ctx.environment.branding);
@@ -189,6 +192,11 @@ export const App: React.FC = () => {
                 feeTypes={feeTypes}
                 existingFees={fees}
                 students={students}
+                batches={batches}
+                onRefreshBatches={async () => {
+                  const bList = await api.getBatches();
+                  setBatches(bList);
+                }}
                 onFeeCreated={() => {
                   loadData();
                   setActiveTab('ledger');

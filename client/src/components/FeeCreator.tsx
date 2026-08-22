@@ -5,29 +5,50 @@ import {
   Trash2, 
   AlertCircle, 
   ArrowRight, 
-  Send
+  Send,
+  Sparkles,
+  Search,
+  CheckCircle2,
+  DollarSign,
+  Tag,
+  Building2,
+  Clock,
+  FileCode,
+  ShieldCheck
 } from 'lucide-react';
 import { 
   BlackbaudFeeType, 
   UniversalFeeDefinition, 
   FormFieldSchema, 
-  StudentAccount 
+  StudentAccount,
+  IngestionJobRecord
 } from '../types/index.js';
 import { api } from '../services/api.js';
+import { BatchMonitor } from './BatchMonitor.js';
 
 interface FeeCreatorProps {
   feeTypes: BlackbaudFeeType[];
   existingFees: UniversalFeeDefinition[];
   students: StudentAccount[];
+  batches?: IngestionJobRecord[];
+  onRefreshBatches?: () => void;
   onFeeCreated: () => void;
 }
+
+export type FeeStudioSubView = 'deployed' | 'categories' | 'batches';
 
 export const FeeCreator: React.FC<FeeCreatorProps> = ({
   feeTypes,
   existingFees,
   students,
+  batches = [],
+  onRefreshBatches,
   onFeeCreated
 }) => {
+  const [subView, setSubView] = useState<FeeStudioSubView>('deployed');
+  const [categorySearch, setCategorySearch] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('ALL');
+
   const [showModal, setShowModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,6 +129,16 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
     setCustomFields(customFields.filter((_, i) => i !== index));
   };
 
+  const openCreateModalForFeeType = (ft: BlackbaudFeeType) => {
+    setBbFeeTypeId(ft.feeTypeId);
+    setBaseAmount(ft.defaultAmount || 100);
+    setAllowPartialPayment(ft.allowPartialPayment);
+    setTitle(ft.name);
+    setDescription(`Standard fee for ${ft.name} (${ft.category}). Synchronized to General Ledger ${ft.glAccountCode}.`);
+    setCurrentStep(1);
+    setShowModal(true);
+  };
+
   const handleSubmitFee = async () => {
     setIsSubmitting(true);
     setErrorMsg(null);
@@ -140,6 +171,37 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
     }
   };
 
+  // Filtered Blackbaud Fee Types
+  const filteredFeeTypes = feeTypes.filter(ft => {
+    const query = categorySearch.trim().toLowerCase();
+    const matchesQuery = !query || 
+      ft.name.toLowerCase().includes(query) ||
+      ft.category.toLowerCase().includes(query) ||
+      ft.feeTypeId.toLowerCase().includes(query) ||
+      ft.glAccountCode.toLowerCase().includes(query);
+
+    const matchesCategory = selectedCategoryFilter === 'ALL' || ft.category === selectedCategoryFilter;
+
+    return matchesQuery && matchesCategory;
+  });
+
+  const getCategoryBadgeClass = (category: string) => {
+    switch (category) {
+      case 'TUITION':
+        return 'badge-info';
+      case 'ATHLETIC':
+        return 'badge-warning';
+      case 'ACTIVITY':
+        return 'badge-success';
+      case 'MANDATORY_FEE':
+        return 'badge-danger';
+      case 'OPTIONAL_FEE':
+        return 'badge-neutral';
+      default:
+        return 'badge-neutral';
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Top Banner / Action Bar */}
@@ -154,10 +216,12 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
               <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-heading)' }}>
                 Universal Fee Studio
               </h2>
-              <span className="badge badge-info">Blackbaud Synchronized</span>
+              <span className="badge badge-info">
+                <Sparkles size={12} /> Blackbaud Synchronized
+              </span>
             </div>
-            <p style={{ color: 'var(--text-body)', marginTop: '0.4rem', maxWidth: '650px', fontSize: '0.925rem', lineHeight: '1.5' }}>
-              Create, configure, and post non-tuition fees directly into Blackbaud Billing Management subledgers using automated batch ingestion with dynamic custom forms and waivers.
+            <p style={{ color: 'var(--text-body)', marginTop: '0.4rem', maxWidth: '680px', fontSize: '0.925rem', lineHeight: '1.5' }}>
+              Create, configure, and deploy tuition and non-tuition fees directly into Blackbaud Billing Management subledgers mapped to official General Ledger accounts (<code>GetFeeTypes</code>).
             </p>
           </div>
           <button 
@@ -165,6 +229,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
             onClick={() => {
               setTitle('9th Grade STEM Robotics & Lab Kit');
               setDescription('Consumables kit and hardware access for Term 1 STEM Robotics curriculum.');
+              setBbFeeTypeId(feeTypes[0]?.feeTypeId || 'FT-TRIP-03');
               setShowModal(true);
             }}
             style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}
@@ -173,90 +238,287 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
             Create Universal Fee
           </button>
         </div>
+
+        {/* View Sub-Tabs */}
+        <div style={{
+          display: 'flex',
+          gap: '0.5rem',
+          marginTop: '1.5rem',
+          paddingTop: '1.25rem',
+          borderTop: '1px solid var(--border-subtle)',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => setSubView('deployed')}
+            className={subView === 'deployed' ? 'btn-primary' : 'btn-secondary'}
+            style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+          >
+            <Layers size={16} />
+            Active Deployed Fees ({existingFees.length})
+          </button>
+
+          <button
+            onClick={() => setSubView('categories')}
+            className={subView === 'categories' ? 'btn-primary' : 'btn-secondary'}
+            style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+          >
+            <Tag size={16} />
+            Blackbaud Fee Categories (GetFeeTypes) ({feeTypes.length})
+          </button>
+
+          <button
+            onClick={() => setSubView('batches')}
+            className={subView === 'batches' ? 'btn-primary' : 'btn-secondary'}
+            style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+          >
+            <FileCode size={16} />
+            SKY API Batch Pipeline ({batches.length})
+          </button>
+        </div>
       </div>
 
-      {/* Existing Deployed Fees List */}
-      <div>
-        <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Layers size={20} color="var(--accent-primary)" />
-          Active Deployed Fees ({existingFees.length})
-        </h3>
+      {/* VIEW 1: Deployed Fees */}
+      {subView === 'deployed' && (
+        <div>
+          <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-heading)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Layers size={20} color="var(--accent-primary)" />
+              Active Deployed Fees ({existingFees.length})
+            </h3>
+            <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
+              Total Active Student Rosters: <strong>{students.filter(s => s.status === 'ACTIVE').length}</strong>
+            </span>
+          </div>
 
-        <div className="grid-cols-2">
-          {existingFees.map(fee => {
-            const feeType = feeTypes.find(f => f.feeTypeId === fee.bbFeeTypeId);
-            return (
-              <div key={fee.id} className="card-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          {existingFees.length === 0 ? (
+            <div className="card-panel" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+              No fees deployed yet. Click <strong>"Create Universal Fee"</strong> or choose a <strong>Fee Category</strong> to deploy your first fee.
+            </div>
+          ) : (
+            <div className="grid-cols-2">
+              {existingFees.map(fee => {
+                const feeType = feeTypes.find(f => f.feeTypeId === fee.bbFeeTypeId);
+                return (
+                  <div key={fee.id} className="card-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
+                        <span className="badge badge-success">{fee.status}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className={`badge ${getCategoryBadgeClass(feeType?.category || '')}`} style={{ fontSize: '0.7rem' }}>
+                            {feeType?.category || 'FEE'}
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                            {fee.bbFeeTypeId}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                        {fee.title}
+                      </h4>
+                      <p style={{ color: 'var(--text-body)', fontSize: '0.875rem', marginTop: '0.4rem', lineHeight: '1.4' }}>
+                        {fee.description}
+                      </p>
+
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1.25rem' }}>
+                        <div style={{
+                          padding: '0.35rem 0.65rem',
+                          background: 'var(--bg-surface-elevated)',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '0.8rem',
+                          color: 'var(--text-body)'
+                        }}>
+                          GL Account: <strong style={{ color: 'var(--text-heading)' }}>{feeType?.glAccountCode || 'GL-1010-00'}</strong>
+                        </div>
+
+                        <div style={{
+                          padding: '0.35rem 0.65rem',
+                          background: 'var(--bg-surface-elevated)',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '0.8rem',
+                          color: 'var(--text-body)'
+                        }}>
+                          Audience: <strong style={{ color: 'var(--text-heading)' }}>
+                            {fee.audience.type === 'GRADE' ? fee.audience.grades?.join(', ') : fee.audience.type}
+                          </strong>
+                        </div>
+
+                        <div style={{
+                          padding: '0.35rem 0.65rem',
+                          background: 'var(--bg-surface-elevated)',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '0.8rem',
+                          color: 'var(--text-body)'
+                        }}>
+                          Custom Fields: <strong style={{ color: 'var(--text-heading)' }}>{fee.customFormSchema.length}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex-between" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Amount</span>
+                        <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--success)' }}>
+                          ${fee.baseAmount.toFixed(2)}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Due Date</span>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-heading)' }}>{fee.dueDate}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* VIEW 2: Blackbaud Fee Categories Catalog (GetFeeTypes) */}
+      {subView === 'categories' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* Catalog Info & Controls */}
+          <div className="card-panel" style={{ padding: '1.5rem' }}>
+            <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                    Blackbaud Fee Category Catalog (<code>GetFeeTypes</code>)
+                  </h3>
+                  <span className="badge badge-success">
+                    <ShieldCheck size={13} /> {feeTypes.length} Synchronized Types
+                  </span>
+                </div>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.35rem' }}>
+                  Synchronized in real-time from Blackbaud SKY API endpoint <code>GET /fee-types</code> (<code>tms-bmapi/v1</code>). Each category routes subledger charges to its pre-configured General Ledger chart of account.
+                </p>
+              </div>
+
+              {/* Search Bar */}
+              <div style={{ position: 'relative', width: '300px' }}>
+                <input
+                  type="text"
+                  placeholder="Search fee categories or GL codes..."
+                  value={categorySearch}
+                  onChange={e => setCategorySearch(e.target.value)}
+                  style={{ padding: '0.5rem 0.75rem 0.5rem 2.25rem', fontSize: '0.85rem' }}
+                />
+                <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+              </div>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {[
+                { id: 'ALL', label: 'All Categories' },
+                { id: 'TUITION', label: 'Tuition' },
+                { id: 'ACTIVITY', label: 'Activity & Excursions' },
+                { id: 'ATHLETIC', label: 'Athletics & Uniforms' },
+                { id: 'MANDATORY_FEE', label: 'Mandatory Fees' },
+                { id: 'OPTIONAL_FEE', label: 'Optional Packages' }
+              ].map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategoryFilter(cat.id)}
+                  style={{
+                    padding: '0.35rem 0.75rem',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    background: selectedCategoryFilter === cat.id ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
+                    color: selectedCategoryFilter === cat.id ? '#ffffff' : 'var(--text-body)',
+                    border: '1px solid var(--border-subtle)'
+                  }}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Fee Types Grid */}
+          <div className="grid-cols-2">
+            {filteredFeeTypes.map(ft => (
+              <div
+                key={ft.feeTypeId}
+                className="card-panel"
+                style={{
+                  padding: '1.5rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '1rem',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
                 <div>
                   <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-                    <span className="badge badge-success">{fee.status}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                      {fee.bbFeeTypeId}
+                    <span className={`badge ${getCategoryBadgeClass(ft.category)}`}>
+                      {ft.category}
+                    </span>
+                    <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent-primary)' }}>
+                      {ft.feeTypeId}
                     </span>
                   </div>
 
-                  <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                    {fee.title}
+                  <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                    {ft.name}
                   </h4>
-                  <p style={{ color: 'var(--text-body)', fontSize: '0.875rem', marginTop: '0.4rem', lineHeight: '1.4' }}>
-                    {fee.description}
-                  </p>
 
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1.25rem' }}>
-                    <div style={{
-                      padding: '0.35rem 0.65rem',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '0.8rem',
-                      color: 'var(--text-body)'
-                    }}>
-                      GL: <strong style={{ color: 'var(--text-heading)' }}>{feeType?.glAccountCode || 'GL-1010-00'}</strong>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1rem' }}>
+                    <div style={{ padding: '0.65rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
+                        GL Distribution Account
+                      </span>
+                      <code style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                        {ft.glAccountCode}
+                      </code>
                     </div>
 
-                    <div style={{
-                      padding: '0.35rem 0.65rem',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '0.8rem',
-                      color: 'var(--text-body)'
-                    }}>
-                      Audience: <strong style={{ color: 'var(--text-heading)' }}>
-                        {fee.audience.type === 'GRADE' ? fee.audience.grades?.join(', ') : fee.audience.type}
-                      </strong>
+                    <div style={{ padding: '0.65rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
+                        Default Standard Rate
+                      </span>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--success)' }}>
+                        ${ft.defaultAmount ? ft.defaultAmount.toFixed(2) : '0.00'}
+                      </span>
                     </div>
+                  </div>
 
-                    <div style={{
-                      padding: '0.35rem 0.65rem',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '0.8rem',
-                      color: 'var(--text-body)'
-                    }}>
-                      Custom Fields: <strong style={{ color: 'var(--text-heading)' }}>{fee.customFormSchema.length}</strong>
-                    </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.85rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <span>Partial Payments: <strong style={{ color: 'var(--text-heading)' }}>{ft.allowPartialPayment ? 'Supported' : 'One-time Only'}</strong></span>
+                    <span>•</span>
+                    <span>Status: <strong style={{ color: 'var(--success)' }}>Active in SKY API</strong></span>
                   </div>
                 </div>
 
-                <div className="flex-between" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
-                  <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Amount</span>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--success)' }}>
-                      ${fee.baseAmount.toFixed(2)}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Due Date</span>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-heading)' }}>{fee.dueDate}</div>
-                  </div>
+                <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    className="btn-primary"
+                    onClick={() => openCreateModalForFeeType(ft)}
+                    style={{ fontSize: '0.825rem', padding: '0.5rem 1rem' }}
+                  >
+                    <PlusCircle size={15} />
+                    Deploy Fee with this Category
+                  </button>
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* VIEW 3: SKY API Batch Pipeline */}
+      {subView === 'batches' && (
+        <BatchMonitor
+          batches={batches}
+          onRefresh={onRefreshBatches || (() => {})}
+        />
+      )}
 
       {/* Creation Modal */}
       {showModal && (
@@ -370,16 +632,40 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
                       Blackbaud Fee Category (<code>GetFeeTypes</code>) *
                     </label>
-                    <select value={bbFeeTypeId} onChange={e => setBbFeeTypeId(e.target.value)}>
+                    <select value={bbFeeTypeId} onChange={e => {
+                      const selected = feeTypes.find(f => f.feeTypeId === e.target.value);
+                      setBbFeeTypeId(e.target.value);
+                      if (selected && selected.defaultAmount) {
+                        setBaseAmount(selected.defaultAmount);
+                      }
+                    }}>
                       {feeTypes.map(ft => (
                         <option key={ft.feeTypeId} value={ft.feeTypeId}>
-                          {ft.name} ({ft.category})
+                          {ft.name} — {ft.category} ({ft.glAccountCode})
                         </option>
                       ))}
                     </select>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem', display: 'block' }}>
-                      Mapped GL Account: <strong>{selectedFeeType?.glAccountCode}</strong>
-                    </span>
+                    
+                    {/* Live Category Detail Box */}
+                    {selectedFeeType && (
+                      <div style={{
+                        marginTop: '0.65rem',
+                        padding: '0.75rem',
+                        background: 'var(--bg-surface-elevated)',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border-subtle)',
+                        fontSize: '0.775rem'
+                      }}>
+                        <div className="flex-between">
+                          <span style={{ color: 'var(--text-muted)' }}>GL Distribution Account:</span>
+                          <strong style={{ color: 'var(--text-heading)', fontFamily: 'var(--font-mono)' }}>{selectedFeeType.glAccountCode}</strong>
+                        </div>
+                        <div className="flex-between" style={{ marginTop: '0.25rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Blackbaud Category:</span>
+                          <span className={`badge ${getCategoryBadgeClass(selectedFeeType.category)}`} style={{ fontSize: '0.65rem' }}>{selectedFeeType.category}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
