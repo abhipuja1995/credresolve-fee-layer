@@ -118,6 +118,21 @@ export class MockDataStore {
     }
   }
 
+  public addFeeType(feeType: Partial<BlackbaudFeeType>): BlackbaudFeeType {
+    const customId = feeType.feeTypeId || `FT-CAT-${Date.now().toString().slice(-4)}`;
+    const newFeeType: BlackbaudFeeType = {
+      feeTypeId: customId,
+      name: feeType.name || 'Untitled Fee Category',
+      category: feeType.category || 'ACTIVITY',
+      glAccountCode: feeType.glAccountCode || `GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`,
+      isActive: true,
+      defaultAmount: Number(feeType.defaultAmount) || 100.00,
+      allowPartialPayment: feeType.allowPartialPayment ?? true
+    };
+    this.feeTypes.unshift(newFeeType);
+    return newFeeType;
+  }
+
   public lookupStudent(query: string) {
     const cleanQuery = query.trim().toLowerCase();
     const digitsOnly = cleanQuery.replace(/\D/g, '');

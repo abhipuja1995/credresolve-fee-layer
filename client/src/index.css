@@ -150,6 +150,18 @@ input, select, textarea {
   width: 100%;
 }
 
+select {
+  cursor: pointer;
+  background-color: var(--bg-card);
+  color: var(--text-heading);
+}
+
+select option {
+  background-color: var(--bg-card);
+  color: var(--text-heading);
+  padding: 0.6rem;
+}
+
 input:focus, select:focus, textarea:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);

@@ -53,6 +53,26 @@ apiRouter.get('/blackbaud/fee-types', async (req, res) => {
   }
 });
 
+apiRouter.post('/blackbaud/fee-types', (req, res) => {
+  try {
+    const { name, category, glAccountCode, defaultAmount, allowPartialPayment, feeTypeId } = req.body;
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Fee Category name is required.' });
+    }
+    const newFeeType = dataStore.addFeeType({
+      feeTypeId: feeTypeId?.trim(),
+      name: name.trim(),
+      category: category || 'ACTIVITY',
+      glAccountCode: glAccountCode?.trim(),
+      defaultAmount: Number(defaultAmount) || 100.00,
+      allowPartialPayment: Boolean(allowPartialPayment)
+    });
+    res.status(201).json(newFeeType);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 apiRouter.get('/blackbaud/batches/:batchId/summary', async (req, res) => {
   try {
     const summary = await blackbaudClient.getTransactionBatchImportSummary(

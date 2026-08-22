@@ -197,6 +197,13 @@ export const App: React.FC = () => {
                   const bList = await api.getBatches();
                   setBatches(bList);
                 }}
+                onFeeTypeCreated={(newFt) => {
+                  setFeeTypes(prev => [newFt, ...prev.filter(f => f.feeTypeId !== newFt.feeTypeId)]);
+                }}
+                onRefreshFeeTypes={async () => {
+                  const ftList = await api.getFeeTypes();
+                  setFeeTypes(ftList);
+                }}
                 onFeeCreated={() => {
                   loadData();
                   setActiveTab('ledger');

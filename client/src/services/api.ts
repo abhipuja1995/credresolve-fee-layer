@@ -32,6 +32,19 @@ export const api = {
     return res.json();
   },
 
+  async createFeeType(payload: Partial<BlackbaudFeeType>): Promise<BlackbaudFeeType> {
+    const res = await fetch(`${API_BASE}/blackbaud/fee-types`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to create fee category');
+    }
+    return res.json();
+  },
+
   async getFees(): Promise<UniversalFeeDefinition[]> {
     const res = await fetch(`${API_BASE}/fees`);
     if (!res.ok) throw new Error('Failed to fetch fees');

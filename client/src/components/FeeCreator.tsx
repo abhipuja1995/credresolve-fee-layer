@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   PlusCircle, 
   Layers, 
@@ -14,7 +14,8 @@ import {
   Building2,
   Clock,
   FileCode,
-  ShieldCheck
+  ShieldCheck,
+  Plus
 } from 'lucide-react';
 import { 
   BlackbaudFeeType, 
@@ -33,6 +34,8 @@ interface FeeCreatorProps {
   batches?: IngestionJobRecord[];
   onRefreshBatches?: () => void;
   onFeeCreated: () => void;
+  onFeeTypeCreated?: (newFeeType: BlackbaudFeeType) => void;
+  onRefreshFeeTypes?: () => void;
 }
 
 export type FeeStudioSubView = 'deployed' | 'categories' | 'batches';
@@ -43,26 +46,39 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   students,
   batches = [],
   onRefreshBatches,
-  onFeeCreated
+  onFeeCreated,
+  onFeeTypeCreated,
+  onRefreshFeeTypes
 }) => {
   const [subView, setSubView] = useState<FeeStudioSubView>('deployed');
   const [categorySearch, setCategorySearch] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('ALL');
 
   const [showModal, setShowModal] = useState(false);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [categorySuccessMsg, setCategorySuccessMsg] = useState<string | null>(null);
 
   // Form State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [bbFeeTypeId, setBbFeeTypeId] = useState(feeTypes[0]?.feeTypeId || 'FT-TRIP-03');
+  const [bbFeeTypeId, setBbFeeTypeId] = useState<string>(feeTypes[0]?.feeTypeId || 'FT-TRIP-03');
   const [baseAmount, setBaseAmount] = useState<number>(125.00);
   const [dueDate, setDueDate] = useState('2026-09-30');
   const [allowPartialPayment, setAllowPartialPayment] = useState(true);
   const [minPartialAmount, setMinPartialAmount] = useState<number>(50.00);
   
+  // New Category Form State
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatType, setNewCatType] = useState<'ACTIVITY' | 'ATHLETIC' | 'TUITION' | 'MANDATORY_FEE' | 'OPTIONAL_FEE'>('ACTIVITY');
+  const [newCatGl, setNewCatGl] = useState('GL-3030-90');
+  const [newCatAmount, setNewCatAmount] = useState<number>(100.00);
+  const [newCatPartial, setNewCatPartial] = useState(true);
+  const [catErrorMsg, setCatErrorMsg] = useState<string | null>(null);
+
   // Audience State
   const [audienceType, setAudienceType] = useState<string>('GRADE');
   const [selectedGrades, setSelectedGrades] = useState<string[]>(['Grade 8']);
@@ -91,6 +107,18 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
       waiverText: 'I hereby grant permission for my student to attend the event and authorize the school chaperone to obtain necessary medical care.'
     }
   ]);
+
+  // Keep bbFeeTypeId synchronized when feeTypes changes
+  useEffect(() => {
+    if (feeTypes.length > 0) {
+      if (!bbFeeTypeId || !feeTypes.some(f => f.feeTypeId === bbFeeTypeId)) {
+        setBbFeeTypeId(feeTypes[0].feeTypeId);
+        if (feeTypes[0].defaultAmount && (!baseAmount || baseAmount === 0)) {
+          setBaseAmount(feeTypes[0].defaultAmount);
+        }
+      }
+    }
+  }, [feeTypes]);
 
   // Calculations
   const selectedFeeType = feeTypes.find(f => f.feeTypeId === bbFeeTypeId) || feeTypes[0];
@@ -137,6 +165,48 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
     setDescription(`Standard fee for ${ft.name} (${ft.category}). Synchronized to General Ledger ${ft.glAccountCode}.`);
     setCurrentStep(1);
     setShowModal(true);
+  };
+
+  const handleAddCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) {
+      setCatErrorMsg('Please enter a Fee Category Name.');
+      return;
+    }
+    setIsAddingCategory(true);
+    setCatErrorMsg(null);
+    try {
+      const created = await api.createFeeType({
+        name: newCatName.trim(),
+        category: newCatType,
+        glAccountCode: newCatGl.trim() || `GL-3030-${Math.floor(10 + Math.random() * 89)}`,
+        defaultAmount: Number(newCatAmount) || 100.00,
+        allowPartialPayment: newCatPartial
+      });
+
+      if (onFeeTypeCreated) {
+        onFeeTypeCreated(created);
+      }
+      if (onRefreshFeeTypes) {
+        onRefreshFeeTypes();
+      }
+
+      setBbFeeTypeId(created.feeTypeId);
+      setBaseAmount(created.defaultAmount ?? 100);
+      setAllowPartialPayment(created.allowPartialPayment);
+
+      setCategorySuccessMsg(`Category "${created.name}" created and synced successfully!`);
+      setTimeout(() => setCategorySuccessMsg(null), 3500);
+
+      // Reset form
+      setNewCatName('');
+      setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
+      setShowAddCategoryModal(false);
+    } catch (err: any) {
+      setCatErrorMsg(err.message || 'Failed to add fee category.');
+    } finally {
+      setIsAddingCategory(false);
+    }
   };
 
   const handleSubmitFee = async () => {
@@ -224,19 +294,38 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
               Create, configure, and deploy tuition and non-tuition fees directly into Blackbaud Billing Management subledgers mapped to official General Ledger accounts (<code>GetFeeTypes</code>).
             </p>
           </div>
-          <button 
-            className="btn-primary" 
-            onClick={() => {
-              setTitle('9th Grade STEM Robotics & Lab Kit');
-              setDescription('Consumables kit and hardware access for Term 1 STEM Robotics curriculum.');
-              setBbFeeTypeId(feeTypes[0]?.feeTypeId || 'FT-TRIP-03');
-              setShowModal(true);
-            }}
-            style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}
-          >
-            <PlusCircle size={18} />
-            Create Universal Fee
-          </button>
+          
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button 
+              className="btn-secondary"
+              onClick={() => {
+                setCatErrorMsg(null);
+                setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
+                setShowAddCategoryModal(true);
+              }}
+              style={{ padding: '0.75rem 1.25rem', fontSize: '0.925rem' }}
+            >
+              <Plus size={16} />
+              Add Fee Category
+            </button>
+
+            <button 
+              className="btn-primary" 
+              onClick={() => {
+                setTitle('9th Grade STEM Robotics & Lab Kit');
+                setDescription('Consumables kit and hardware access for Term 1 STEM Robotics curriculum.');
+                if (feeTypes.length > 0) {
+                  setBbFeeTypeId(feeTypes[0].feeTypeId);
+                  setBaseAmount(feeTypes[0].defaultAmount || 125.00);
+                }
+                setShowModal(true);
+              }}
+              style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}
+            >
+              <PlusCircle size={18} />
+              Create Universal Fee
+            </button>
+          </div>
         </div>
 
         {/* View Sub-Tabs */}
@@ -276,6 +365,24 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
           </button>
         </div>
       </div>
+
+      {categorySuccessMsg && (
+        <div style={{
+          background: 'var(--success-bg)',
+          border: '1px solid var(--success-border)',
+          padding: '0.85rem 1.25rem',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--success-text)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontSize: '0.9rem',
+          fontWeight: 600
+        }}>
+          <CheckCircle2 size={18} />
+          {categorySuccessMsg}
+        </div>
+      )}
 
       {/* VIEW 1: Deployed Fees */}
       {subView === 'deployed' && (
@@ -398,16 +505,31 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                 </p>
               </div>
 
-              {/* Search Bar */}
-              <div style={{ position: 'relative', width: '300px' }}>
-                <input
-                  type="text"
-                  placeholder="Search fee categories or GL codes..."
-                  value={categorySearch}
-                  onChange={e => setCategorySearch(e.target.value)}
-                  style={{ padding: '0.5rem 0.75rem 0.5rem 2.25rem', fontSize: '0.85rem' }}
-                />
-                <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    setCatErrorMsg(null);
+                    setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
+                    setShowAddCategoryModal(true);
+                  }}
+                  style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                >
+                  <Plus size={15} />
+                  Add Category
+                </button>
+
+                {/* Search Bar */}
+                <div style={{ position: 'relative', width: '280px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search categories or GL codes..."
+                    value={categorySearch}
+                    onChange={e => setCategorySearch(e.target.value)}
+                    style={{ padding: '0.5rem 0.75rem 0.5rem 2.25rem', fontSize: '0.85rem' }}
+                  />
+                  <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
               </div>
             </div>
 
@@ -520,7 +642,166 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
         />
       )}
 
-      {/* Creation Modal */}
+      {/* MODAL 1: Add New Fee Category Modal */}
+      {showAddCategoryModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 110,
+          padding: '1.5rem'
+        }}>
+          <div className="card-panel" style={{
+            width: '100%',
+            maxWidth: '560px',
+            padding: '2rem',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-strong)',
+            boxShadow: 'var(--shadow-lg)'
+          }}>
+            <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                  Add Blackbaud Fee Category
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Define a new category and General Ledger chart of account for SKY API sync.
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowAddCategoryModal(false)}
+                style={{ color: 'var(--text-muted)', fontSize: '1.25rem', fontWeight: 700 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {catErrorMsg && (
+              <div style={{
+                background: 'var(--danger-bg)',
+                border: '1px solid var(--danger-border)',
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--danger-text)',
+                marginBottom: '1.25rem',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <AlertCircle size={16} />
+                {catErrorMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleAddCategorySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
+                  Category Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newCatName}
+                  onChange={e => setNewCatName(e.target.value)}
+                  placeholder="e.g. Bus Transportation Fee or AP Exam Package"
+                />
+              </div>
+
+              <div className="grid-cols-2">
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
+                    Category Type *
+                  </label>
+                  <select
+                    value={newCatType}
+                    onChange={e => setNewCatType(e.target.value as any)}
+                  >
+                    <option value="ACTIVITY">ACTIVITY (Excursion/Club)</option>
+                    <option value="ATHLETIC">ATHLETIC (Uniforms/Teams)</option>
+                    <option value="TUITION">TUITION (Standard Term)</option>
+                    <option value="MANDATORY_FEE">MANDATORY_FEE (Tech/Facility)</option>
+                    <option value="OPTIONAL_FEE">OPTIONAL_FEE (Graduation/Yearbook)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
+                    GL Account Code *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newCatGl}
+                    onChange={e => setNewCatGl(e.target.value)}
+                    placeholder="e.g. GL-3030-90"
+                  />
+                </div>
+              </div>
+
+              <div className="grid-cols-2">
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
+                    Default Standard Rate ($ USD) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={newCatAmount}
+                    onChange={e => setNewCatAmount(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
+                    Payment Options
+                  </label>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.65rem',
+                    padding: '0.65rem 0.85rem',
+                    background: 'var(--bg-surface-elevated)',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-strong)'
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="new_partial_toggle"
+                      checked={newCatPartial}
+                      onChange={e => setNewCatPartial(e.target.checked)}
+                      style={{ width: 'auto' }}
+                    />
+                    <label htmlFor="new_partial_toggle" style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-heading)', cursor: 'pointer' }}>
+                      Allow Partial Payments
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-between" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
+                <button type="button" className="btn-secondary" onClick={() => setShowAddCategoryModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" disabled={isAddingCategory || !newCatName.trim()}>
+                  {isAddingCategory ? 'Saving Category...' : 'Save & Sync Category'}
+                  <CheckCircle2 size={16} />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: Create Universal Fee Modal */}
       {showModal && (
         <div style={{
           position: 'fixed',
@@ -629,16 +910,38 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
 
                 <div className="grid-cols-2">
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                      Blackbaud Fee Category (<code>GetFeeTypes</code>) *
-                    </label>
-                    <select value={bbFeeTypeId} onChange={e => {
-                      const selected = feeTypes.find(f => f.feeTypeId === e.target.value);
-                      setBbFeeTypeId(e.target.value);
-                      if (selected && selected.defaultAmount) {
-                        setBaseAmount(selected.defaultAmount);
-                      }
-                    }}>
+                    <div className="flex-between" style={{ marginBottom: '0.4rem' }}>
+                      <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                        Blackbaud Fee Category (<code>GetFeeTypes</code>) *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCatErrorMsg(null);
+                          setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
+                          setShowAddCategoryModal(true);
+                        }}
+                        style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                      >
+                        <Plus size={12} /> Add New
+                      </button>
+                    </div>
+
+                    <select 
+                      value={bbFeeTypeId || (feeTypes[0]?.feeTypeId || '')} 
+                      onChange={e => {
+                        const selected = feeTypes.find(f => f.feeTypeId === e.target.value);
+                        setBbFeeTypeId(e.target.value);
+                        if (selected && selected.defaultAmount) {
+                          setBaseAmount(selected.defaultAmount);
+                          setAllowPartialPayment(selected.allowPartialPayment);
+                        }
+                      }}
+                      style={{ fontWeight: 600 }}
+                    >
+                      {feeTypes.length === 0 && (
+                        <option value="">Loading Fee Categories...</option>
+                      )}
                       {feeTypes.map(ft => (
                         <option key={ft.feeTypeId} value={ft.feeTypeId}>
                           {ft.name} — {ft.category} ({ft.glAccountCode})
@@ -650,19 +953,25 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     {selectedFeeType && (
                       <div style={{
                         marginTop: '0.65rem',
-                        padding: '0.75rem',
+                        padding: '0.75rem 0.85rem',
                         background: 'var(--bg-surface-elevated)',
                         borderRadius: 'var(--radius-sm)',
                         border: '1px solid var(--border-subtle)',
-                        fontSize: '0.775rem'
+                        fontSize: '0.8rem'
                       }}>
                         <div className="flex-between">
                           <span style={{ color: 'var(--text-muted)' }}>GL Distribution Account:</span>
                           <strong style={{ color: 'var(--text-heading)', fontFamily: 'var(--font-mono)' }}>{selectedFeeType.glAccountCode}</strong>
                         </div>
-                        <div className="flex-between" style={{ marginTop: '0.25rem' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Blackbaud Category:</span>
-                          <span className={`badge ${getCategoryBadgeClass(selectedFeeType.category)}`} style={{ fontSize: '0.65rem' }}>{selectedFeeType.category}</span>
+                        <div className="flex-between" style={{ marginTop: '0.35rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Standard Rate:</span>
+                          <strong style={{ color: 'var(--success)' }}>${selectedFeeType.defaultAmount?.toFixed(2)}</strong>
+                        </div>
+                        <div className="flex-between" style={{ marginTop: '0.35rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Category Classification:</span>
+                          <span className={`badge ${getCategoryBadgeClass(selectedFeeType.category)}`} style={{ fontSize: '0.65rem' }}>
+                            {selectedFeeType.category}
+                          </span>
                         </div>
                       </div>
                     )}
