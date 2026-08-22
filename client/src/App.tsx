@@ -22,9 +22,10 @@ export const App: React.FC = () => {
   const [fees, setFees] = useState<UniversalFeeDefinition[]>([]);
   const [students, setStudents] = useState<StudentAccount[]>([]);
   const [charges, setCharges] = useState<StudentCharge[]>([]);
-  const [selectedChargeIdForCheckout, setSelectedChargeIdForCheckout] = useState<string>('');
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isStandaloneParentView, setIsStandaloneParentView] = useState(false);
+  const [parentInitialQuery, setParentInitialQuery] = useState<string | undefined>(undefined);
 
   // Helper to determine if a color is light
   const isColorLight = (hexColor: string) => {
@@ -97,19 +98,19 @@ export const App: React.FC = () => {
         applyTheme(ctx.environment.branding);
       }
 
-      // Check URL query parameters
+      // Check URL query parameters for parent app / website embed
       const urlParams = new URLSearchParams(window.location.search);
       const viewParam = urlParams.get('view');
       const directChargeId = urlParams.get('chargeId') || urlParams.get('pay');
 
-      if (viewParam === 'quickpay') {
-        setActiveTab('quickpay');
-      } else if (directChargeId && cList.some(c => c.id === directChargeId)) {
-        setSelectedChargeIdForCheckout(directChargeId);
-        setActiveTab('quickpay');
-      } else if (!selectedChargeIdForCheckout && cList.length > 0) {
-        const unpaid = cList.find(c => c.paymentStatus === 'UNPAID');
-        setSelectedChargeIdForCheckout(unpaid ? unpaid.id : cList[0].id);
+      if (viewParam === 'quickpay' || viewParam === 'embed' || directChargeId) {
+        setIsStandaloneParentView(true);
+        if (directChargeId) {
+          const matchCharge = cList.find(c => c.id === directChargeId);
+          if (matchCharge) {
+            setParentInitialQuery(matchCharge.studentId);
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to load initial application state:', err);
@@ -123,19 +124,17 @@ export const App: React.FC = () => {
   }, []);
 
   const handleOpenCheckout = (chargeId: string) => {
-    setSelectedChargeIdForCheckout(chargeId);
-    setActiveTab('quickpay');
-    const newUrl = `${window.location.pathname}?chargeId=${chargeId}`;
-    window.history.replaceState({ path: newUrl }, '', newUrl);
+    const matchCharge = charges.find(c => c.id === chargeId);
+    if (matchCharge) {
+      setParentInitialQuery(matchCharge.studentId);
+    }
+    // Open in a new parent window or toggle view
+    window.open(`${window.location.origin}/?chargeId=${chargeId}`, '_blank');
   };
 
   const handleTabChange = (tab: ActiveTab) => {
     setActiveTab(tab);
-    if (tab === 'quickpay') {
-      window.history.replaceState({}, '', `${window.location.pathname}?view=quickpay`);
-    } else {
-      window.history.replaceState({}, '', window.location.pathname);
-    }
+    window.history.replaceState({}, '', window.location.pathname);
   };
 
   const handleBrandingUpdated = (newBranding: SchoolBranding) => {
@@ -151,6 +150,21 @@ export const App: React.FC = () => {
     }
     applyTheme(newBranding);
   };
+
+  // If in standalone Parent Quick-Pay View (accessed via school app / embed / payment link)
+  if (isStandaloneParentView) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', padding: '2rem 1rem' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <ParentQuickPayPortal
+            branding={context?.environment.branding}
+            onPaymentCompleted={() => loadData()}
+            initialQuery={parentInitialQuery}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -182,14 +196,6 @@ export const App: React.FC = () => {
               />
             )}
 
-            {activeTab === 'quickpay' && (
-              <ParentQuickPayPortal
-                branding={context?.environment.branding}
-                onPaymentCompleted={() => loadData()}
-                initialQuery={selectedChargeIdForCheckout ? charges.find(c => c.id === selectedChargeIdForCheckout)?.studentId : undefined}
-              />
-            )}
-
             {activeTab === 'ledger' && (
               <StudentLedgerView
                 charges={charges}
@@ -200,7 +206,9 @@ export const App: React.FC = () => {
 
             {activeTab === 'guide' && (
               <UserGuideView
-                onNavigateTab={(tab) => handleTabChange(tab)}
+                onNavigateTab={(tab) => {
+                  if (tab === 'fees' || tab === 'ledger') handleTabChange(tab);
+                }}
                 onOpenBranding={() => setIsBrandingModalOpen(true)}
                 branding={context?.environment.branding}
               />
