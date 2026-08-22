@@ -4,10 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class MockDataStore {
   public environmentContext: BlackbaudEnvironmentContext = {
-    environmentId: 'bb-env-stjude-2026',
-    schoolName: 'St. Jude International Academy',
-    subscriptionKey: 'sk_live_bb_892347891234abcd',
-    accessToken: 'bb_oauth2_tok_991204891283',
+    environmentId: process.env.BLACKBAUD_ENVIRONMENT_ID || 'bb-env-oakridge-2026',
+    schoolName: 'Oakridge International Prep',
+    subscriptionKey: process.env.BLACKBAUD_SUBSCRIPTION_KEY || 'ef89fdba1bd149ee8296bcda7add3e2a',
+    accessToken: process.env.BLACKBAUD_OAUTH_TOKEN || 'bb_oauth2_tok_991204891283',
     tokenExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
     branding: {
       schoolName: 'Oakridge International Prep',
