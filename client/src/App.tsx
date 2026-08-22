@@ -1,0 +1,223 @@
+import React, { useState, useEffect } from 'react';
+import { Navigation, ActiveTab } from './components/Navigation.js';
+import { FeeCreator } from './components/FeeCreator.js';
+import { ParentQuickPayPortal } from './components/ParentQuickPayPortal.js';
+import { StudentLedgerView } from './components/StudentLedgerView.js';
+import { BrandingSettingsModal } from './components/BrandingSettingsModal.js';
+import { UserGuideView } from './components/UserGuideView.js';
+import { api } from './services/api.js';
+import { 
+  BlackbaudContext, 
+  BlackbaudFeeType, 
+  UniversalFeeDefinition, 
+  StudentAccount, 
+  StudentCharge,
+  SchoolBranding 
+} from './types/index.js';
+
+export const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('fees');
+  const [context, setContext] = useState<BlackbaudContext | null>(null);
+  const [feeTypes, setFeeTypes] = useState<BlackbaudFeeType[]>([]);
+  const [fees, setFees] = useState<UniversalFeeDefinition[]>([]);
+  const [students, setStudents] = useState<StudentAccount[]>([]);
+  const [charges, setCharges] = useState<StudentCharge[]>([]);
+  const [selectedChargeIdForCheckout, setSelectedChargeIdForCheckout] = useState<string>('');
+  const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Helper to determine if a color is light
+  const isColorLight = (hexColor: string) => {
+    const hex = hexColor.replace('#', '');
+    if (hex.length < 6) return true;
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5;
+  };
+
+  // Apply CSS variables dynamically based on client branding
+  const applyTheme = (branding: SchoolBranding) => {
+    const root = document.documentElement;
+    const isLightMode = isColorLight(branding.backgroundColor || '#f8fafc');
+
+    if (isLightMode) {
+      document.body.classList.remove('dark-theme');
+    } else {
+      document.body.classList.add('dark-theme');
+    }
+
+    if (branding.primaryColor) {
+      root.style.setProperty('--accent-primary', branding.primaryColor);
+      root.style.setProperty('--accent-secondary', branding.secondaryColor || '#7c3aed');
+      root.style.setProperty('--accent-gradient', `linear-gradient(135deg, ${branding.primaryColor} 0%, ${branding.secondaryColor || '#7c3aed'} 100%)`);
+      root.style.setProperty('--accent-light', `${branding.primaryColor}15`);
+      root.style.setProperty('--border-accent', `${branding.primaryColor}50`);
+      root.style.setProperty('--accent-gradient-card', isLightMode ? `linear-gradient(135deg, ${branding.backgroundColor || '#f8fafc'} 0%, ${branding.primaryColor}12 100%)` : `linear-gradient(135deg, ${branding.surfaceColor || '#111827'} 0%, ${branding.primaryColor}20 100%)`);
+    }
+
+    if (branding.backgroundColor) {
+      root.style.setProperty('--bg-page', branding.backgroundColor);
+    }
+
+    if (branding.surfaceColor) {
+      root.style.setProperty('--bg-card', branding.surfaceColor);
+      root.style.setProperty('--bg-surface-elevated', isLightMode ? '#f1f5f9' : '#1e293b');
+      root.style.setProperty('--bg-surface-hover', isLightMode ? '#e2e8f0' : '#334155');
+      root.style.setProperty('--bg-nav', isLightMode ? `${branding.surfaceColor}f2` : 'rgba(11, 15, 25, 0.92)');
+    }
+
+    if (branding.textColor) {
+      root.style.setProperty('--text-heading', branding.textColor);
+      root.style.setProperty('--text-body', isLightMode ? '#334155' : '#cbd5e1');
+      root.style.setProperty('--text-muted', isLightMode ? '#64748b' : '#94a3b8');
+      root.style.setProperty('--border-subtle', isLightMode ? '#e2e8f0' : '#1e293b');
+      root.style.setProperty('--border-strong', isLightMode ? '#cbd5e1' : '#334155');
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      const [ctx, ft, fList, sList, cList] = await Promise.all([
+        api.getContext(),
+        api.getFeeTypes(),
+        api.getFees(),
+        api.getStudents(),
+        api.getCharges()
+      ]);
+
+      setContext(ctx);
+      setFeeTypes(ft);
+      setFees(fList);
+      setStudents(sList);
+      setCharges(cList);
+
+      if (ctx.environment.branding) {
+        applyTheme(ctx.environment.branding);
+      }
+
+      // Check URL query parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const viewParam = urlParams.get('view');
+      const directChargeId = urlParams.get('chargeId') || urlParams.get('pay');
+
+      if (viewParam === 'quickpay') {
+        setActiveTab('quickpay');
+      } else if (directChargeId && cList.some(c => c.id === directChargeId)) {
+        setSelectedChargeIdForCheckout(directChargeId);
+        setActiveTab('quickpay');
+      } else if (!selectedChargeIdForCheckout && cList.length > 0) {
+        const unpaid = cList.find(c => c.paymentStatus === 'UNPAID');
+        setSelectedChargeIdForCheckout(unpaid ? unpaid.id : cList[0].id);
+      }
+    } catch (err) {
+      console.error('Failed to load initial application state:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleOpenCheckout = (chargeId: string) => {
+    setSelectedChargeIdForCheckout(chargeId);
+    setActiveTab('quickpay');
+    const newUrl = `${window.location.pathname}?chargeId=${chargeId}`;
+    window.history.replaceState({ path: newUrl }, '', newUrl);
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    if (tab === 'quickpay') {
+      window.history.replaceState({}, '', `${window.location.pathname}?view=quickpay`);
+    } else {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  };
+
+  const handleBrandingUpdated = (newBranding: SchoolBranding) => {
+    if (context) {
+      setContext({
+        ...context,
+        environment: {
+          ...context.environment,
+          schoolName: newBranding.schoolName,
+          branding: newBranding
+        }
+      });
+    }
+    applyTheme(newBranding);
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Navigation
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        context={context}
+        onOpenBrandingModal={() => setIsBrandingModalOpen(true)}
+      />
+
+      <main className="container" style={{ flex: 1, padding: '2rem' }}>
+        {loading ? (
+          <div className="card-panel" style={{ padding: '3rem', textAlign: 'center' }}>
+            <div style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>
+              Connecting to Blackbaud SKY API & CredResolve Ledger...
+            </div>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'fees' && (
+              <FeeCreator
+                feeTypes={feeTypes}
+                existingFees={fees}
+                students={students}
+                onFeeCreated={() => {
+                  loadData();
+                  setActiveTab('ledger');
+                }}
+              />
+            )}
+
+            {activeTab === 'quickpay' && (
+              <ParentQuickPayPortal
+                branding={context?.environment.branding}
+                onPaymentCompleted={() => loadData()}
+                initialQuery={selectedChargeIdForCheckout ? charges.find(c => c.id === selectedChargeIdForCheckout)?.studentId : undefined}
+              />
+            )}
+
+            {activeTab === 'ledger' && (
+              <StudentLedgerView
+                charges={charges}
+                fees={fees}
+                onOpenCheckout={handleOpenCheckout}
+              />
+            )}
+
+            {activeTab === 'guide' && (
+              <UserGuideView
+                onNavigateTab={(tab) => handleTabChange(tab)}
+                onOpenBranding={() => setIsBrandingModalOpen(true)}
+                branding={context?.environment.branding}
+              />
+            )}
+          </>
+        )}
+      </main>
+
+      {/* Branding Settings Modal */}
+      {context?.environment.branding && (
+        <BrandingSettingsModal
+          currentBranding={context.environment.branding}
+          isOpen={isBrandingModalOpen}
+          onClose={() => setIsBrandingModalOpen(false)}
+          onBrandingUpdated={handleBrandingUpdated}
+        />
+      )}
+    </div>
+  );
+};
