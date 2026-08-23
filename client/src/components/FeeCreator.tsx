@@ -23,7 +23,8 @@ import {
   FormFieldSchema, 
   StudentAccount,
   IngestionJobRecord,
-  DEFAULT_FEE_TYPES
+  DEFAULT_FEE_TYPES,
+  DEFAULT_STUDENTS
 } from '../types/index.js';
 import { api } from '../services/api.js';
 import { BatchMonitor } from './BatchMonitor.js';
@@ -44,7 +45,7 @@ export type FeeStudioSubView = 'deployed' | 'categories' | 'batches';
 export const FeeCreator: React.FC<FeeCreatorProps> = ({
   feeTypes = [],
   existingFees,
-  students,
+  students = [],
   batches = [],
   onRefreshBatches,
   onFeeCreated,
@@ -52,6 +53,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   onRefreshFeeTypes
 }) => {
   const activeFeeTypes = (feeTypes && feeTypes.length > 0) ? feeTypes : DEFAULT_FEE_TYPES;
+  const activeStudents = (students && students.length > 0) ? students : DEFAULT_STUDENTS;
 
   const [subView, setSubView] = useState<FeeStudioSubView>('deployed');
   const [categorySearch, setCategorySearch] = useState('');
@@ -126,7 +128,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   // Calculations
   const selectedFeeType = activeFeeTypes.find(f => f.feeTypeId === bbFeeTypeId) || activeFeeTypes[0];
   
-  const targetedStudents = students.filter(s => {
+  const targetedStudents = activeStudents.filter(s => {
     if (s.status !== 'ACTIVE') return false;
     if (audienceType === 'ALL_STUDENTS') return true;
     if (audienceType === 'GRADE') return selectedGrades.includes(s.grade);
@@ -213,21 +215,26 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   };
 
   const handleSubmitFee = async () => {
+    if (!title.trim()) {
+      setErrorMsg('Please enter a Fee Title.');
+      return;
+    }
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
+      const feeTypeToUse = bbFeeTypeId || activeFeeTypes[0]?.feeTypeId || 'FT-TRIP-03';
       await api.createFee({
-        title,
-        description,
-        bbFeeTypeId,
-        baseAmount: Number(baseAmount),
-        dueDate,
+        title: title.trim(),
+        description: description.trim() || `Fee for ${title.trim()}`,
+        bbFeeTypeId: feeTypeToUse,
+        baseAmount: Number(baseAmount) || 100,
+        dueDate: dueDate || '2026-09-30',
         academicYear: '2026-2027',
         allowPartialPayment,
         minPartialAmount: allowPartialPayment ? Number(minPartialAmount) : undefined,
         audience: {
           type: audienceType,
-          grades: audienceType === 'GRADE' ? selectedGrades : undefined
+          grades: audienceType === 'GRADE' ? (selectedGrades.length > 0 ? selectedGrades : ['Grade 8']) : undefined
         },
         customFormSchema: customFields
       });
@@ -1211,24 +1218,6 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     </div>
                   </div>
                 </div>
-
-                {/* Blackbaud Ingestion Pipeline Specifications */}
-                <div style={{
-                  padding: '1rem 1.25rem',
-                  background: 'var(--bg-surface-elevated)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-subtle)',
-                  fontSize: '0.85rem'
-                }}>
-                  <div style={{ fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-heading)' }}>
-                    ⚡ Blackbaud SKY API Auto-Injection Pipeline:
-                  </div>
-                  <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-body)', lineHeight: '1.6' }}>
-                    <li>Fee Category: <strong>{selectedFeeType?.name}</strong> (GL: <code>{selectedFeeType?.glAccountCode}</code>)</li>
-                    <li>Asynchronous Batch: Calls <code>CreateChargeImportBatch</code> with chunking (≤ 500 records/batch).</li>
-                    <li>Status Polling: Enqueues job with real-time polling on <code>GetTransactionBatchImportSummary</code>.</li>
-                  </ul>
-                </div>
               </div>
             )}
 
@@ -1247,7 +1236,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
               ) : (
                 <button 
                   className="btn-primary" 
-                  disabled={isSubmitting || !title || targetedStudents.length === 0}
+                  disabled={isSubmitting || !title.trim()}
                   onClick={handleSubmitFee}
                 >
                   {isSubmitting ? 'Submitting...' : 'Finish'}

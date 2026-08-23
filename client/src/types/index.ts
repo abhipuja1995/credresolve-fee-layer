@@ -143,6 +143,19 @@ export interface StudentAccount {
   status: string;
 }
 
+export const DEFAULT_STUDENTS: StudentAccount[] = [
+  { studentId: 'BB-STU-101', familyId: 'BB-FAM-501', studentName: 'Alexander Hayes', parentName: 'Michael Hayes', parentEmail: 'michael.hayes@example.com', parentPhone: '+1-555-0101', grade: 'Grade 8', homeroom: '8-A', currentBalance: 450.00, status: 'ACTIVE' },
+  { studentId: 'BB-STU-102', familyId: 'BB-FAM-502', studentName: 'Sophia Patel', parentName: 'Priya Patel', parentEmail: 'priya.patel@example.com', parentPhone: '+1-555-0102', grade: 'Grade 8', homeroom: '8-A', currentBalance: 0.00, status: 'ACTIVE' },
+  { studentId: 'BB-STU-103', familyId: 'BB-FAM-503', studentName: 'Lucas Vance', parentName: 'David Vance', parentEmail: 'david.vance@example.com', parentPhone: '+1-555-0103', grade: 'Grade 8', homeroom: '8-B', currentBalance: 125.00, status: 'ACTIVE' },
+  { studentId: 'BB-STU-104', familyId: 'BB-FAM-504', studentName: 'Emma Richardson', parentName: 'Sarah Richardson', parentEmail: 'sarah.r@example.com', parentPhone: '+1-555-0104', grade: 'Grade 8', homeroom: '8-B', currentBalance: 80.00, status: 'ACTIVE' },
+  { studentId: 'BB-STU-105', familyId: 'BB-FAM-505', studentName: 'Benjamin Walker', parentName: 'James Walker', parentEmail: 'james.walker@example.com', parentPhone: '+1-555-0105', grade: 'Grade 7', homeroom: '7-A', currentBalance: 0.00, status: 'ACTIVE' },
+  { studentId: 'BB-STU-106', familyId: 'BB-FAM-506', studentName: 'Olivia Martinez', parentName: 'Carlos Martinez', parentEmail: 'carlos.m@example.com', parentPhone: '+1-555-0106', grade: 'Grade 7', homeroom: '7-A', currentBalance: 250.00, status: 'ACTIVE' },
+  { studentId: 'BB-STU-107', familyId: 'BB-FAM-507', studentName: 'Ethan Wright', parentName: 'Laura Wright', parentEmail: 'laura.wright@example.com', parentPhone: '+1-555-0107', grade: 'Grade 7', homeroom: '7-B', currentBalance: 0.00, status: 'ACTIVE' },
+  { studentId: 'BB-STU-108', familyId: 'BB-FAM-508', studentName: 'Mia Kim', parentName: 'Daniel Kim', parentEmail: 'daniel.kim@example.com', parentPhone: '+1-555-0108', grade: 'Grade 9', homeroom: '9-A', currentBalance: 175.00, status: 'ACTIVE' },
+  { studentId: 'BB-STU-109', familyId: 'BB-FAM-509', studentName: 'Noah Bennett', parentName: 'Jessica Bennett', parentEmail: 'jessica.b@example.com', parentPhone: '+1-555-0109', grade: 'Grade 9', homeroom: '9-A', currentBalance: 320.00, status: 'ACTIVE' },
+  { studentId: 'BB-STU-110', familyId: 'BB-FAM-510', studentName: 'Ava Jenkins', parentName: 'Robert Jenkins', parentEmail: 'robert.j@example.com', parentPhone: '+1-555-0110', grade: 'Grade 9', homeroom: '9-B', currentBalance: 0.00, status: 'ACTIVE' }
+];
+
 export interface StudentCharge {
   id: string;
   feeId: string;

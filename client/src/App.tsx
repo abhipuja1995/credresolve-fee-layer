@@ -13,7 +13,8 @@ import {
   StudentAccount, 
   StudentCharge,
   SchoolBranding,
-  DEFAULT_FEE_TYPES
+  DEFAULT_FEE_TYPES,
+  DEFAULT_STUDENTS
 } from './types/index.js';
 
 export const App: React.FC = () => {
@@ -21,7 +22,7 @@ export const App: React.FC = () => {
   const [context, setContext] = useState<BlackbaudContext | null>(null);
   const [feeTypes, setFeeTypes] = useState<BlackbaudFeeType[]>(DEFAULT_FEE_TYPES);
   const [fees, setFees] = useState<UniversalFeeDefinition[]>([]);
-  const [students, setStudents] = useState<StudentAccount[]>([]);
+  const [students, setStudents] = useState<StudentAccount[]>(DEFAULT_STUDENTS);
   const [charges, setCharges] = useState<StudentCharge[]>([]);
   const [batches, setBatches] = useState<import('./types/index.js').IngestionJobRecord[]>([]);
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
