@@ -12,13 +12,14 @@ import {
   UniversalFeeDefinition, 
   StudentAccount, 
   StudentCharge,
-  SchoolBranding 
+  SchoolBranding,
+  DEFAULT_FEE_TYPES
 } from './types/index.js';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('fees');
   const [context, setContext] = useState<BlackbaudContext | null>(null);
-  const [feeTypes, setFeeTypes] = useState<BlackbaudFeeType[]>([]);
+  const [feeTypes, setFeeTypes] = useState<BlackbaudFeeType[]>(DEFAULT_FEE_TYPES);
   const [fees, setFees] = useState<UniversalFeeDefinition[]>([]);
   const [students, setStudents] = useState<StudentAccount[]>([]);
   const [charges, setCharges] = useState<StudentCharge[]>([]);
@@ -82,22 +83,22 @@ export const App: React.FC = () => {
   const loadData = async () => {
     try {
       const [ctx, ft, fList, sList, cList, bList] = await Promise.all([
-        api.getContext(),
-        api.getFeeTypes(),
-        api.getFees(),
-        api.getStudents(),
-        api.getCharges(),
-        api.getBatches()
+        api.getContext().catch(() => null),
+        api.getFeeTypes().catch(() => DEFAULT_FEE_TYPES),
+        api.getFees().catch(() => []),
+        api.getStudents().catch(() => []),
+        api.getCharges().catch(() => []),
+        api.getBatches().catch(() => [])
       ]);
 
-      setContext(ctx);
-      setFeeTypes(ft);
-      setFees(fList);
-      setStudents(sList);
-      setCharges(cList);
-      setBatches(bList);
+      if (ctx) setContext(ctx);
+      if (ft && ft.length > 0) setFeeTypes(ft);
+      if (fList) setFees(fList);
+      if (sList) setStudents(sList);
+      if (cList) setCharges(cList);
+      if (bList) setBatches(bList);
 
-      if (ctx.environment.branding) {
+      if (ctx?.environment?.branding) {
         applyTheme(ctx.environment.branding);
       }
 

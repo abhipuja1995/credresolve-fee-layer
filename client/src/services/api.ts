@@ -4,7 +4,8 @@ import {
   UniversalFeeDefinition, 
   IngestionJobRecord, 
   StudentAccount, 
-  StudentCharge 
+  StudentCharge,
+  DEFAULT_FEE_TYPES
 } from '../types/index.js';
 
 const API_BASE = '/api';
@@ -27,9 +28,15 @@ export const api = {
   },
 
   async getFeeTypes(): Promise<BlackbaudFeeType[]> {
-    const res = await fetch(`${API_BASE}/blackbaud/fee-types`);
-    if (!res.ok) throw new Error('Failed to fetch fee types');
-    return res.json();
+    try {
+      const res = await fetch(`${API_BASE}/blackbaud/fee-types`);
+      if (!res.ok) throw new Error('Failed to fetch fee types');
+      const data = await res.json();
+      return Array.isArray(data) && data.length > 0 ? data : DEFAULT_FEE_TYPES;
+    } catch (err) {
+      console.warn('Backend SKY API offline, using standard cached Blackbaud fee categories:', err);
+      return DEFAULT_FEE_TYPES;
+    }
   },
 
   async createFeeType(payload: Partial<BlackbaudFeeType>): Promise<BlackbaudFeeType> {

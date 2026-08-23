@@ -18,6 +18,63 @@ export interface BlackbaudFeeType {
   allowPartialPayment: boolean;
 }
 
+export const DEFAULT_FEE_TYPES: BlackbaudFeeType[] = [
+  {
+    feeTypeId: 'FT-TRIP-03',
+    name: 'Field Trip & Educational Excursion',
+    category: 'ACTIVITY',
+    glAccountCode: 'GL-3030-40',
+    isActive: true,
+    defaultAmount: 125.00,
+    allowPartialPayment: true
+  },
+  {
+    feeTypeId: 'FT-ATHL-02',
+    name: 'Athletic Fee & Varsity Uniforms',
+    category: 'ATHLETIC',
+    glAccountCode: 'GL-2020-15',
+    isActive: true,
+    defaultAmount: 175.00,
+    allowPartialPayment: false
+  },
+  {
+    feeTypeId: 'FT-TUIT-01',
+    name: 'Tuition - Standard Academic Term',
+    category: 'TUITION',
+    glAccountCode: 'GL-1010-00',
+    isActive: true,
+    defaultAmount: 4500.00,
+    allowPartialPayment: true
+  },
+  {
+    feeTypeId: 'FT-TECH-04',
+    name: 'STEM Lab & 1-to-1 Device Fee',
+    category: 'MANDATORY_FEE',
+    glAccountCode: 'GL-4040-02',
+    isActive: true,
+    defaultAmount: 250.00,
+    allowPartialPayment: false
+  },
+  {
+    feeTypeId: 'FT-GRAD-05',
+    name: 'Senior Graduation & Yearbook Package',
+    category: 'OPTIONAL_FEE',
+    glAccountCode: 'GL-5050-80',
+    isActive: true,
+    defaultAmount: 195.00,
+    allowPartialPayment: true
+  },
+  {
+    feeTypeId: 'FT-CAMP-06',
+    name: 'Robotics Summer Camp & Materials',
+    category: 'ACTIVITY',
+    glAccountCode: 'GL-3030-55',
+    isActive: true,
+    defaultAmount: 320.00,
+    allowPartialPayment: true
+  }
+];
+
 export interface FormFieldSchema {
   id: string;
   label: string;

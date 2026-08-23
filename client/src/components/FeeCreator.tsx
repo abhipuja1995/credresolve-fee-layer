@@ -22,7 +22,8 @@ import {
   UniversalFeeDefinition, 
   FormFieldSchema, 
   StudentAccount,
-  IngestionJobRecord
+  IngestionJobRecord,
+  DEFAULT_FEE_TYPES
 } from '../types/index.js';
 import { api } from '../services/api.js';
 import { BatchMonitor } from './BatchMonitor.js';
@@ -41,7 +42,7 @@ interface FeeCreatorProps {
 export type FeeStudioSubView = 'deployed' | 'categories' | 'batches';
 
 export const FeeCreator: React.FC<FeeCreatorProps> = ({
-  feeTypes,
+  feeTypes = [],
   existingFees,
   students,
   batches = [],
@@ -50,6 +51,8 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   onFeeTypeCreated,
   onRefreshFeeTypes
 }) => {
+  const activeFeeTypes = (feeTypes && feeTypes.length > 0) ? feeTypes : DEFAULT_FEE_TYPES;
+
   const [subView, setSubView] = useState<FeeStudioSubView>('deployed');
   const [categorySearch, setCategorySearch] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('ALL');
@@ -65,7 +68,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   // Form State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [bbFeeTypeId, setBbFeeTypeId] = useState<string>(feeTypes[0]?.feeTypeId || 'FT-TRIP-03');
+  const [bbFeeTypeId, setBbFeeTypeId] = useState<string>(activeFeeTypes[0]?.feeTypeId || 'FT-TRIP-03');
   const [baseAmount, setBaseAmount] = useState<number>(125.00);
   const [dueDate, setDueDate] = useState('2026-09-30');
   const [allowPartialPayment, setAllowPartialPayment] = useState(true);
@@ -108,20 +111,20 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
     }
   ]);
 
-  // Keep bbFeeTypeId synchronized when feeTypes changes
+  // Keep bbFeeTypeId synchronized when activeFeeTypes changes
   useEffect(() => {
-    if (feeTypes.length > 0) {
-      if (!bbFeeTypeId || !feeTypes.some(f => f.feeTypeId === bbFeeTypeId)) {
-        setBbFeeTypeId(feeTypes[0].feeTypeId);
-        if (feeTypes[0].defaultAmount && (!baseAmount || baseAmount === 0)) {
-          setBaseAmount(feeTypes[0].defaultAmount);
+    if (activeFeeTypes.length > 0) {
+      if (!bbFeeTypeId || !activeFeeTypes.some(f => f.feeTypeId === bbFeeTypeId)) {
+        setBbFeeTypeId(activeFeeTypes[0].feeTypeId);
+        if (activeFeeTypes[0].defaultAmount && (!baseAmount || baseAmount === 0)) {
+          setBaseAmount(activeFeeTypes[0].defaultAmount);
         }
       }
     }
-  }, [feeTypes]);
+  }, [activeFeeTypes]);
 
   // Calculations
-  const selectedFeeType = feeTypes.find(f => f.feeTypeId === bbFeeTypeId) || feeTypes[0];
+  const selectedFeeType = activeFeeTypes.find(f => f.feeTypeId === bbFeeTypeId) || activeFeeTypes[0];
   
   const targetedStudents = students.filter(s => {
     if (s.status !== 'ACTIVE') return false;
@@ -242,7 +245,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   };
 
   // Filtered Blackbaud Fee Types
-  const filteredFeeTypes = feeTypes.filter(ft => {
+  const filteredFeeTypes = activeFeeTypes.filter(ft => {
     const query = categorySearch.trim().toLowerCase();
     const matchesQuery = !query || 
       ft.name.toLowerCase().includes(query) ||
@@ -314,9 +317,9 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
               onClick={() => {
                 setTitle('9th Grade STEM Robotics & Lab Kit');
                 setDescription('Consumables kit and hardware access for Term 1 STEM Robotics curriculum.');
-                if (feeTypes.length > 0) {
-                  setBbFeeTypeId(feeTypes[0].feeTypeId);
-                  setBaseAmount(feeTypes[0].defaultAmount || 125.00);
+                if (activeFeeTypes.length > 0) {
+                  setBbFeeTypeId(activeFeeTypes[0].feeTypeId);
+                  setBaseAmount(activeFeeTypes[0].defaultAmount || 125.00);
                 }
                 setShowModal(true);
               }}
@@ -352,7 +355,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
             style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
           >
             <Tag size={16} />
-            Blackbaud Fee Categories (GetFeeTypes) ({feeTypes.length})
+            Blackbaud Fee Categories (GetFeeTypes) ({activeFeeTypes.length})
           </button>
 
           <button
@@ -404,7 +407,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
           ) : (
             <div className="grid-cols-2">
               {existingFees.map(fee => {
-                const feeType = feeTypes.find(f => f.feeTypeId === fee.bbFeeTypeId);
+                const feeType = activeFeeTypes.find(f => f.feeTypeId === fee.bbFeeTypeId);
                 return (
                   <div key={fee.id} className="card-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
@@ -497,7 +500,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     Blackbaud Fee Category Catalog (<code>GetFeeTypes</code>)
                   </h3>
                   <span className="badge badge-success">
-                    <ShieldCheck size={13} /> {feeTypes.length} Synchronized Types
+                    <ShieldCheck size={13} /> {activeFeeTypes.length} Synchronized Types
                   </span>
                 </div>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.35rem' }}>
@@ -928,9 +931,9 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     </div>
 
                     <select 
-                      value={bbFeeTypeId || (feeTypes[0]?.feeTypeId || '')} 
+                      value={bbFeeTypeId || (activeFeeTypes[0]?.feeTypeId || '')} 
                       onChange={e => {
-                        const selected = feeTypes.find(f => f.feeTypeId === e.target.value);
+                        const selected = activeFeeTypes.find(f => f.feeTypeId === e.target.value);
                         setBbFeeTypeId(e.target.value);
                         if (selected && selected.defaultAmount) {
                           setBaseAmount(selected.defaultAmount);
@@ -939,10 +942,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                       }}
                       style={{ fontWeight: 600 }}
                     >
-                      {feeTypes.length === 0 && (
-                        <option value="">Loading Fee Categories...</option>
-                      )}
-                      {feeTypes.map(ft => (
+                      {activeFeeTypes.map(ft => (
                         <option key={ft.feeTypeId} value={ft.feeTypeId}>
                           {ft.name} — {ft.category} ({ft.glAccountCode})
                         </option>
