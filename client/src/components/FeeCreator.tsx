@@ -76,7 +76,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   
   // New Category Form State
   const [newCatName, setNewCatName] = useState('');
-  const [newCatType, setNewCatType] = useState<'ACTIVITY' | 'ATHLETIC' | 'TUITION' | 'MANDATORY_FEE' | 'OPTIONAL_FEE'>('ACTIVITY');
+  const [newCatType, setNewCatType] = useState<'ACTIVITY' | 'ATHLETIC' | 'TUITION' | 'MANDATORY_FEE' | 'OPTIONAL_FEE' | 'OTHER'>('ACTIVITY');
   const [newCatGl, setNewCatGl] = useState('GL-3030-90');
   const [newCatAmount, setNewCatAmount] = useState<number>(100.00);
   const [newCatPartial, setNewCatPartial] = useState(true);
@@ -269,6 +269,8 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
       case 'MANDATORY_FEE':
         return 'badge-danger';
       case 'OPTIONAL_FEE':
+        return 'badge-neutral';
+      case 'OTHER':
         return 'badge-neutral';
       default:
         return 'badge-neutral';
@@ -544,7 +546,8 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                 { id: 'ACTIVITY', label: 'Activity & Excursions' },
                 { id: 'ATHLETIC', label: 'Athletics & Uniforms' },
                 { id: 'MANDATORY_FEE', label: 'Mandatory Fees' },
-                { id: 'OPTIONAL_FEE', label: 'Optional Packages' }
+                { id: 'OPTIONAL_FEE', label: 'Optional Packages' },
+                { id: 'OTHER', label: 'Other' }
               ].map(cat => (
                 <button
                   key={cat.id}
@@ -732,6 +735,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     <option value="TUITION">TUITION (Standard Term)</option>
                     <option value="MANDATORY_FEE">MANDATORY_FEE (Tech/Facility)</option>
                     <option value="OPTIONAL_FEE">OPTIONAL_FEE (Graduation/Yearbook)</option>
+                    <option value="OTHER">OTHER (Miscellaneous / Other Fee)</option>
                   </select>
                 </div>
 
@@ -944,7 +948,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     >
                       {activeFeeTypes.map(ft => (
                         <option key={ft.feeTypeId} value={ft.feeTypeId}>
-                          {ft.name} — {ft.category} ({ft.glAccountCode})
+                          {ft.name} - {ft.category} ({ft.glAccountCode})
                         </option>
                       ))}
                     </select>
