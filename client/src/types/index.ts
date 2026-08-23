@@ -365,3 +365,26 @@ export interface BlackbaudContext {
     totalBatchesSubmitted: number;
   };
 }
+
+export const DEFAULT_CONTEXT: BlackbaudContext = {
+  environment: {
+    environmentId: 'bb-env-oakridge-2026',
+    schoolName: 'Oakridge International Prep',
+    subscriptionKey: 'bb-sky-sub-key-2026-live',
+    branding: {
+      schoolName: 'Oakridge International Prep',
+      primaryColor: '#4f46e5',
+      secondaryColor: '#7c3aed',
+      backgroundColor: '#f8fafc',
+      surfaceColor: '#ffffff',
+      textColor: '#0f172a',
+      logoUrl: 'https://images.unsplash.com/photo-1594608661623-aa0bd3a69d98?w=128&auto=format&fit=crop&q=80'
+    }
+  },
+  stats: {
+    totalActiveStudents: 10,
+    totalFeeTypes: 5,
+    totalDeployedFees: 3,
+    totalBatchesSubmitted: 1
+  }
+};

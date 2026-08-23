@@ -16,12 +16,13 @@ import {
   SchoolBranding,
   DEFAULT_FEE_TYPES,
   DEFAULT_STUDENTS,
-  DEFAULT_FEES
+  DEFAULT_FEES,
+  DEFAULT_CONTEXT
 } from './types/index.js';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('fees');
-  const [context, setContext] = useState<BlackbaudContext | null>(null);
+  const [context, setContext] = useState<BlackbaudContext>(DEFAULT_CONTEXT);
   const [feeTypes, setFeeTypes] = useState<BlackbaudFeeType[]>(DEFAULT_FEE_TYPES);
   const [fees, setFees] = useState<UniversalFeeDefinition[]>(DEFAULT_FEES);
   const [students, setStudents] = useState<StudentAccount[]>(DEFAULT_STUDENTS);
@@ -30,7 +31,7 @@ export const App: React.FC = () => {
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareModalProps, setShareModalProps] = useState<{ title?: string; studentId?: string; chargeId?: string }>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isStandaloneParentView, setIsStandaloneParentView] = useState(false);
   const [parentInitialQuery, setParentInitialQuery] = useState<string | undefined>(undefined);
 
