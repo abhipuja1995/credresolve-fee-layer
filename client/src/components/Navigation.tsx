@@ -89,9 +89,6 @@ export const Navigation: React.FC<NavigationProps> = ({
                   Universal Fee Layer
                 </span>
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Blackbaud SKY API Subledger Engine (<code>tms-bmapi</code>)
-              </p>
             </div>
           </div>
 
