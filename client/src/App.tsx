@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigation, ActiveTab } from './components/Navigation.js';
 import { FeeCreator } from './components/FeeCreator.js';
 import { ParentQuickPayPortal } from './components/ParentQuickPayPortal.js';
+import { PayerCheckout } from './components/PayerCheckout.js';
 import { StudentLedgerView } from './components/StudentLedgerView.js';
 import { BrandingSettingsModal } from './components/BrandingSettingsModal.js';
 import { SharePaymentLinkModal } from './components/SharePaymentLinkModal.js';
@@ -33,6 +34,7 @@ export const App: React.FC = () => {
   const [shareModalProps, setShareModalProps] = useState<{ title?: string; studentId?: string; chargeId?: string }>({});
   const [loading, setLoading] = useState(false);
   const [isStandaloneParentView, setIsStandaloneParentView] = useState(false);
+  const [directChargeId, setDirectChargeId] = useState<string | null>(null);
   const [parentInitialQuery, setParentInitialQuery] = useState<string | undefined>(undefined);
 
   // Helper to determine if a color is light
@@ -111,13 +113,14 @@ export const App: React.FC = () => {
       // Check URL query parameters for parent app / website embed
       const urlParams = new URLSearchParams(window.location.search);
       const viewParam = urlParams.get('view');
-      const directChargeId = urlParams.get('chargeId') || urlParams.get('pay');
+      const directCharge = urlParams.get('chargeId') || urlParams.get('pay');
       const urlStudentId = urlParams.get('studentId');
 
-      if (viewParam === 'quickpay' || viewParam === 'embed' || directChargeId || urlStudentId) {
+      if (viewParam === 'quickpay' || viewParam === 'embed' || directCharge || urlStudentId) {
         setIsStandaloneParentView(true);
-        if (directChargeId) {
-          const matchCharge = cList.find(c => c.id === directChargeId);
+        if (directCharge) {
+          setDirectChargeId(directCharge);
+          const matchCharge = cList.find(c => c.id === directCharge);
           if (matchCharge) {
             setParentInitialQuery(matchCharge.studentId);
           }
@@ -141,7 +144,6 @@ export const App: React.FC = () => {
     if (matchCharge) {
       setParentInitialQuery(matchCharge.studentId);
     }
-    // Open in a new parent window or toggle view
     window.open(`${window.location.origin}/?chargeId=${chargeId}`, '_blank');
   };
 
@@ -169,11 +171,23 @@ export const App: React.FC = () => {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-page)', padding: '2rem 1rem' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <ParentQuickPayPortal
-            branding={context?.environment.branding}
-            onPaymentCompleted={() => loadData()}
-            initialQuery={parentInitialQuery}
-          />
+          {directChargeId ? (
+            <PayerCheckout
+              chargeId={directChargeId}
+              onBackToLedger={() => {
+                setDirectChargeId(null);
+                window.history.replaceState({}, '', window.location.pathname + '?view=quickpay');
+              }}
+              onPaymentCompleted={() => loadData()}
+              branding={context?.environment.branding}
+            />
+          ) : (
+            <ParentQuickPayPortal
+              branding={context?.environment.branding}
+              onPaymentCompleted={() => loadData()}
+              initialQuery={parentInitialQuery}
+            />
+          )}
         </div>
       </div>
     );
@@ -236,6 +250,8 @@ export const App: React.FC = () => {
                 charges={charges}
                 fees={fees}
                 onOpenCheckout={handleOpenCheckout}
+                branding={context?.environment.branding}
+                onPaymentCompleted={() => loadData()}
               />
             )}
 
