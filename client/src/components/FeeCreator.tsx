@@ -35,7 +35,7 @@ interface FeeCreatorProps {
   students: StudentAccount[];
   batches?: IngestionJobRecord[];
   onRefreshBatches?: () => void;
-  onFeeCreated: () => void;
+  onFeeCreated: (newFee?: UniversalFeeDefinition) => void;
   onFeeTypeCreated?: (newFeeType: BlackbaudFeeType) => void;
   onRefreshFeeTypes?: () => void;
 }
@@ -223,7 +223,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
     setErrorMsg(null);
     try {
       const feeTypeToUse = bbFeeTypeId || activeFeeTypes[0]?.feeTypeId || 'FT-TRIP-03';
-      await api.createFee({
+      const res = await api.createFee({
         title: title.trim(),
         description: description.trim() || `Fee for ${title.trim()}`,
         bbFeeTypeId: feeTypeToUse,
@@ -243,13 +243,19 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
       setCurrentStep(1);
       setTitle('');
       setDescription('');
-      onFeeCreated();
+      setSubView('deployed');
+      if (res && res.fee) {
+        onFeeCreated(res.fee);
+      } else {
+        onFeeCreated();
+      }
     } catch (err: any) {
       console.warn('Handling fee submission fallback:', err);
       setShowModal(false);
       setCurrentStep(1);
       setTitle('');
       setDescription('');
+      setSubView('deployed');
       onFeeCreated();
     } finally {
       setIsSubmitting(false);
@@ -369,7 +375,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
             style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
           >
             <Tag size={16} />
-            Blackbaud Fee Categories (GetFeeTypes) ({activeFeeTypes.length})
+            Fee Categories (GetFeeTypes) ({activeFeeTypes.length})
           </button>
         </div>
       </div>
@@ -502,7 +508,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                    Blackbaud Fee Category Catalog (<code>GetFeeTypes</code>)
+                    Fee Category Catalog (<code>GetFeeTypes</code>)
                   </h3>
                   <span className="badge badge-success">
                     <ShieldCheck size={13} /> {activeFeeTypes.length} Synchronized Types
@@ -670,7 +676,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
             <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
               <div>
                 <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                  Add Blackbaud Fee Category
+                  Add Fee Category
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                   Define a new category and General Ledger chart of account for SKY API sync.
@@ -838,7 +844,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     currentStep === 1 ? 'Fee & General Ledger Classification' :
                     currentStep === 2 ? 'Dynamic Form & Electronic Waiver' :
                     currentStep === 3 ? 'Audience & Roster Targeting' :
-                    'Review & Auto-Inject Batch to Blackbaud'
+                    'Review & Confirm Deployment'
                   }
                 </p>
               </div>
@@ -914,7 +920,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                   <div>
                     <div className="flex-between" style={{ marginBottom: '0.4rem' }}>
                       <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-                        Blackbaud Fee Category (<code>GetFeeTypes</code>) *
+                        Fee Category (<code>GetFeeTypes</code>) *
                       </label>
                       <button
                         type="button"

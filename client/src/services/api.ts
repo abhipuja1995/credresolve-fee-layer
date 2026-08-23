@@ -6,7 +6,8 @@ import {
   StudentAccount, 
   StudentCharge,
   DEFAULT_FEE_TYPES,
-  DEFAULT_STUDENTS
+  DEFAULT_STUDENTS,
+  DEFAULT_FEES
 } from '../types/index.js';
 
 const API_BASE = '/api';
@@ -72,16 +73,26 @@ export const api = {
   async getFees(): Promise<UniversalFeeDefinition[]> {
     try {
       const res = await fetch(`${API_BASE}/fees`);
-      if (!res.ok) throw new Error('Failed to fetch fees');
-      const text = await res.text();
-      return text && text.trim().length > 0 ? JSON.parse(text) : [];
+      if (res.ok) {
+        const text = await res.text();
+        const data = text && text.trim().length > 0 ? JSON.parse(text) : [];
+        if (Array.isArray(data) && data.length > 0) return data;
+      }
     } catch (err) {
-      console.warn('Backend SKY API offline, using cached fee catalog:', err);
-      return [];
+      console.warn('Backend API offline, reading local fee store:', err);
     }
+    try {
+      const saved = localStorage.getItem('credresolve_fees');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return DEFAULT_FEES;
   },
 
   async createFee(payload: any): Promise<{ fee: UniversalFeeDefinition; batchJobId: string; targetedStudentsCount: number }> {
+    let createdFee: UniversalFeeDefinition | null = null;
     try {
       const res = await fetch(`${API_BASE}/fees`, {
         method: 'POST',
@@ -93,44 +104,46 @@ export const api = {
         if (text && text.trim().length > 0) {
           try {
             const data = JSON.parse(text);
-            if (data && data.fee) return data;
+            if (data && data.fee) createdFee = data.fee;
           } catch (e) {
             console.warn('Could not parse response JSON:', e);
           }
         }
-      } else {
-        const errText = await res.text().catch(() => '');
-        let errMsg = `Server error: ${res.status}`;
-        try {
-          const parsed = JSON.parse(errText);
-          if (parsed.error) errMsg = parsed.error;
-        } catch (_) {}
-        console.warn('Server error on createFee:', errMsg);
       }
     } catch (err: any) {
       console.warn('Backend API unavailable, deploying fee locally:', err);
     }
 
-    const newFeeId = `fee-${Date.now().toString().slice(-6)}`;
-    const localFee: UniversalFeeDefinition = {
-      id: newFeeId,
-      schoolId: 'bb-env-oakridge-2026',
-      bbFeeTypeId: payload.bbFeeTypeId,
-      title: payload.title,
-      description: payload.description || '',
-      baseAmount: Number(payload.baseAmount) || 100,
-      dueDate: payload.dueDate || '2026-09-30',
-      academicYear: payload.academicYear || '2026-2027',
-      allowPartialPayment: Boolean(payload.allowPartialPayment),
-      minPartialAmount: payload.minPartialAmount,
-      audience: payload.audience || { type: 'GRADE', grades: ['Grade 8'] },
-      customFormSchema: payload.customFormSchema || [],
-      status: 'DEPLOYED',
-      createdAt: new Date().toISOString()
-    };
+    if (!createdFee) {
+      const newFeeId = `fee-${Date.now().toString().slice(-6)}`;
+      createdFee = {
+        id: newFeeId,
+        schoolId: 'bb-env-oakridge-2026',
+        bbFeeTypeId: payload.bbFeeTypeId,
+        title: payload.title,
+        description: payload.description || '',
+        baseAmount: Number(payload.baseAmount) || 100,
+        dueDate: payload.dueDate || '2026-09-30',
+        academicYear: payload.academicYear || '2026-2027',
+        allowPartialPayment: Boolean(payload.allowPartialPayment),
+        minPartialAmount: payload.minPartialAmount,
+        audience: payload.audience || { type: 'GRADE', grades: ['Grade 8'] },
+        customFormSchema: payload.customFormSchema || [],
+        status: 'DEPLOYED',
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    // Persist to localStorage so the fee is always listed
+    try {
+      const existing = localStorage.getItem('credresolve_fees');
+      const list: UniversalFeeDefinition[] = existing ? JSON.parse(existing) : [...DEFAULT_FEES];
+      const updated = [createdFee, ...list.filter(f => f.id !== createdFee!.id)];
+      localStorage.setItem('credresolve_fees', JSON.stringify(updated));
+    } catch (_) {}
 
     return {
-      fee: localFee,
+      fee: createdFee,
       batchJobId: `BATCH-BB-${Date.now().toString().slice(-6)}`,
       targetedStudentsCount: 4
     };

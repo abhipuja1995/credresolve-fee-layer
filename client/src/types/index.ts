@@ -110,6 +110,61 @@ export interface UniversalFeeDefinition {
   createdAt: string;
 }
 
+export const DEFAULT_FEES: UniversalFeeDefinition[] = [
+  {
+    id: 'fee-dc-trip-2026',
+    schoolId: 'bb-env-oakridge-2026',
+    bbFeeTypeId: 'FT-TRIP-03',
+    title: '8th Grade Washington D.C. Educational Tour',
+    description: 'Comprehensive 4-day educational trip including bus transport, hotel, museum admissions, meals, and commemorative t-shirt.',
+    baseAmount: 350.00,
+    dueDate: '2026-09-30',
+    academicYear: '2026-2027',
+    allowPartialPayment: true,
+    minPartialAmount: 100.00,
+    audience: {
+      type: 'GRADE',
+      grades: ['Grade 8']
+    },
+    customFormSchema: [
+      {
+        id: 'tshirt_size',
+        label: 'Student T-Shirt Size',
+        type: 'select',
+        required: true,
+        options: ['Youth L', 'Adult S', 'Adult M', 'Adult L', 'Adult XL']
+      },
+      {
+        id: 'emergency_contact_phone',
+        label: 'Emergency Contact Phone Number',
+        type: 'emergency_contact',
+        required: true,
+        placeholder: '+1 (555) 000-0000'
+      }
+    ],
+    status: 'DEPLOYED',
+    createdAt: '2026-08-01T10:00:00.000Z'
+  },
+  {
+    id: 'fee-stem-robotics-2026',
+    schoolId: 'bb-env-oakridge-2026',
+    bbFeeTypeId: 'FT-TECH-04',
+    title: '9th Grade STEM Robotics & Lab Kit',
+    description: 'Consumables kit and hardware access for Term 1 STEM Robotics curriculum.',
+    baseAmount: 125.00,
+    dueDate: '2026-10-15',
+    academicYear: '2026-2027',
+    allowPartialPayment: false,
+    audience: {
+      type: 'GRADE',
+      grades: ['Grade 9']
+    },
+    customFormSchema: [],
+    status: 'DEPLOYED',
+    createdAt: '2026-08-10T12:00:00.000Z'
+  }
+];
+
 export interface IngestionJobRecord {
   jobId: string;
   feeId: string;

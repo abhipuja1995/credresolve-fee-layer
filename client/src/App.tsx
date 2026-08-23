@@ -14,14 +14,15 @@ import {
   StudentCharge,
   SchoolBranding,
   DEFAULT_FEE_TYPES,
-  DEFAULT_STUDENTS
+  DEFAULT_STUDENTS,
+  DEFAULT_FEES
 } from './types/index.js';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('fees');
   const [context, setContext] = useState<BlackbaudContext | null>(null);
   const [feeTypes, setFeeTypes] = useState<BlackbaudFeeType[]>(DEFAULT_FEE_TYPES);
-  const [fees, setFees] = useState<UniversalFeeDefinition[]>([]);
+  const [fees, setFees] = useState<UniversalFeeDefinition[]>(DEFAULT_FEES);
   const [students, setStudents] = useState<StudentAccount[]>(DEFAULT_STUDENTS);
   const [charges, setCharges] = useState<StudentCharge[]>([]);
   const [batches, setBatches] = useState<import('./types/index.js').IngestionJobRecord[]>([]);
@@ -206,9 +207,11 @@ export const App: React.FC = () => {
                   const ftList = await api.getFeeTypes();
                   setFeeTypes(ftList);
                 }}
-                onFeeCreated={() => {
+                onFeeCreated={(newFee?: UniversalFeeDefinition) => {
+                  if (newFee) {
+                    setFees(prev => [newFee, ...prev.filter(f => f.id !== newFee.id)]);
+                  }
                   loadData();
-                  setActiveTab('ledger');
                 }}
               />
             )}
