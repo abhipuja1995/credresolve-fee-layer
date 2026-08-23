@@ -308,17 +308,9 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
       }}>
         <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1.5rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                Universal Fee Studio
-              </h2>
-              <span className="badge badge-info">
-                <Sparkles size={12} /> Blackbaud Synchronized
-              </span>
-            </div>
-            <p style={{ color: 'var(--text-body)', marginTop: '0.4rem', maxWidth: '680px', fontSize: '0.925rem', lineHeight: '1.5' }}>
-              Create, configure, and deploy tuition and non-tuition fees directly into Blackbaud Billing Management subledgers mapped to official General Ledger accounts (<code>GetFeeTypes</code>).
-            </p>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+              Universal Fee Studio
+            </h2>
           </div>
           
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -641,8 +633,6 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
 
                   <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.85rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     <span>Partial Payments: <strong style={{ color: 'var(--text-heading)' }}>{ft.allowPartialPayment ? 'Supported' : 'One-time Only'}</strong></span>
-                    <span>•</span>
-                    <span>Status: <strong style={{ color: 'var(--success)' }}>Active in SKY API</strong></span>
                   </div>
                 </div>
 
