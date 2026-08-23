@@ -15,7 +15,8 @@ import {
   Clock,
   FileCode,
   ShieldCheck,
-  Plus
+  Plus,
+  Share2
 } from 'lucide-react';
 import { 
   BlackbaudFeeType, 
@@ -38,6 +39,7 @@ interface FeeCreatorProps {
   onFeeCreated: (newFee?: UniversalFeeDefinition) => void;
   onFeeTypeCreated?: (newFeeType: BlackbaudFeeType) => void;
   onRefreshFeeTypes?: () => void;
+  onOpenShareModal?: (feeId?: string) => void;
 }
 
 export type FeeStudioSubView = 'deployed' | 'categories';
@@ -50,7 +52,8 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   onRefreshBatches,
   onFeeCreated,
   onFeeTypeCreated,
-  onRefreshFeeTypes
+  onRefreshFeeTypes,
+  onOpenShareModal
 }) => {
   const activeFeeTypes = (feeTypes && feeTypes.length > 0) ? feeTypes : DEFAULT_FEE_TYPES;
   const activeStudents = (students && students.length > 0) ? students : DEFAULT_STUDENTS;
@@ -479,16 +482,26 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex-between" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
+                    <div className="flex-between" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
                       <div>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Amount</span>
                         <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--success)' }}>
                           ${fee.baseAmount.toFixed(2)}
                         </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Due Date</span>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-heading)' }}>{fee.dueDate}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <button
+                          className="btn-secondary"
+                          onClick={() => onOpenShareModal ? onOpenShareModal(fee.id) : window.open(`${window.location.origin}/?view=quickpay`, '_blank')}
+                          style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                          <Share2 size={13} />
+                          Share Link
+                        </button>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Due Date</span>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>{fee.dueDate}</div>
+                        </div>
                       </div>
                     </div>
                   </div>

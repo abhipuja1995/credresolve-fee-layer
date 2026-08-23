@@ -4,6 +4,7 @@ import { FeeCreator } from './components/FeeCreator.js';
 import { ParentQuickPayPortal } from './components/ParentQuickPayPortal.js';
 import { StudentLedgerView } from './components/StudentLedgerView.js';
 import { BrandingSettingsModal } from './components/BrandingSettingsModal.js';
+import { SharePaymentLinkModal } from './components/SharePaymentLinkModal.js';
 import { UserGuideView } from './components/UserGuideView.js';
 import { api } from './services/api.js';
 import { 
@@ -27,6 +28,8 @@ export const App: React.FC = () => {
   const [charges, setCharges] = useState<StudentCharge[]>([]);
   const [batches, setBatches] = useState<import('./types/index.js').IngestionJobRecord[]>([]);
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareModalProps, setShareModalProps] = useState<{ title?: string; studentId?: string; chargeId?: string }>({});
   const [loading, setLoading] = useState(true);
   const [isStandaloneParentView, setIsStandaloneParentView] = useState(false);
   const [parentInitialQuery, setParentInitialQuery] = useState<string | undefined>(undefined);
@@ -39,7 +42,7 @@ export const App: React.FC = () => {
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.5;
+    return luminance > 0.6;
   };
 
   // Apply CSS variables dynamically based on client branding
@@ -87,16 +90,16 @@ export const App: React.FC = () => {
       const [ctx, ft, fList, sList, cList, bList] = await Promise.all([
         api.getContext().catch(() => null),
         api.getFeeTypes().catch(() => DEFAULT_FEE_TYPES),
-        api.getFees().catch(() => []),
-        api.getStudents().catch(() => []),
+        api.getFees().catch(() => DEFAULT_FEES),
+        api.getStudents().catch(() => DEFAULT_STUDENTS),
         api.getCharges().catch(() => []),
         api.getBatches().catch(() => [])
       ]);
 
       if (ctx) setContext(ctx);
       if (ft && ft.length > 0) setFeeTypes(ft);
-      if (fList) setFees(fList);
-      if (sList) setStudents(sList);
+      if (fList && fList.length > 0) setFees(fList);
+      if (sList && sList.length > 0) setStudents(sList);
       if (cList) setCharges(cList);
       if (bList) setBatches(bList);
 
@@ -108,14 +111,17 @@ export const App: React.FC = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const viewParam = urlParams.get('view');
       const directChargeId = urlParams.get('chargeId') || urlParams.get('pay');
+      const urlStudentId = urlParams.get('studentId');
 
-      if (viewParam === 'quickpay' || viewParam === 'embed' || directChargeId) {
+      if (viewParam === 'quickpay' || viewParam === 'embed' || directChargeId || urlStudentId) {
         setIsStandaloneParentView(true);
         if (directChargeId) {
           const matchCharge = cList.find(c => c.id === directChargeId);
           if (matchCharge) {
             setParentInitialQuery(matchCharge.studentId);
           }
+        } else if (urlStudentId) {
+          setParentInitialQuery(urlStudentId);
         }
       }
     } catch (err) {
@@ -179,6 +185,10 @@ export const App: React.FC = () => {
         onTabChange={handleTabChange}
         context={context}
         onOpenBrandingModal={() => setIsBrandingModalOpen(true)}
+        onOpenShareModal={() => {
+          setShareModalProps({});
+          setIsShareModalOpen(true);
+        }}
       />
 
       <main className="container" style={{ flex: 1, padding: '2rem' }}>
@@ -213,6 +223,10 @@ export const App: React.FC = () => {
                   }
                   loadData();
                 }}
+                onOpenShareModal={(feeId) => {
+                  setShareModalProps({ title: 'Universal Fee Payment Link' });
+                  setIsShareModalOpen(true);
+                }}
               />
             )}
 
@@ -224,11 +238,19 @@ export const App: React.FC = () => {
               />
             )}
 
+            {activeTab === 'quickpay' && (
+              <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+                <ParentQuickPayPortal
+                  branding={context?.environment.branding}
+                  onPaymentCompleted={() => loadData()}
+                  initialQuery={parentInitialQuery}
+                />
+              </div>
+            )}
+
             {activeTab === 'guide' && (
               <UserGuideView
-                onNavigateTab={(tab) => {
-                  if (tab === 'fees' || tab === 'ledger') handleTabChange(tab);
-                }}
+                onNavigateTab={(tab) => handleTabChange(tab as ActiveTab)}
                 onOpenBranding={() => setIsBrandingModalOpen(true)}
                 branding={context?.environment.branding}
               />
@@ -246,6 +268,16 @@ export const App: React.FC = () => {
           onBrandingUpdated={handleBrandingUpdated}
         />
       )}
+
+      {/* Share Payment Link Modal */}
+      <SharePaymentLinkModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={shareModalProps.title}
+        studentId={shareModalProps.studentId}
+        chargeId={shareModalProps.chargeId}
+        schoolName={context?.environment.branding.schoolName}
+      />
     </div>
   );
 };

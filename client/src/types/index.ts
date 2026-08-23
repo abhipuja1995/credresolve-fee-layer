@@ -241,6 +241,109 @@ export interface StudentCharge {
   createdAt: string;
 }
 
+export const DEFAULT_CHARGES: StudentCharge[] = [
+  {
+    id: 'CHG-fee-dc-trip-2026-BB-STU-101',
+    feeId: 'fee-dc-trip-2026',
+    feeTitle: '8th Grade Washington D.C. Educational Tour',
+    schoolId: 'bb-env-oakridge-2026',
+    studentId: 'BB-STU-101',
+    studentName: 'Alexander Hayes',
+    parentEmail: 'michael.hayes@example.com',
+    parentPhone: '+1-555-0101',
+    bbFeeTypeId: 'FT-TRIP-03',
+    amount: 350.00,
+    amountPaid: 150.00,
+    dueDate: '2026-09-30',
+    paymentStatus: 'PARTIALLY_PAID',
+    customFormResponses: {
+      tshirt_size: 'Adult L',
+      emergency_contact_phone: '+1-555-0101'
+    },
+    bbSyncStatus: 'SYNCED',
+    bbBatchId: 'BATCH-BB-89101',
+    paymentReceipts: [
+      {
+        transactionId: 'TXN-9021',
+        amount: 150.00,
+        paymentMethod: 'APPLE_PAY',
+        paidAt: '2026-08-15T14:30:00.000Z',
+        receiptNumber: 'REC-2026-0891',
+        bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD'
+      }
+    ],
+    createdAt: '2026-08-01T10:00:00.000Z'
+  },
+  {
+    id: 'CHG-fee-dc-trip-2026-BB-STU-102',
+    feeId: 'fee-dc-trip-2026',
+    feeTitle: '8th Grade Washington D.C. Educational Tour',
+    schoolId: 'bb-env-oakridge-2026',
+    studentId: 'BB-STU-102',
+    studentName: 'Sophia Patel',
+    parentEmail: 'priya.patel@example.com',
+    parentPhone: '+1-555-0102',
+    bbFeeTypeId: 'FT-TRIP-03',
+    amount: 350.00,
+    amountPaid: 350.00,
+    dueDate: '2026-09-30',
+    paymentStatus: 'PAID',
+    customFormResponses: {
+      tshirt_size: 'Adult M',
+      emergency_contact_phone: '+1-555-0102'
+    },
+    bbSyncStatus: 'SYNCED',
+    bbBatchId: 'BATCH-BB-89101',
+    paymentReceipts: [
+      {
+        transactionId: 'TXN-8841',
+        amount: 350.00,
+        paymentMethod: 'CREDIT_CARD',
+        paidAt: '2026-08-12T09:15:00.000Z',
+        receiptNumber: 'REC-2026-0744',
+        bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD'
+      }
+    ],
+    createdAt: '2026-08-01T10:00:00.000Z'
+  },
+  {
+    id: 'CHG-fee-dc-trip-2026-BB-STU-103',
+    feeId: 'fee-dc-trip-2026',
+    feeTitle: '8th Grade Washington D.C. Educational Tour',
+    schoolId: 'bb-env-oakridge-2026',
+    studentId: 'BB-STU-103',
+    studentName: 'Lucas Vance',
+    parentEmail: 'david.vance@example.com',
+    parentPhone: '+1-555-0103',
+    bbFeeTypeId: 'FT-TRIP-03',
+    amount: 350.00,
+    amountPaid: 0.00,
+    dueDate: '2026-09-30',
+    paymentStatus: 'UNPAID',
+    bbSyncStatus: 'QUEUED',
+    paymentReceipts: [],
+    createdAt: '2026-08-01T10:00:00.000Z'
+  },
+  {
+    id: 'CHG-fee-dc-trip-2026-BB-STU-104',
+    feeId: 'fee-dc-trip-2026',
+    feeTitle: '8th Grade Washington D.C. Educational Tour',
+    schoolId: 'bb-env-oakridge-2026',
+    studentId: 'BB-STU-104',
+    studentName: 'Emma Richardson',
+    parentEmail: 'sarah.r@example.com',
+    parentPhone: '+1-555-0104',
+    bbFeeTypeId: 'FT-TRIP-03',
+    amount: 350.00,
+    amountPaid: 0.00,
+    dueDate: '2026-09-30',
+    paymentStatus: 'UNPAID',
+    bbSyncStatus: 'QUEUED',
+    paymentReceipts: [],
+    createdAt: '2026-08-01T10:00:00.000Z'
+  }
+];
+
 export interface StudentLookupResult {
   student: StudentAccount;
   charges: StudentCharge[];

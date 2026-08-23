@@ -5,24 +5,28 @@ import {
   Users, 
   ShieldCheck,
   Palette,
-  BookOpen
+  BookOpen,
+  Globe,
+  Share2
 } from 'lucide-react';
 import { BlackbaudContext } from '../types/index.js';
 
-export type ActiveTab = 'fees' | 'ledger' | 'guide';
+export type ActiveTab = 'fees' | 'ledger' | 'quickpay' | 'guide';
 
 interface NavigationProps {
   activeTab: ActiveTab;
   onTabChange: (tab: ActiveTab) => void;
   context: BlackbaudContext | null;
   onOpenBrandingModal: () => void;
+  onOpenShareModal?: () => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
   activeTab,
   onTabChange,
   context,
-  onOpenBrandingModal
+  onOpenBrandingModal,
+  onOpenShareModal
 }) => {
   const branding = context?.environment.branding;
 
@@ -91,8 +95,25 @@ export const Navigation: React.FC<NavigationProps> = ({
             </div>
           </div>
 
-          {/* Connection State & Branding Button */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Connection State, Share Link, & Branding Button */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+            {onOpenShareModal && (
+              <button
+                onClick={onOpenShareModal}
+                className="btn-primary"
+                style={{
+                  fontSize: '0.825rem',
+                  padding: '0.45rem 0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}
+              >
+                <Share2 size={15} />
+                <span>Share Payment Link</span>
+              </button>
+            )}
+
             <button
               onClick={onOpenBrandingModal}
               className="btn-secondary"
@@ -177,6 +198,26 @@ export const Navigation: React.FC<NavigationProps> = ({
           >
             <Users size={16} />
             Student Account Subledgers
+          </button>
+
+          <button
+            onClick={() => onTabChange('quickpay')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.5rem 1rem',
+              borderRadius: 'var(--radius-md)',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              background: activeTab === 'quickpay' ? 'var(--accent-gradient)' : 'transparent',
+              color: activeTab === 'quickpay' ? '#ffffff' : 'var(--text-body)',
+              boxShadow: activeTab === 'quickpay' ? 'var(--shadow-sm)' : 'none',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <Globe size={16} />
+            Parent Quick-Pay Portal
           </button>
 
           <button
