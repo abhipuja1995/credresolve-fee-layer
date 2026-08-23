@@ -1250,7 +1250,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                   disabled={isSubmitting || !title || targetedStudents.length === 0}
                   onClick={handleSubmitFee}
                 >
-                  {isSubmitting ? 'Posting Batch to Blackbaud...' : 'Deploy & Post Batch to Blackbaud'}
+                  {isSubmitting ? 'Submitting...' : 'Finish'}
                   <Send size={16} />
                 </button>
               )}
