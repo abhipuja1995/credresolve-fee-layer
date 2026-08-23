@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { BlackbaudContext } from '../types/index.js';
 
-export type ActiveTab = 'fees' | 'ledger' | 'quickpay' | 'guide';
+export type ActiveTab = 'fees' | 'ledger' | 'guide';
 
 interface NavigationProps {
   activeTab: ActiveTab;
@@ -198,26 +198,6 @@ export const Navigation: React.FC<NavigationProps> = ({
           >
             <Users size={16} />
             Student Account Subledgers
-          </button>
-
-          <button
-            onClick={() => onTabChange('quickpay')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              background: activeTab === 'quickpay' ? 'var(--accent-gradient)' : 'transparent',
-              color: activeTab === 'quickpay' ? '#ffffff' : 'var(--text-body)',
-              boxShadow: activeTab === 'quickpay' ? 'var(--shadow-sm)' : 'none',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <Globe size={16} />
-            Parent Quick-Pay Portal
           </button>
 
           <button

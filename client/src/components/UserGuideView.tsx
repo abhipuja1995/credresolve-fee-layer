@@ -350,8 +350,8 @@ export const UserGuideView: React.FC<UserGuideViewProps> = ({
 
             <button 
               className="btn-primary" 
-              onClick={() => onNavigateTab('quickpay')}
-              style={{ fontSize: '0.85rem' }}
+              onClick={() => window.open(`${window.location.origin}/?view=quickpay`, '_blank')}
+              style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
             >
               Open Live Parent Quick-Pay View <ArrowRight size={15} />
             </button>

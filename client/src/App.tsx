@@ -238,16 +238,6 @@ export const App: React.FC = () => {
               />
             )}
 
-            {activeTab === 'quickpay' && (
-              <div style={{ maxWidth: '860px', margin: '0 auto' }}>
-                <ParentQuickPayPortal
-                  branding={context?.environment.branding}
-                  onPaymentCompleted={() => loadData()}
-                  initialQuery={parentInitialQuery}
-                />
-              </div>
-            )}
-
             {activeTab === 'guide' && (
               <UserGuideView
                 onNavigateTab={(tab) => handleTabChange(tab as ActiveTab)}
