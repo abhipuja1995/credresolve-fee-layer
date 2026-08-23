@@ -176,7 +176,9 @@ export const App: React.FC = () => {
               chargeId={directChargeId}
               onBackToLedger={() => {
                 setDirectChargeId(null);
-                window.history.replaceState({}, '', window.location.pathname + '?view=quickpay');
+                setIsStandaloneParentView(false);
+                setActiveTab('ledger');
+                window.history.replaceState({}, '', window.location.pathname);
               }}
               onPaymentCompleted={() => loadData()}
               branding={context?.environment.branding}

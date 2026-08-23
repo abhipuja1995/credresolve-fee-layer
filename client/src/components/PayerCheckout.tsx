@@ -169,28 +169,30 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
         <button 
           className="btn-secondary" 
           onClick={onBackToLedger}
-          style={{ padding: '0.45rem 0.9rem', fontSize: '0.825rem' }}
+          style={{ padding: '0.45rem 0.9rem', fontSize: '0.825rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
         >
-          <ArrowLeft size={14} /> Back
+          <ArrowLeft size={14} /> Back to Student Accounts
         </button>
 
-        {/* Copy Payment Link CTA */}
-        <button
-          className="btn-secondary"
-          onClick={handleCopyPaymentLink}
-          style={{
-            padding: '0.45rem 0.9rem',
-            fontSize: '0.825rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.45rem',
-            borderColor: isLinkCopied ? 'var(--success)' : 'var(--border-subtle)',
-            color: isLinkCopied ? 'var(--success)' : 'var(--text-heading)'
-          }}
-        >
-          {isLinkCopied ? <Check size={14} color="var(--success)" /> : <Share2 size={14} color={primaryColor} />}
-          <span style={{ fontWeight: 600 }}>{isLinkCopied ? 'Link Copied!' : 'Share Payment Link'}</span>
-        </button>
+        {/* Copy Payment Link CTA (Shown only on unpaid payment checkout) */}
+        {!successReceipt && charge.paymentStatus !== 'PAID' && (
+          <button
+            className="btn-secondary"
+            onClick={handleCopyPaymentLink}
+            style={{
+              padding: '0.45rem 0.9rem',
+              fontSize: '0.825rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              borderColor: isLinkCopied ? 'var(--success)' : 'var(--border-subtle)',
+              color: isLinkCopied ? 'var(--success)' : 'var(--text-heading)'
+            }}
+          >
+            {isLinkCopied ? <Check size={14} color="var(--success)" /> : <Share2 size={14} color={primaryColor} />}
+            <span style={{ fontWeight: 600 }}>{isLinkCopied ? 'Link Copied!' : 'Share Payment Link'}</span>
+          </button>
+        )}
       </div>
 
       {/* Main Card */}
@@ -372,9 +374,10 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
               <button
                 className="btn-primary"
                 onClick={onBackToLedger}
-                style={{ flex: 1, padding: '0.75rem' }}
+                style={{ flex: 1, padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
               >
-                Done
+                <ArrowLeft size={16} />
+                Back to Student Accounts
               </button>
             </div>
           </div>
