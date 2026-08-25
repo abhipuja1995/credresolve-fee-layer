@@ -207,8 +207,51 @@ apiRouter.get('/charges/:id', (req, res) => {
 });
 
 // ==========================================
-// 5. Payer 1-Click Checkout & Payment
+// 5. Blackbaud Merchant Services (BBMS) New Checkout Routes
+// Ref: https://developer.blackbaud.com/skyapi/products/bbms/payments/integrations/new-checkout
 // ==========================================
+
+apiRouter.post('/blackbaud/payments/checkout/transaction', async (req, res) => {
+  try {
+    const {
+      checkoutToken,
+      chargeId,
+      amount,
+      paymentConfigurationId,
+      donorEmail,
+      cardholderName,
+      billingAddress,
+      customFields,
+      waiverSignature,
+      feeCoverAmount
+    } = req.body;
+
+    if (!checkoutToken || !chargeId || !amount) {
+      return res.status(400).json({
+        error: 'Missing required Blackbaud New Checkout parameters: checkoutToken, chargeId, and amount are required.'
+      });
+    }
+
+    const result = await reconciliationService.processPayment({
+      chargeId,
+      amount: Number(amount),
+      paymentMethod: 'Blackbaud Merchant Services (BBMS) - New Checkout',
+      checkoutToken,
+      paymentConfigurationId,
+      customFormResponses: customFields,
+      waiverSignature,
+      feeCoverAmount: feeCoverAmount ? Number(feeCoverAmount) : 0
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Blackbaud New Checkout transaction authorized and posted to subledger.',
+      ...result
+    });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 apiRouter.post('/checkout/pay', async (req, res) => {
   try {
@@ -216,9 +259,12 @@ apiRouter.post('/checkout/pay', async (req, res) => {
       chargeId,
       amount,
       paymentMethod,
+      checkoutToken,
+      paymentConfigurationId,
       cardDetails,
       customFormResponses,
-      waiverSignature
+      waiverSignature,
+      feeCoverAmount
     } = req.body;
 
     if (!chargeId || !amount || !paymentMethod) {
@@ -231,9 +277,12 @@ apiRouter.post('/checkout/pay', async (req, res) => {
       chargeId,
       amount: Number(amount),
       paymentMethod,
+      checkoutToken,
+      paymentConfigurationId,
       cardDetails,
       customFormResponses,
-      waiverSignature
+      waiverSignature,
+      feeCoverAmount: feeCoverAmount ? Number(feeCoverAmount) : 0
     });
 
     res.json({

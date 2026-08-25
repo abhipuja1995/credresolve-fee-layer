@@ -9,8 +9,7 @@ import {
   Smartphone, 
   Code2, 
   ExternalLink,
-  QrCode,
-  Sparkles
+  QrCode
 } from 'lucide-react';
 
 interface SharePaymentLinkModalProps {
@@ -28,7 +27,7 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
   title = 'Parent Quick-Pay Portal',
   studentId,
   chargeId,
-  schoolName = 'Oakridge International Prep'
+  schoolName = 'CredResolve Partner Academy'
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedEmbed, setCopiedEmbed] = useState(false);
@@ -45,7 +44,7 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
   }
 
   const shareText = `Pay school fees, sign digital waivers, and view dues for ${schoolName} securely online: ${shareUrl}`;
-  const embedCode = `<iframe src="${shareUrl}" width="100%" height="700px" style="border:none; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);" title="${title}"></iframe>`;
+  const embedCode = `<iframe src="${shareUrl}" width="100%" height="700px" style="border:1px solid #cdcfd2; border-radius:6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" title="${title}"></iframe>`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -80,41 +79,29 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0, 0, 0, 0.65)',
-      backdropFilter: 'blur(8px)',
+      background: 'rgba(0, 34, 56, 0.65)',
+      backdropFilter: 'blur(4px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 120,
       padding: '1.5rem'
     }}>
-      <div className="card-panel" style={{
+      <div className="sky-card" style={{
         width: '100%',
         maxWidth: '560px',
-        padding: '2rem',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-strong)',
-        boxShadow: 'var(--shadow-lg)'
+        padding: 0,
+        overflow: 'hidden',
+        boxShadow: 'var(--shadow-modal)'
       }}>
-        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '8px',
-              background: 'var(--accent-gradient)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Share2 size={18} color="#ffffff" />
-            </div>
+        {/* Header */}
+        <div className="sky-card-header" style={{ padding: '1.15rem 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <Share2 size={18} color="var(--sky-color-primary)" />
             <div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                Share Digital Payment Link
-              </h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Send directly to parents via digital channels or embed on school portals
+              <h3 className="sky-heading-2">Share Payment Link</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                Distribute payment & waiver links to parents via email, SMS, or embeds.
               </p>
             </div>
           </div>
@@ -122,220 +109,174 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
             onClick={onClose}
             style={{ color: 'var(--text-muted)', fontSize: '1.25rem', fontWeight: 700 }}
           >
-            <X size={20} />
+            ✕
           </button>
         </div>
 
-        {/* Share Tabs */}
+        {/* Tab Navigation */}
         <div style={{
           display: 'flex',
-          gap: '0.5rem',
-          marginBottom: '1.5rem',
           borderBottom: '1px solid var(--border-subtle)',
-          paddingBottom: '0.75rem'
+          background: 'var(--bg-surface-subtle)',
+          padding: '0 1rem'
         }}>
-          <button
-            onClick={() => setActiveShareTab('link')}
-            className={activeShareTab === 'link' ? 'btn-primary' : 'btn-secondary'}
-            style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
-          >
-            Direct Link
-          </button>
-          <button
-            onClick={() => setActiveShareTab('social')}
-            className={activeShareTab === 'social' ? 'btn-primary' : 'btn-secondary'}
-            style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
-          >
-            WhatsApp / SMS / Email
-          </button>
-          <button
-            onClick={() => setActiveShareTab('embed')}
-            className={activeShareTab === 'embed' ? 'btn-primary' : 'btn-secondary'}
-            style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
-          >
-            Portal Embed Code
-          </button>
-          <button
-            onClick={() => setActiveShareTab('qr')}
-            className={activeShareTab === 'qr' ? 'btn-primary' : 'btn-secondary'}
-            style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
-          >
-            QR Code
-          </button>
+          {[
+            { id: 'link', label: 'Direct Link', icon: Share2 },
+            { id: 'social', label: 'SMS & Email', icon: MessageSquare },
+            { id: 'embed', label: 'HTML Embed', icon: Code2 },
+            { id: 'qr', label: 'QR Code', icon: QrCode }
+          ].map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeShareTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveShareTab(tab.id as any)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.75rem 0.85rem',
+                  fontSize: '0.8rem',
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? 'var(--sky-color-primary)' : 'var(--text-muted)',
+                  borderBottom: isActive ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                  background: 'transparent',
+                  cursor: 'pointer'
+                }}
+              >
+                <Icon size={14} />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Tab 1: Direct Link */}
-        {activeShareTab === 'link' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                Secure Payment Link
+        {/* Body Content */}
+        <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {activeShareTab === 'link' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <label>
+                Payment Link URL
               </label>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input
                   type="text"
                   readOnly
                   value={shareUrl}
-                  style={{ flex: 1, fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
                 />
                 <button
-                  className={copiedLink ? 'btn-primary' : 'btn-secondary'}
+                  className="sky-btn-primary"
                   onClick={handleCopyLink}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.65rem 1rem' }}
+                  style={{ padding: '0.5rem 0.95rem' }}
                 >
-                  {copiedLink ? <Check size={16} /> : <Copy size={16} />}
-                  {copiedLink ? 'Copied!' : 'Copy'}
+                  {copiedLink ? <Check size={14} /> : <Copy size={14} />}
+                  <span>{copiedLink ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
-            </div>
 
-            <div style={{
-              padding: '1rem',
-              background: 'var(--bg-surface-elevated)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-subtle)',
-              fontSize: '0.85rem',
-              color: 'var(--text-body)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div>
-                <strong style={{ color: 'var(--text-heading)' }}>Live Parent Preview:</strong>
-                <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Test how the checkout and waiver appear to parents in a live window.
-                </p>
+              <div style={{ padding: '0.75rem 1rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-strong)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Parents can open this link directly to sign digital waivers and pay through Apple Pay, Google Pay, credit cards, or ACH.
               </div>
-              <a
-                href={shareUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-primary"
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap' }}
-              >
-                Open Live <ExternalLink size={13} />
-              </a>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Tab 2: Social / Instant Messaging */}
-        {activeShareTab === 'social' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-body)' }}>
-              Broadcast this secure payment link to parents instantly across their preferred channels:
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+          {activeShareTab === 'social' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <button
+                className="sky-btn-default"
                 onClick={handleWhatsApp}
-                className="btn-secondary"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '1rem 0.5rem',
-                  background: 'rgba(37, 211, 102, 0.08)',
-                  borderColor: 'rgba(37, 211, 102, 0.3)'
-                }}
+                style={{ padding: '0.75rem 1rem', justifyContent: 'flex-start', gap: '0.75rem', width: '100%' }}
               >
-                <MessageSquare size={22} color="#25D366" />
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)' }}>WhatsApp</span>
+                <MessageSquare size={16} color="#25D366" />
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>Share via WhatsApp</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Send payment notification directly via WhatsApp</div>
+                </div>
               </button>
 
               <button
+                className="sky-btn-default"
                 onClick={handleEmail}
-                className="btn-secondary"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '1rem 0.5rem',
-                  background: 'rgba(79, 70, 229, 0.08)',
-                  borderColor: 'rgba(79, 70, 229, 0.3)'
-                }}
+                style={{ padding: '0.75rem 1rem', justifyContent: 'flex-start', gap: '0.75rem', width: '100%' }}
               >
-                <Mail size={22} color="var(--accent-primary)" />
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)' }}>Email</span>
+                <Mail size={16} color="var(--sky-color-primary)" />
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>Share via Email Client</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Draft pre-filled email to send to student guardians</div>
+                </div>
               </button>
 
               <button
+                className="sky-btn-default"
                 onClick={handleSMS}
-                className="btn-secondary"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '1rem 0.5rem',
-                  background: 'rgba(234, 88, 12, 0.08)',
-                  borderColor: 'rgba(234, 88, 12, 0.3)'
-                }}
+                style={{ padding: '0.75rem 1rem', justifyContent: 'flex-start', gap: '0.75rem', width: '100%' }}
               >
-                <Smartphone size={22} color="#ea580c" />
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)' }}>SMS Text</span>
+                <Smartphone size={16} color="var(--warning)" />
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>Share via SMS</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Open SMS composer on mobile devices</div>
+                </div>
               </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Tab 3: Website / Portal Embed */}
-        {activeShareTab === 'embed' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-body)' }}>
-              Embed this responsive checkout widget directly into your school website or LMS portal:
-            </p>
-            <div style={{ position: 'relative' }}>
+          {activeShareTab === 'embed' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <label>
+                HTML iframe Embed Code
+              </label>
               <textarea
                 readOnly
-                rows={4}
+                rows={3}
                 value={embedCode}
-                style={{
-                  width: '100%',
-                  fontSize: '0.8rem',
-                  fontFamily: 'var(--font-mono)',
-                  background: 'var(--bg-surface-elevated)',
-                  padding: '0.75rem'
-                }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'var(--bg-surface-subtle)' }}
               />
+              <button
+                className="sky-btn-primary"
+                onClick={handleCopyEmbed}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                {copiedEmbed ? <Check size={14} /> : <Copy size={14} />}
+                <span>{copiedEmbed ? 'Embed Code Copied!' : 'Copy Embed Code'}</span>
+              </button>
             </div>
-            <button
-              className={copiedEmbed ? 'btn-primary' : 'btn-secondary'}
-              onClick={handleCopyEmbed}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.65rem' }}
-            >
-              {copiedEmbed ? <Check size={16} /> : <Code2 size={16} />}
-              {copiedEmbed ? 'Embed Code Copied!' : 'Copy Embed Code'}
-            </button>
-          </div>
-        )}
+          )}
 
-        {/* Tab 4: QR Code */}
-        {activeShareTab === 'qr' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', textAlign: 'center' }}>
-            <div style={{
-              padding: '1.25rem',
-              background: '#ffffff',
-              borderRadius: 'var(--radius-md)',
-              border: '2px solid var(--border-accent)',
-              display: 'inline-block'
-            }}>
-              <QrCode size={160} color="#0f172a" />
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '0.95rem' }}>
-                Scan to Pay on Mobile
+          {activeShareTab === 'qr' && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '1rem 0' }}>
+              <div style={{
+                background: '#ffffff',
+                padding: '1.25rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-strong)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(shareUrl)}`}
+                  alt="Payment QR Code"
+                  style={{ width: '180px', height: '180px' }}
+                />
               </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                Print or attach to paper fee notices for instant mobile camera payment
-              </p>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                Scan to open the Quick-Pay & Waiver Checkout Portal on mobile
+              </span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', textAlign: 'right' }}>
-          <button className="btn-secondary" onClick={onClose} style={{ fontSize: '0.85rem', padding: '0.5rem 1.25rem' }}>
+        {/* Footer */}
+        <div style={{
+          padding: '0.85rem 1.5rem',
+          background: 'var(--bg-surface-subtle)',
+          borderTop: '1px solid var(--border-subtle)',
+          display: 'flex',
+          justifyContent: 'flex-end'
+        }}>
+          <button className="sky-btn-default" onClick={onClose}>
             Close
           </button>
         </div>

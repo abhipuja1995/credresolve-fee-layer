@@ -9,14 +9,15 @@ export class MockDataStore {
     subscriptionKey: process.env.BLACKBAUD_SUBSCRIPTION_KEY || 'ef89fdba1bd149ee8296bcda7add3e2a',
     accessToken: process.env.BLACKBAUD_OAUTH_TOKEN || 'bb_oauth2_tok_991204891283',
     tokenExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
+    paymentConfigurationId: process.env.BLACKBAUD_PAYMENT_CONFIGURATION_ID || 'bbms_cfg_2026_live',
     branding: {
       schoolName: 'Oakridge International Prep',
       logoUrl: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=150&auto=format&fit=crop&q=80',
-      primaryColor: '#4f46e5', // Royal Indigo
-      secondaryColor: '#7c3aed', // Purple Accent
-      backgroundColor: '#f8fafc', // Crisp Light Canvas
-      surfaceColor: '#ffffff', // Crisp White Card
-      textColor: '#0f172a' // Slate-900 High Contrast Text
+      primaryColor: '#007ea8', // Blackbaud SKY UX Sky Blue
+      secondaryColor: '#00b4e5', // Light Sky Accent
+      backgroundColor: '#f4f5f7', // SKY UX Page Canvas
+      surfaceColor: '#ffffff', // Clean White Card
+      textColor: '#282b30' // SKY UX Charcoal Text
     }
   };
 

@@ -7,7 +7,11 @@ import {
   FileCheck, 
   Copy, 
   Check,
-  X
+  X,
+  Filter,
+  DollarSign,
+  Receipt,
+  Users
 } from 'lucide-react';
 import { StudentCharge, UniversalFeeDefinition, SchoolBranding } from '../types/index.js';
 import { PayerCheckout } from './PayerCheckout.js';
@@ -63,56 +67,71 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Metrics Banner */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* SKY UX Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Accounts Receivable & Subledgers
+          </div>
+          <h2 className="sky-heading-1" style={{ marginTop: '0.15rem' }}>
+            Student Account Subledgers
+          </h2>
+          <p className="sky-font-deemphasized" style={{ marginTop: '0.25rem' }}>
+            Reconcile parent payments, review active receivables, and inspect synchronous SKY API subledger entries.
+          </p>
+        </div>
+      </div>
+
+      {/* SKY UX Summary Tiles Row */}
       <div className="grid-cols-3">
-        <div className="card-panel" style={{ padding: '1.5rem' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-            Total Subledger Obligations
+        <div className="sky-summary-tile">
+          <span className="sky-summary-tile-label">
+            Active Obligations
           </span>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.35rem', color: 'var(--text-heading)' }}>
-            {filteredCharges.length} Charges
+          <div className="sky-summary-tile-value">
+            {filteredCharges.length} <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>charges</span>
           </div>
         </div>
 
-        <div className="card-panel" style={{ padding: '1.5rem' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-            Total Reconciled Collections
+        <div className="sky-summary-tile">
+          <span className="sky-summary-tile-label">
+            Reconciled Collections
           </span>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--success)', marginTop: '0.35rem' }}>
+          <div className="sky-summary-tile-value" style={{ color: 'var(--success)' }}>
             ${totalCollected.toFixed(2)}
           </div>
         </div>
 
-        <div className="card-panel" style={{ padding: '1.5rem' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+        <div className="sky-summary-tile">
+          <span className="sky-summary-tile-label">
             Outstanding Receivables
           </span>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--warning)', marginTop: '0.35rem' }}>
+          <div className="sky-summary-tile-value" style={{ color: 'var(--warning)' }}>
             ${totalOutstanding.toFixed(2)}
           </div>
         </div>
       </div>
 
-      {/* Filters & Search Controls */}
-      <div className="card-panel" style={{ padding: '1.25rem 1.5rem' }}>
+      {/* SKY UX Filter Toolbar */}
+      <div className="sky-card" style={{ padding: '1rem 1.25rem' }}>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '260px' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '280px' }}>
             <input
               type="text"
               placeholder="Search by student name, roll number, or parent email..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              style={{ paddingLeft: '2.5rem', width: '100%' }}
+              style={{ paddingLeft: '2.4rem' }}
             />
-            <Search size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+            <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <select
               value={selectedFeeFilter}
               onChange={e => setSelectedFeeFilter(e.target.value)}
-              style={{ padding: '0.65rem 1rem', fontSize: '0.875rem' }}
+              style={{ width: 'auto', minWidth: '180px' }}
             >
               <option value="ALL">All Fee Programs</option>
               {fees.map(f => (
@@ -123,7 +142,7 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
             <select
               value={selectedStatusFilter}
               onChange={e => setSelectedStatusFilter(e.target.value)}
-              style={{ padding: '0.65rem 1rem', fontSize: '0.875rem' }}
+              style={{ width: 'auto', minWidth: '180px' }}
             >
               <option value="ALL">All Payment Statuses</option>
               <option value="PAID">Paid in Full</option>
@@ -134,123 +153,123 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
         </div>
       </div>
 
-      {/* Charges Subledger Table */}
-      <div className="card-panel" style={{ padding: '0', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
-          <thead>
-            <tr style={{ background: 'var(--bg-surface-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-              <th style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)' }}>Student / Payer</th>
-              <th style={{ padding: '1rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}>Fee Program</th>
-              <th style={{ padding: '1rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}>Due Date</th>
-              <th style={{ padding: '1rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}>Amount / Balance</th>
-              <th style={{ padding: '1rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}>Payment Status</th>
-              <th style={{ padding: '1rem 1rem', fontWeight: 700, color: 'var(--text-muted)' }}>Blackbaud Sync</th>
-              <th style={{ padding: '1rem 1.25rem', fontWeight: 700, color: 'var(--text-muted)', textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredCharges.length === 0 ? (
+      {/* SKY UX Charges Data Grid */}
+      <div className="sky-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="sky-table">
+            <thead>
               <tr>
-                <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                  No student charges match the applied search and filter criteria.
-                </td>
+                <th>Student / Payer</th>
+                <th>Fee Program</th>
+                <th>Due Date</th>
+                <th style={{ textAlign: 'right' }}>Amount / Balance</th>
+                <th>Payment Status</th>
+                <th>Blackbaud Sync</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
-            ) : (
-              filteredCharges.map(c => {
-                const remaining = c.amount - c.amountPaid;
-                const isCopied = copiedChargeId === c.id;
+            </thead>
+            <tbody>
+              {filteredCharges.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    No student charges match the applied search and filter criteria.
+                  </td>
+                </tr>
+              ) : (
+                filteredCharges.map(c => {
+                  const remaining = c.amount - c.amountPaid;
+                  const isCopied = copiedChargeId === c.id;
 
-                return (
-                  <tr key={c.id} style={{ borderBottom: '1px solid var(--border-subtle)', transition: 'background 0.15s' }}>
-                    <td style={{ padding: '1rem 1.25rem' }}>
-                      <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{c.studentName}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                        {c.studentId} • {c.parentEmail}
-                      </div>
-                    </td>
-
-                    <td style={{ padding: '1rem 1rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-heading)' }}>{c.feeTitle}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>GL: {c.bbFeeTypeId}</div>
-                    </td>
-
-                    <td style={{ padding: '1rem 1rem', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
-                      {c.dueDate}
-                    </td>
-
-                    <td style={{ padding: '1rem 1rem', whiteSpace: 'nowrap' }}>
-                      <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>${c.amount.toFixed(2)}</div>
-                      {remaining > 0 ? (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--warning)', fontWeight: 600 }}>
-                          ${remaining.toFixed(2)} due
+                  return (
+                    <tr key={c.id}>
+                      <td>
+                        <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{c.studentName}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '0.1rem' }}>
+                          {c.studentId} • {c.parentEmail}
                         </div>
-                      ) : (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>
-                          Paid (${c.amountPaid.toFixed(2)})
-                        </div>
-                      )}
-                    </td>
+                      </td>
 
-                    <td style={{ padding: '1rem 1rem', whiteSpace: 'nowrap' }}>
-                      {c.paymentStatus === 'PAID' && <span className="badge badge-success">Paid</span>}
-                      {c.paymentStatus === 'PARTIALLY_PAID' && <span className="badge badge-warning">Partial</span>}
-                      {c.paymentStatus === 'UNPAID' && <span className="badge badge-neutral">Unpaid</span>}
-                    </td>
+                      <td>
+                        <div style={{ fontWeight: 600, color: 'var(--text-heading)' }}>{c.feeTitle}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>GL: {c.bbFeeTypeId}</div>
+                      </td>
 
-                    <td style={{ padding: '1rem 1rem', whiteSpace: 'nowrap' }}>
-                      {c.bbSyncStatus === 'SYNCED' ? (
-                        <span className="badge badge-success" style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}>
-                          <CheckCircle size={12} /> Synced
-                        </span>
-                      ) : (
-                        <span className="badge badge-warning" style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}>
-                          <Clock size={12} /> {c.bbSyncStatus}
-                        </span>
-                      )}
-                    </td>
+                      <td style={{ whiteSpace: 'nowrap', color: 'var(--text-muted)' }}>
+                        {c.dueDate}
+                      </td>
 
-                    <td style={{ padding: '1rem 1.25rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                        <button
-                          className="btn-secondary"
-                          onClick={(e) => handleCopyLink(c.id, e)}
-                          title="Copy direct payment link"
-                          style={{
-                            padding: '0.45rem 0.75rem',
-                            fontSize: '0.8rem',
-                            color: isCopied ? 'var(--success)' : 'var(--text-heading)',
-                            borderColor: isCopied ? 'var(--success)' : 'var(--border-subtle)'
-                          }}
-                        >
-                          {isCopied ? <Check size={14} color="var(--success)" /> : <Copy size={14} />}
-                          <span>{isCopied ? 'Copied!' : 'Copy Link'}</span>
-                        </button>
-
-                        {c.paymentStatus !== 'PAID' ? (
-                          <button
-                            className="btn-primary"
-                            onClick={() => handleOpenReceiptOrCheckout(c.id)}
-                            style={{ padding: '0.45rem 0.95rem', fontSize: '0.8rem' }}
-                          >
-                            <CreditCard size={14} /> Pay Now
-                          </button>
+                      <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>${c.amount.toFixed(2)}</div>
+                        {remaining > 0 ? (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--warning)', fontWeight: 600 }}>
+                            ${remaining.toFixed(2)} due
+                          </div>
                         ) : (
-                          <button
-                            className="btn-secondary"
-                            onClick={() => handleOpenReceiptOrCheckout(c.id)}
-                            style={{ padding: '0.45rem 0.95rem', fontSize: '0.8rem', borderColor: 'var(--success)', color: 'var(--success)' }}
-                          >
-                            <FileCheck size={14} color="var(--success)" /> View Receipt
-                          </button>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>
+                            Paid (${c.amountPaid.toFixed(2)})
+                          </div>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      </td>
+
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        {c.paymentStatus === 'PAID' && <span className="badge badge-success">Paid</span>}
+                        {c.paymentStatus === 'PARTIALLY_PAID' && <span className="badge badge-warning">Partial</span>}
+                        {c.paymentStatus === 'UNPAID' && <span className="badge badge-neutral">Unpaid</span>}
+                      </td>
+
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        {c.bbSyncStatus === 'SYNCED' ? (
+                          <span className="badge badge-success">
+                            <CheckCircle size={11} /> Synced
+                          </span>
+                        ) : (
+                          <span className="badge badge-warning">
+                            <Clock size={11} /> {c.bbSyncStatus}
+                          </span>
+                        )}
+                      </td>
+
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.45rem' }}>
+                          <button
+                            className="sky-btn-default"
+                            onClick={(e) => handleCopyLink(c.id, e)}
+                            title="Copy direct payment link"
+                            style={{
+                              padding: '0.4rem 0.65rem',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            {isCopied ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
+                            <span>{isCopied ? 'Copied!' : 'Copy Link'}</span>
+                          </button>
+
+                          {c.paymentStatus !== 'PAID' ? (
+                            <button
+                              className="sky-btn-primary"
+                              onClick={() => handleOpenReceiptOrCheckout(c.id)}
+                              style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }}
+                            >
+                              <CreditCard size={13} /> Pay Now
+                            </button>
+                          ) : (
+                            <button
+                              className="sky-btn-default"
+                              onClick={() => handleOpenReceiptOrCheckout(c.id)}
+                              style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem', color: 'var(--success)' }}
+                            >
+                              <FileCheck size={13} color="var(--success)" /> View Receipt
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Direct In-Place Receipt & Checkout Modal */}
@@ -261,8 +280,8 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(0, 34, 56, 0.65)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -270,7 +289,7 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
           padding: '1.5rem',
           overflowY: 'auto'
         }}>
-          <div style={{ width: '100%', maxWidth: '720px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ width: '100%', maxWidth: '720px', maxHeight: '92vh', overflowY: 'auto', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-modal)' }}>
             <PayerCheckout
               chargeId={activeModalChargeId}
               onBackToLedger={() => setActiveModalChargeId(null)}

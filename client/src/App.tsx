@@ -202,10 +202,6 @@ export const App: React.FC = () => {
         onTabChange={handleTabChange}
         context={context}
         onOpenBrandingModal={() => setIsBrandingModalOpen(true)}
-        onOpenShareModal={() => {
-          setShareModalProps({});
-          setIsShareModalOpen(true);
-        }}
       />
 
       <main className="container" style={{ flex: 1, padding: '2rem' }}>

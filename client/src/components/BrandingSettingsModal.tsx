@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { 
   Palette, 
-  Save
+  Save,
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
 import { SchoolBranding } from '../types/index.js';
 import { api } from '../services/api.js';
@@ -15,7 +17,31 @@ interface BrandingSettingsModalProps {
 
 const PRESET_PALETTES = [
   {
-    name: 'Crisp Minimalist White',
+    name: 'Blackbaud SKY UX Classic',
+    primary: '#007ea8',
+    secondary: '#00b4e5',
+    bg: '#f4f5f7',
+    surface: '#ffffff',
+    text: '#282b30'
+  },
+  {
+    name: 'Blackbaud Deep Navy & Sky',
+    primary: '#007ea8',
+    secondary: '#0d364f',
+    bg: '#f8f9fa',
+    surface: '#ffffff',
+    text: '#002238'
+  },
+  {
+    name: 'Blackbaud SKY Modern Dark',
+    primary: '#0284c7',
+    secondary: '#38bdf8',
+    bg: '#12161a',
+    surface: '#1c2228',
+    text: '#f4f5f7'
+  },
+  {
+    name: 'Academic Indigo Minimalist',
     primary: '#4f46e5',
     secondary: '#7c3aed',
     bg: '#f8fafc',
@@ -23,15 +49,7 @@ const PRESET_PALETTES = [
     text: '#0f172a'
   },
   {
-    name: 'Classic Academic White',
-    primary: '#1d4ed8',
-    secondary: '#0284c7',
-    bg: '#ffffff',
-    surface: '#f1f5f9',
-    text: '#0f172a'
-  },
-  {
-    name: 'Emerald Slate White',
+    name: 'Emerald Slate Collegiate',
     primary: '#059669',
     secondary: '#10b981',
     bg: '#f8fafc',
@@ -39,28 +57,12 @@ const PRESET_PALETTES = [
     text: '#064e3b'
   },
   {
-    name: 'Electric Indigo (Dark)',
-    primary: '#6366f1',
-    secondary: '#a855f7',
-    bg: '#0b0f19',
-    surface: '#111827',
-    text: '#f8fafc'
-  },
-  {
-    name: 'Royal Sapphire (Dark)',
-    primary: '#2563eb',
-    secondary: '#06b6d4',
-    bg: '#0a1128',
-    surface: '#101f42',
-    text: '#f8fafc'
-  },
-  {
-    name: 'Crimson Cardinal (Dark)',
-    primary: '#dc2626',
-    secondary: '#f97316',
-    bg: '#180a0a',
-    surface: '#2c1212',
-    text: '#f8fafc'
+    name: 'Crimson Cardinal Heritage',
+    primary: '#b30000',
+    secondary: '#f4811f',
+    bg: '#ffffff',
+    surface: '#f9f9f9',
+    text: '#282b30'
   }
 ];
 
@@ -87,11 +89,11 @@ export const BrandingSettingsModal: React.FC<BrandingSettingsModalProps> = ({
 }) => {
   const [schoolName, setSchoolName] = useState(currentBranding.schoolName || 'St. Jude International Academy');
   const [logoUrl, setLogoUrl] = useState(currentBranding.logoUrl || '');
-  const [primaryColor, setPrimaryColor] = useState(currentBranding.primaryColor || '#4f46e5');
-  const [secondaryColor, setSecondaryColor] = useState(currentBranding.secondaryColor || '#7c3aed');
-  const [backgroundColor, setBackgroundColor] = useState(currentBranding.backgroundColor || '#f8fafc');
+  const [primaryColor, setPrimaryColor] = useState(currentBranding.primaryColor || '#007ea8');
+  const [secondaryColor, setSecondaryColor] = useState(currentBranding.secondaryColor || '#00b4e5');
+  const [backgroundColor, setBackgroundColor] = useState(currentBranding.backgroundColor || '#f4f5f7');
   const [surfaceColor, setSurfaceColor] = useState(currentBranding.surfaceColor || '#ffffff');
-  const [textColor, setTextColor] = useState(currentBranding.textColor || '#0f172a');
+  const [textColor, setTextColor] = useState(currentBranding.textColor || '#282b30');
   const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
@@ -104,23 +106,25 @@ export const BrandingSettingsModal: React.FC<BrandingSettingsModalProps> = ({
     setTextColor(preset.text);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSaving(true);
     try {
       const updated: SchoolBranding = {
         schoolName,
-        logoUrl,
+        logoUrl: logoUrl.trim() || undefined,
         primaryColor,
         secondaryColor,
         backgroundColor,
         surfaceColor,
         textColor
       };
-      await api.updateBranding(updated);
-      onBrandingUpdated(updated);
+
+      const result = await api.updateBranding(updated);
+      onBrandingUpdated(result.branding || updated);
       onClose();
     } catch (err) {
-      console.error('Failed to save branding:', err);
+      console.error('Failed to update branding:', err);
     } finally {
       setIsSaving(false);
     }
@@ -133,96 +137,87 @@ export const BrandingSettingsModal: React.FC<BrandingSettingsModalProps> = ({
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0, 0, 0, 0.65)',
-      backdropFilter: 'blur(8px)',
+      background: 'rgba(0, 34, 56, 0.65)',
+      backdropFilter: 'blur(4px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 110,
+      zIndex: 120,
       padding: '1.5rem'
     }}>
-      <div className="card-panel" style={{
+      <div className="sky-card" style={{
         width: '100%',
-        maxWidth: '840px',
+        maxWidth: '680px',
         maxHeight: '92vh',
         overflowY: 'auto',
-        padding: '2rem',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-strong)',
-        boxShadow: 'var(--shadow-lg)'
+        padding: 0,
+        boxShadow: 'var(--shadow-modal)'
       }}>
-        {/* Header */}
-        <div className="flex-between" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--accent-gradient)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Palette size={20} color="#ffffff" />
-            </div>
+        {/* Modal Header */}
+        <div className="sky-card-header" style={{ padding: '1.15rem 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <Palette size={18} color="var(--sky-color-primary)" />
             <div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                School Brand & Theme Customization
-              </h3>
-              <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-                Customize the school logo, primary/secondary colors, background tone, and text theme for parents and admin views.
+              <h3 className="sky-heading-2">Brand & SKY UX Theme Settings</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                Configure school logo, color palette, and SKY UX typography styling.
               </p>
             </div>
           </div>
-          <button onClick={onClose} style={{ fontSize: '1.25rem', color: 'var(--text-muted)', fontWeight: 700 }}>✕</button>
+          <button 
+            onClick={onClose}
+            style={{ color: 'var(--text-muted)', fontSize: '1.25rem', fontWeight: 700 }}
+          >
+            ✕
+          </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+        <form onSubmit={handleSave} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {/* Preset Palettes */}
           <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.5rem' }}>
-              Quick Preset Color Palettes
+            <label>
+              SKY UX Theme Presets
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.5rem', marginTop: '0.35rem' }}>
               {PRESET_PALETTES.map(p => (
                 <button
+                  type="button"
                   key={p.name}
                   onClick={() => applyPreset(p)}
                   style={{
-                    padding: '0.5rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'var(--bg-surface-elevated)',
-                    border: primaryColor === p.primary && backgroundColor === p.bg ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: primaryColor === p.primary && backgroundColor === p.bg ? '2px solid var(--sky-color-primary)' : '1px solid var(--border-strong)',
+                    background: p.bg,
+                    color: p.text,
+                    textAlign: 'left',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    fontSize: '0.825rem',
-                    color: 'var(--text-heading)',
-                    fontWeight: 600
+                    flexDirection: 'column',
+                    gap: '0.35rem'
                   }}
                 >
-                  <span style={{
-                    width: '14px',
-                    height: '14px',
-                    borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${p.primary}, ${p.secondary})`,
-                    display: 'inline-block',
-                    border: '1px solid rgba(0,0,0,0.1)'
-                  }} />
-                  {p.name}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: p.primary, display: 'inline-block' }} />
+                    <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: p.secondary, display: 'inline-block' }} />
+                  </div>
+                  <span>{p.name}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* School Name & Logo Section */}
+          {/* School Name & Logo */}
           <div className="grid-cols-2">
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.35rem' }}>
-                School Display Name
+              <label>
+                Institution Name *
               </label>
               <input
                 type="text"
+                required
                 value={schoolName}
                 onChange={e => setSchoolName(e.target.value)}
                 placeholder="e.g. St. Jude International Academy"
@@ -230,216 +225,93 @@ export const BrandingSettingsModal: React.FC<BrandingSettingsModalProps> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.35rem' }}>
-                School Logo Image URL
+              <label>
+                Logo Image URL
               </label>
               <input
-                type="text"
+                type="url"
                 value={logoUrl}
                 onChange={e => setLogoUrl(e.target.value)}
                 placeholder="https://.../logo.png"
               />
-              <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem' }}>
-                {PRESET_LOGOS.map((pl, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setLogoUrl(pl.url)}
-                    className="btn-secondary"
-                    style={{ fontSize: '0.725rem', padding: '0.25rem 0.55rem' }}
-                  >
-                    Sample {i + 1}
-                  </button>
-                ))}
+            </div>
+          </div>
+
+          {/* Custom Color Pickers */}
+          <div className="grid-cols-3">
+            <div>
+              <label>Primary Accent</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="color"
+                  value={primaryColor}
+                  onChange={e => setPrimaryColor(e.target.value)}
+                  style={{ width: '38px', height: '38px', padding: 0, border: 'none', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={primaryColor}
+                  onChange={e => setPrimaryColor(e.target.value)}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label>Secondary Accent</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="color"
+                  value={secondaryColor}
+                  onChange={e => setSecondaryColor(e.target.value)}
+                  style={{ width: '38px', height: '38px', padding: 0, border: 'none', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={secondaryColor}
+                  onChange={e => setSecondaryColor(e.target.value)}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label>Background Canvas</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="color"
+                  value={backgroundColor}
+                  onChange={e => setBackgroundColor(e.target.value)}
+                  style={{ width: '38px', height: '38px', padding: 0, border: 'none', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={backgroundColor}
+                  onChange={e => setBackgroundColor(e.target.value)}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
+                />
               </div>
             </div>
           </div>
 
-          {/* Color Customizers */}
-          <div>
-            <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '0.75rem', color: 'var(--text-heading)' }}>
-              Color Token Customization
-            </h4>
-
-            <div className="grid-cols-4">
-              {/* Primary Color */}
-              <div style={{ padding: '0.85rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block', marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-                  Primary Brand Color
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input
-                    type="color"
-                    value={primaryColor}
-                    onChange={e => setPrimaryColor(e.target.value)}
-                    style={{ width: '36px', height: '36px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  />
-                  <input
-                    type="text"
-                    value={primaryColor}
-                    onChange={e => setPrimaryColor(e.target.value)}
-                    style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem' }}
-                  />
-                </div>
-              </div>
-
-              {/* Secondary Color */}
-              <div style={{ padding: '0.85rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block', marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-                  Secondary Accent Color
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input
-                    type="color"
-                    value={secondaryColor}
-                    onChange={e => setSecondaryColor(e.target.value)}
-                    style={{ width: '36px', height: '36px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  />
-                  <input
-                    type="text"
-                    value={secondaryColor}
-                    onChange={e => setSecondaryColor(e.target.value)}
-                    style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem' }}
-                  />
-                </div>
-              </div>
-
-              {/* Background Color */}
-              <div style={{ padding: '0.85rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block', marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-                  Background Canvas
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input
-                    type="color"
-                    value={backgroundColor}
-                    onChange={e => setBackgroundColor(e.target.value)}
-                    style={{ width: '36px', height: '36px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  />
-                  <input
-                    type="text"
-                    value={backgroundColor}
-                    onChange={e => setBackgroundColor(e.target.value)}
-                    style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem' }}
-                  />
-                </div>
-              </div>
-
-              {/* Text Color */}
-              <div style={{ padding: '0.85rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block', marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-                  Text & Typography
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input
-                    type="color"
-                    value={textColor}
-                    onChange={e => setTextColor(e.target.value)}
-                    style={{ width: '36px', height: '36px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  />
-                  <input
-                    type="text"
-                    value={textColor}
-                    onChange={e => setTextColor(e.target.value)}
-                    style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem' }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Live Preview Card */}
+          {/* Footer Controls */}
           <div style={{
-            padding: '1.5rem',
-            borderRadius: 'var(--radius-lg)',
-            background: backgroundColor,
-            color: textColor,
-            border: `2px dashed ${primaryColor}60`,
+            marginTop: '1rem',
+            paddingTop: '1rem',
+            borderTop: '1px solid var(--border-subtle)',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            boxShadow: 'var(--shadow-sm)'
+            justifyContent: 'flex-end',
+            gap: '0.65rem'
           }}>
-            <div className="flex-between">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                {logoUrl ? (
-                  <img
-                    src={logoUrl}
-                    alt="Logo preview"
-                    style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800 }}>
-                    {schoolName.charAt(0)}
-                  </div>
-                )}
-                <div>
-                  <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: textColor }}>{schoolName}</h4>
-                  <span style={{ fontSize: '0.75rem', color: primaryColor, fontWeight: 700 }}>
-                    Live Client Branding Preview
-                  </span>
-                </div>
-              </div>
-
-              <span style={{
-                background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-                color: '#ffffff',
-                padding: '0.3rem 0.75rem',
-                borderRadius: '999px',
-                fontSize: '0.75rem',
-                fontWeight: 700
-              }}>
-                Checkout Active
-              </span>
-            </div>
-
-            <div style={{
-              background: surfaceColor,
-              padding: '1.25rem',
-              borderRadius: 'var(--radius-md)',
-              border: `1px solid rgba(0, 0, 0, 0.1)`,
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <strong style={{ display: 'block', fontSize: '0.95rem', color: textColor, fontWeight: 800 }}>
-                  8th Grade Washington D.C. Tour
-                </strong>
-                <span style={{ fontSize: '0.8rem', opacity: 0.75 }}>Student: Alexander Hayes</span>
-              </div>
-              <button
-                style={{
-                  background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-                  color: '#ffffff',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  padding: '0.5rem 1.15rem',
-                  borderRadius: 'var(--radius-md)',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-                }}
-              >
-                Pay $350.00
-              </button>
-            </div>
+            <button type="button" className="sky-btn-default" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="sky-btn-primary" disabled={isSaving}>
+              <Save size={14} />
+              {isSaving ? 'Applying Theme...' : 'Apply & Save Theme'}
+            </button>
           </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="flex-between" style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-subtle)' }}>
-          <button className="btn-secondary" onClick={onClose}>
-            Cancel
-          </button>
-
-          <button
-            className="btn-primary"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            <Save size={16} />
-            {isSaving ? 'Applying Branding...' : 'Save & Apply Brand Theme'}
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );

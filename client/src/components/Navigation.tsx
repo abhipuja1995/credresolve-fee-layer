@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Sparkles, 
   Layers, 
   Users, 
-  ShieldCheck,
+  Settings,
   Palette,
   BookOpen,
-  Globe,
-  Share2
+  Grid,
+  ChevronDown
 } from 'lucide-react';
 import { BlackbaudContext } from '../types/index.js';
 
@@ -18,206 +17,341 @@ interface NavigationProps {
   onTabChange: (tab: ActiveTab) => void;
   context: BlackbaudContext | null;
   onOpenBrandingModal: () => void;
-  onOpenShareModal?: () => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
   activeTab,
   onTabChange,
   context,
-  onOpenBrandingModal,
-  onOpenShareModal
+  onOpenBrandingModal
 }) => {
   const branding = context?.environment.branding;
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
+
+  // Close settings dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setIsSettingsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <header style={{
-      borderBottom: '1px solid var(--border-subtle)',
-      background: 'var(--bg-nav)',
-      backdropFilter: 'blur(16px)',
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      boxShadow: 'var(--shadow-sm)'
+      boxShadow: 'var(--shadow-md)',
+      background: '#ffffff'
     }}>
-      <div className="container" style={{ padding: '0.85rem 2rem' }}>
-        <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
-          {/* Logo & Platform Info */}
+      {/* Blackbaud SKY UX Omnibar (Top Bar) */}
+      <div style={{
+        background: 'var(--sky-color-navy)',
+        color: '#ffffff',
+        padding: '0.5rem 1.5rem',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+      }}>
+        <div style={{
+          maxWidth: '1440px',
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.75rem'
+        }}>
+          {/* Solution & Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            {branding?.logoUrl ? (
-              <img
-                src={branding.logoUrl}
-                alt="School Logo"
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: 'var(--radius-md)',
-                  objectFit: 'cover',
-                  border: '1px solid var(--border-subtle)',
-                  boxShadow: 'var(--shadow-sm)'
-                }}
-              />
-            ) : (
-              <div style={{
-                background: 'var(--accent-gradient)',
-                width: '40px',
-                height: '40px',
-                borderRadius: 'var(--radius-md)',
+            <button
+              title="Blackbaud Solution Switcher"
+              style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)'
-              }}>
-                <Sparkles size={20} color="#ffffff" />
-              </div>
-            )}
+                width: '32px',
+                height: '32px',
+                borderRadius: 'var(--radius-sm)',
+                color: '#ffffff',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <Grid size={18} />
+            </button>
 
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                  {branding?.schoolName || 'CredResolve'}
-                </h1>
-                <span style={{
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  background: 'var(--accent-light)',
-                  color: 'var(--accent-primary)',
-                  padding: '0.15rem 0.5rem',
-                  borderRadius: 'var(--radius-full)',
-                  border: '1px solid var(--border-accent)'
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              {branding?.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt="School Logo"
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: 'var(--radius-sm)',
+                    objectFit: 'cover',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                />
+              ) : (
+                <div style={{
+                  background: 'var(--sky-color-primary)',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  color: '#ffffff'
                 }}>
-                  Universal Fee Layer
+                  CR
+                </div>
+              )}
+
+              <div>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.01em' }}>
+                  {branding?.schoolName || 'CredResolve'}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Connection State, Share Link, & Branding Button */}
+          {/* Omnibar Right Actions & Settings Menu */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-            {onOpenShareModal && (
-              <button
-                onClick={onOpenShareModal}
-                className="btn-primary"
-                style={{
-                  fontSize: '0.825rem',
-                  padding: '0.45rem 0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem'
-                }}
-              >
-                <Share2 size={15} />
-                <span>Share Payment Link</span>
-              </button>
-            )}
-
-            <button
-              onClick={onOpenBrandingModal}
-              className="btn-secondary"
-              style={{
-                fontSize: '0.825rem',
-                padding: '0.45rem 0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.45rem'
-              }}
-            >
-              <Palette size={15} color="var(--accent-primary)" />
-              <span style={{ fontWeight: 600 }}>Brand & Theme</span>
-            </button>
-
+            {/* Environment Badge */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.45rem 0.85rem',
-              background: 'var(--bg-surface-elevated)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-full)',
-              fontSize: '0.8rem'
+              gap: '0.4rem',
+              padding: '0.3rem 0.65rem',
+              background: 'rgba(0, 0, 0, 0.35)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.75rem'
             }}>
-              <ShieldCheck size={16} color="var(--success)" />
-              <span style={{ color: 'var(--text-muted)' }}>Environment:</span>
-              <span style={{ fontWeight: 600, color: 'var(--text-heading)' }}>
-                {context?.environment.environmentId || 'Connecting...'}
+              <span style={{
+                display: 'inline-block',
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                backgroundColor: '#22c55e'
+              }} />
+              <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Env:</span>
+              <span style={{ fontWeight: 600, color: '#ffffff' }}>
+                {context?.environment.environmentId || 'Production'}
               </span>
-              <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '0.15rem 0.45rem' }}>
-                SKY API Ready
-              </span>
+            </div>
+
+            {/* Settings Dropdown Button */}
+            <div style={{ position: 'relative' }} ref={settingsRef}>
+              <button
+                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                style={{
+                  fontSize: '0.8rem',
+                  padding: '0.35rem 0.75rem',
+                  background: isSettingsOpen ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.12)',
+                  color: '#ffffff',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  fontWeight: 600,
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  cursor: 'pointer'
+                }}
+              >
+                <Settings size={14} color="#7dd3fc" />
+                <span>Settings</span>
+                <ChevronDown size={12} style={{ transform: isSettingsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isSettingsOpen && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '100%',
+                  marginTop: '0.4rem',
+                  width: '240px',
+                  background: 'var(--bg-card)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-strong)',
+                  boxShadow: 'var(--shadow-modal)',
+                  zIndex: 100,
+                  overflow: 'hidden',
+                  padding: '0.35rem 0'
+                }}>
+                  <div style={{
+                    padding: '0.5rem 0.85rem',
+                    borderBottom: '1px solid var(--border-subtle)',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em'
+                  }}>
+                    Configuration & Tools
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setIsSettingsOpen(false);
+                      onOpenBrandingModal();
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      fontSize: '0.825rem',
+                      fontWeight: 600,
+                      color: 'var(--text-heading)',
+                      background: 'transparent',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-surface-subtle)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Palette size={15} color="var(--sky-color-primary)" />
+                    <div>
+                      <div>Theme & Brand</div>
+                      <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                        Customize colors, logos & typography
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsSettingsOpen(false);
+                      onTabChange('guide');
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      fontSize: '0.825rem',
+                      fontWeight: 600,
+                      color: 'var(--text-heading)',
+                      background: 'transparent',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-surface-subtle)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <BookOpen size={15} color="var(--sky-color-primary)" />
+                    <div>
+                      <div>Document & Guide</div>
+                      <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                        API reference, error codes & integration
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Navigation Tabs (Admin Views) */}
-        <nav style={{
+      {/* Blackbaud SKY UX Tabset Bar */}
+      <div style={{
+        background: 'var(--bg-card)',
+        borderBottom: '1px solid var(--border-strong)',
+        padding: '0 1.5rem'
+      }}>
+        <div style={{
+          maxWidth: '1440px',
+          margin: '0 auto',
           display: 'flex',
-          gap: '0.5rem',
-          marginTop: '1rem',
-          borderTop: '1px solid var(--border-subtle)',
-          paddingTop: '0.65rem',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           overflowX: 'auto'
         }}>
-          <button
-            onClick={() => onTabChange('fees')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              background: activeTab === 'fees' ? 'var(--accent-gradient)' : 'transparent',
-              color: activeTab === 'fees' ? '#ffffff' : 'var(--text-body)',
-              boxShadow: activeTab === 'fees' ? 'var(--shadow-sm)' : 'none',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <Layers size={16} />
-            Universal Fee Studio
-          </button>
+          <nav style={{
+            display: 'flex',
+            gap: '1.5rem',
+            marginBottom: '-1px'
+          }}>
+            <button
+              onClick={() => onTabChange('fees')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.85rem 0.25rem',
+                fontWeight: activeTab === 'fees' ? 700 : 500,
+                fontSize: '0.9rem',
+                background: 'transparent',
+                color: activeTab === 'fees' ? 'var(--sky-color-primary)' : 'var(--text-body)',
+                borderBottom: activeTab === 'fees' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                borderRadius: 0,
+                whiteSpace: 'nowrap',
+                cursor: 'pointer'
+              }}
+            >
+              <Layers size={16} color={activeTab === 'fees' ? 'var(--sky-color-primary)' : 'var(--text-muted)'} />
+              Universal Fee Studio
+            </button>
 
-          <button
-            onClick={() => onTabChange('ledger')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              background: activeTab === 'ledger' ? 'var(--accent-gradient)' : 'transparent',
-              color: activeTab === 'ledger' ? '#ffffff' : 'var(--text-body)',
-              boxShadow: activeTab === 'ledger' ? 'var(--shadow-sm)' : 'none',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <Users size={16} />
-            Student Account Subledgers
-          </button>
+            <button
+              onClick={() => onTabChange('ledger')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.85rem 0.25rem',
+                fontWeight: activeTab === 'ledger' ? 700 : 500,
+                fontSize: '0.9rem',
+                background: 'transparent',
+                color: activeTab === 'ledger' ? 'var(--sky-color-primary)' : 'var(--text-body)',
+                borderBottom: activeTab === 'ledger' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                borderRadius: 0,
+                whiteSpace: 'nowrap',
+                cursor: 'pointer'
+              }}
+            >
+              <Users size={16} color={activeTab === 'ledger' ? 'var(--sky-color-primary)' : 'var(--text-muted)'} />
+              Student Account Subledgers
+            </button>
 
-          <button
-            onClick={() => onTabChange('guide')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              background: activeTab === 'guide' ? 'var(--accent-gradient)' : 'transparent',
-              color: activeTab === 'guide' ? '#ffffff' : 'var(--text-body)',
-              boxShadow: activeTab === 'guide' ? 'var(--shadow-sm)' : 'none',
-              whiteSpace: 'nowrap',
-              marginLeft: 'auto'
-            }}
-          >
-            <BookOpen size={16} />
-            User Guide & Docs
-          </button>
-        </nav>
+            {activeTab === 'guide' && (
+              <button
+                onClick={() => onTabChange('guide')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.85rem 0.25rem',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  background: 'transparent',
+                  color: 'var(--sky-color-primary)',
+                  borderBottom: '3px solid var(--sky-color-primary)',
+                  borderRadius: 0,
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer'
+                }}
+              >
+                <BookOpen size={16} color="var(--sky-color-primary)" />
+                Document & Guide
+              </button>
+            )}
+          </nav>
+        </div>
       </div>
     </header>
   );

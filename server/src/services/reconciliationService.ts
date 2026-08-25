@@ -1,11 +1,14 @@
 import { StudentCharge, PaymentTransaction } from '../types/fee.js';
 import { dataStore } from './mockDataStore.js';
+import { blackbaudClient } from './blackbaudSkyClient.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ProcessPaymentInput {
   chargeId: string;
   amount: number;
-  paymentMethod: 'APPLE_PAY' | 'GOOGLE_PAY' | 'CREDIT_CARD' | 'ACH_DIRECT_DEBIT' | 'UPI';
+  paymentMethod: string;
+  checkoutToken?: string;
+  paymentConfigurationId?: string;
   cardDetails?: {
     brand: string;
     last4: string;
@@ -15,11 +18,13 @@ export interface ProcessPaymentInput {
     signerName: string;
     agreed: boolean;
   };
+  feeCoverAmount?: number;
 }
 
 export class ReconciliationService {
   /**
-   * Processes a payer payment, validates forms/waivers, updates student ledger, and records transaction
+   * Processes a payer payment via Blackbaud Merchant Services (BBMS) New Checkout,
+   * validates forms/waivers, updates student ledger, and records transaction
    */
   async processPayment(input: ProcessPaymentInput): Promise<{
     charge: StudentCharge;
@@ -64,22 +69,44 @@ export class ReconciliationService {
       }
     }
 
-    const now = new Date().toISOString();
-    const transactionId = `TXN-${uuidv4().substring(0, 8).toUpperCase()}`;
-    const receiptNumber = `REC-${Date.now().toString().slice(-6)}`;
+    // Execute Blackbaud Merchant Services (BBMS) New Checkout Transaction Finalize
+    const checkoutToken = input.checkoutToken || `chk_tok_${uuidv4().substring(0, 12)}`;
+    const student = dataStore.students.find(s => s.studentId === charge.studentId);
+    
+    const bbmsResult = await blackbaudClient.createCheckoutTransaction({
+      checkoutToken,
+      chargeId: charge.id,
+      amount: input.amount,
+      paymentConfigurationId: input.paymentConfigurationId || dataStore.environmentContext.paymentConfigurationId,
+      donorEmail: charge.parentEmail,
+      cardholderName: input.waiverSignature?.signerName || student?.parentName,
+      customFields: {
+        studentId: charge.studentId,
+        studentName: charge.studentName,
+        feeTitle: charge.feeTitle,
+        bbFeeTypeId: charge.bbFeeTypeId
+      },
+      waiverSignature: input.waiverSignature,
+      feeCoverAmount: input.feeCoverAmount
+    });
+
+    const now = bbmsResult.paidAt || new Date().toISOString();
 
     // Create payment transaction
     const transaction: PaymentTransaction = {
-      transactionId,
+      transactionId: bbmsResult.transactionId,
       chargeId: charge.id,
       amount: input.amount,
-      paymentMethod: input.paymentMethod,
-      cardBrand: input.cardDetails?.brand || (input.paymentMethod === 'APPLE_PAY' ? 'Apple Pay' : (input.paymentMethod === 'GOOGLE_PAY' ? 'Google Pay' : 'Card')),
-      last4: input.cardDetails?.last4 || '8821',
+      paymentMethod: input.paymentMethod || bbmsResult.paymentMethod,
+      cardBrand: input.cardDetails?.brand || bbmsResult.cardBrand || 'Visa',
+      last4: input.cardDetails?.last4 || bbmsResult.last4 || '4242',
       status: 'SUCCESS',
       paidAt: now,
-      receiptNumber,
-      bbLedgerSyncStatus: 'SYNCED' // Synchronized back into Blackbaud general ledger
+      receiptNumber: bbmsResult.receiptNumber,
+      bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
+      bbmsAuthorizationCode: bbmsResult.authorizationCode,
+      subledgerJournalEntryId: bbmsResult.subledgerJournalEntryId,
+      checkoutToken
     };
 
     // Update Charge subledger
@@ -102,7 +129,6 @@ export class ReconciliationService {
     charge.updatedAt = now;
 
     // Update Student Account balance
-    const student = dataStore.students.find(s => s.studentId === charge.studentId);
     if (student) {
       student.currentBalance = Math.max(0, student.currentBalance - input.amount);
     }

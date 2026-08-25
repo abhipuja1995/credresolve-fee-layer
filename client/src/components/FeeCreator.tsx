@@ -6,17 +6,15 @@ import {
   AlertCircle, 
   ArrowRight, 
   Send,
-  Sparkles,
   Search,
   CheckCircle2,
-  DollarSign,
   Tag,
-  Building2,
-  Clock,
-  FileCode,
   ShieldCheck,
   Plus,
-  Share2
+  Share2,
+  Check,
+  Calendar,
+  DollarSign
 } from 'lucide-react';
 import { 
   BlackbaudFeeType, 
@@ -299,106 +297,100 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* Top Banner / Action Bar */}
-      <div className="card-panel" style={{
-        padding: '1.75rem 2rem',
-        background: 'var(--accent-gradient-card)',
-        border: '1px solid var(--border-accent)'
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* SKY UX Page Header & Action Bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '1rem'
       }}>
-        <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1.5rem' }}>
-          <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-              Universal Fee Studio
-            </h2>
+        <div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Fee Management & Billing Setup
           </div>
-          
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button 
-              className="btn-secondary"
-              onClick={() => {
-                setCatErrorMsg(null);
-                setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
-                setShowAddCategoryModal(true);
-              }}
-              style={{ padding: '0.75rem 1.25rem', fontSize: '0.925rem' }}
-            >
-              <Plus size={16} />
-              Add Fee Category
-            </button>
-
-            <button 
-              className="btn-primary" 
-              onClick={() => {
-                setTitle('9th Grade STEM Robotics & Lab Kit');
-                setDescription('Consumables kit and hardware access for Term 1 STEM Robotics curriculum.');
-                if (activeFeeTypes.length > 0) {
-                  setBbFeeTypeId(activeFeeTypes[0].feeTypeId);
-                  setBaseAmount(activeFeeTypes[0].defaultAmount || 125.00);
-                }
-                setShowModal(true);
-              }}
-              style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}
-            >
-              <PlusCircle size={18} />
-              Create Universal Fee
-            </button>
-          </div>
+          <h2 className="sky-heading-1" style={{ marginTop: '0.15rem' }}>
+            Universal Fee Studio
+          </h2>
+          <p className="sky-font-deemphasized" style={{ marginTop: '0.25rem' }}>
+            Design bespoke fees, configure GL classifications, define digital waivers, and deploy subledger rosters.
+          </p>
         </div>
 
-        {/* View Sub-Tabs */}
-        <div style={{
-          display: 'flex',
-          gap: '0.5rem',
-          marginTop: '1.5rem',
-          paddingTop: '1.25rem',
-          borderTop: '1px solid var(--border-subtle)',
-          flexWrap: 'wrap'
-        }}>
-          <button
-            onClick={() => setSubView('deployed')}
-            className={subView === 'deployed' ? 'btn-primary' : 'btn-secondary'}
-            style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <button 
+            className="sky-btn-default"
+            onClick={() => {
+              setCatErrorMsg(null);
+              setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
+              setShowAddCategoryModal(true);
+            }}
           >
-            <Layers size={16} />
-            Active Deployed Fees ({existingFees.length})
+            <Plus size={15} />
+            Add Fee Category
           </button>
 
-          <button
-            onClick={() => setSubView('categories')}
-            className={subView === 'categories' ? 'btn-primary' : 'btn-secondary'}
-            style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+          <button 
+            className="sky-btn-primary" 
+            onClick={() => {
+              setTitle('9th Grade STEM Robotics & Lab Kit');
+              setDescription('Consumables kit and hardware access for Term 1 STEM Robotics curriculum.');
+              if (activeFeeTypes.length > 0) {
+                setBbFeeTypeId(activeFeeTypes[0].feeTypeId);
+                setBaseAmount(activeFeeTypes[0].defaultAmount || 125.00);
+              }
+              setShowModal(true);
+            }}
           >
-            <Tag size={16} />
-            Fee Categories (GetFeeTypes) ({activeFeeTypes.length})
+            <PlusCircle size={16} />
+            Create Universal Fee
           </button>
         </div>
       </div>
 
+      {/* SKY UX Sub-Navigation Bar */}
+      <div style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-strong)',
+        borderRadius: 'var(--radius-md)',
+        padding: '0.5rem 0.75rem',
+        display: 'flex',
+        gap: '0.5rem',
+        flexWrap: 'wrap'
+      }}>
+        <button
+          onClick={() => setSubView('deployed')}
+          className={subView === 'deployed' ? 'sky-btn-primary' : 'sky-btn-default'}
+          style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
+        >
+          <Layers size={14} />
+          Active Deployed Fees ({existingFees.length})
+        </button>
+
+        <button
+          onClick={() => setSubView('categories')}
+          className={subView === 'categories' ? 'sky-btn-primary' : 'sky-btn-default'}
+          style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
+        >
+          <Tag size={14} />
+          Fee Categories (GetFeeTypes) ({activeFeeTypes.length})
+        </button>
+      </div>
+
       {categorySuccessMsg && (
-        <div style={{
-          background: 'var(--success-bg)',
-          border: '1px solid var(--success-border)',
-          padding: '0.85rem 1.25rem',
-          borderRadius: 'var(--radius-md)',
-          color: 'var(--success-text)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          fontSize: '0.9rem',
-          fontWeight: 600
-        }}>
+        <div className="sky-alert sky-alert-success">
           <CheckCircle2 size={18} />
-          {categorySuccessMsg}
+          <div>{categorySuccessMsg}</div>
         </div>
       )}
 
       {/* VIEW 1: Deployed Fees */}
       {subView === 'deployed' && (
         <div>
-          <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-heading)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Layers size={20} color="var(--accent-primary)" />
+          <div className="flex-between" style={{ marginBottom: '1rem' }}>
+            <h3 className="sky-heading-3" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <Layers size={18} color="var(--sky-color-primary)" />
               Active Deployed Fees ({existingFees.length})
             </h3>
             <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
@@ -407,7 +399,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
           </div>
 
           {existingFees.length === 0 ? (
-            <div className="card-panel" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div className="sky-card" style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
               No fees deployed yet. Click <strong>"Create Universal Fee"</strong> or choose a <strong>Fee Category</strong> to deploy your first fee.
             </div>
           ) : (
@@ -415,45 +407,45 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
               {existingFees.map(fee => {
                 const feeType = activeFeeTypes.find(f => f.feeTypeId === fee.bbFeeTypeId);
                 return (
-                  <div key={fee.id} className="card-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div>
-                      <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
+                  <div key={fee.id} className="sky-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div className="sky-card-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                         <span className="badge badge-success">{fee.status}</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span className={`badge ${getCategoryBadgeClass(feeType?.category || '')}`} style={{ fontSize: '0.7rem' }}>
-                            {feeType?.category || 'FEE'}
-                          </span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                            {fee.bbFeeTypeId}
-                          </span>
-                        </div>
+                        <span className={`badge ${getCategoryBadgeClass(feeType?.category || '')}`} style={{ fontSize: '0.65rem' }}>
+                          {feeType?.category || 'FEE'}
+                        </span>
                       </div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                        {fee.bbFeeTypeId}
+                      </span>
+                    </div>
 
-                      <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                    <div className="sky-card-content" style={{ flex: 1 }}>
+                      <h4 className="sky-heading-3">
                         {fee.title}
                       </h4>
-                      <p style={{ color: 'var(--text-body)', fontSize: '0.875rem', marginTop: '0.4rem', lineHeight: '1.4' }}>
+                      <p style={{ color: 'var(--text-body)', fontSize: '0.85rem', marginTop: '0.35rem', lineHeight: '1.4' }}>
                         {fee.description}
                       </p>
 
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1.25rem' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', marginTop: '1rem' }}>
                         <div style={{
-                          padding: '0.35rem 0.65rem',
-                          background: 'var(--bg-surface-elevated)',
+                          padding: '0.25rem 0.55rem',
+                          background: 'var(--bg-surface-subtle)',
                           border: '1px solid var(--border-subtle)',
                           borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.8rem',
+                          fontSize: '0.75rem',
                           color: 'var(--text-body)'
                         }}>
                           GL Account: <strong style={{ color: 'var(--text-heading)' }}>{feeType?.glAccountCode || 'GL-1010-00'}</strong>
                         </div>
 
                         <div style={{
-                          padding: '0.35rem 0.65rem',
-                          background: 'var(--bg-surface-elevated)',
+                          padding: '0.25rem 0.55rem',
+                          background: 'var(--bg-surface-subtle)',
                           border: '1px solid var(--border-subtle)',
                           borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.8rem',
+                          fontSize: '0.75rem',
                           color: 'var(--text-body)'
                         }}>
                           Audience: <strong style={{ color: 'var(--text-heading)' }}>
@@ -462,11 +454,11 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                         </div>
 
                         <div style={{
-                          padding: '0.35rem 0.65rem',
-                          background: 'var(--bg-surface-elevated)',
+                          padding: '0.25rem 0.55rem',
+                          background: 'var(--bg-surface-subtle)',
                           border: '1px solid var(--border-subtle)',
                           borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.8rem',
+                          fontSize: '0.75rem',
                           color: 'var(--text-body)'
                         }}>
                           Custom Fields: <strong style={{ color: 'var(--text-heading)' }}>{fee.customFormSchema.length}</strong>
@@ -474,25 +466,36 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex-between" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div style={{
+                      padding: '0.85rem 1.25rem',
+                      background: 'var(--bg-surface-subtle)',
+                      borderTop: '1px solid var(--border-subtle)',
+                      borderBottomLeftRadius: 'var(--radius-md)',
+                      borderBottomRightRadius: 'var(--radius-md)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '0.75rem'
+                    }}>
                       <div>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Amount</span>
-                        <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--success)' }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Standard Amount</span>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>
                           ${fee.baseAmount.toFixed(2)}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                         <button
-                          className="btn-secondary"
+                          className="sky-btn-default"
                           onClick={() => onOpenShareModal ? onOpenShareModal(fee.id) : window.open(`${window.location.origin}/?view=quickpay`, '_blank')}
-                          style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                          style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem' }}
                         >
                           <Share2 size={13} />
                           Share Link
                         </button>
                         <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Due Date</span>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>{fee.dueDate}</div>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Due Date</span>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-heading)' }}>{fee.dueDate}</div>
                         </div>
                       </div>
                     </div>
@@ -508,52 +511,52 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
       {subView === 'categories' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {/* Catalog Info & Controls */}
-          <div className="card-panel" style={{ padding: '1.5rem' }}>
-            <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+          <div className="sky-card" style={{ padding: '1.25rem 1.5rem' }}>
+            <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <h3 className="sky-heading-2">
                     Fee Category Catalog (<code>GetFeeTypes</code>)
                   </h3>
                   <span className="badge badge-success">
-                    <ShieldCheck size={13} /> {activeFeeTypes.length} Synchronized Types
+                    <ShieldCheck size={12} /> {activeFeeTypes.length} Types
                   </span>
                 </div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.35rem' }}>
-                  Synchronized in real-time from Blackbaud SKY API endpoint <code>GET /fee-types</code> (<code>tms-bmapi/v1</code>). Each category routes subledger charges to its pre-configured General Ledger chart of account.
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                  Synchronized from Blackbaud SKY API endpoint <code>GET /fee-types</code>. Each category maps to its designated General Ledger account.
                 </p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
                 <button
-                  className="btn-primary"
+                  className="sky-btn-primary"
                   onClick={() => {
                     setCatErrorMsg(null);
                     setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
                     setShowAddCategoryModal(true);
                   }}
-                  style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                  style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
                 >
-                  <Plus size={15} />
+                  <Plus size={14} />
                   Add Category
                 </button>
 
                 {/* Search Bar */}
-                <div style={{ position: 'relative', width: '280px' }}>
+                <div style={{ position: 'relative', width: '260px' }}>
                   <input
                     type="text"
                     placeholder="Search categories or GL codes..."
                     value={categorySearch}
                     onChange={e => setCategorySearch(e.target.value)}
-                    style={{ padding: '0.5rem 0.75rem 0.5rem 2.25rem', fontSize: '0.85rem' }}
+                    style={{ paddingLeft: '2.2rem' }}
                   />
-                  <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                  <Search size={14} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
                 </div>
               </div>
             </div>
 
             {/* Category Filter Pills */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
               {[
                 { id: 'ALL', label: 'All Categories' },
                 { id: 'TUITION', label: 'Tuition' },
@@ -567,13 +570,14 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                   key={cat.id}
                   onClick={() => setSelectedCategoryFilter(cat.id)}
                   style={{
-                    padding: '0.35rem 0.75rem',
+                    padding: '0.3rem 0.7rem',
                     borderRadius: 'var(--radius-full)',
-                    fontSize: '0.8rem',
+                    fontSize: '0.75rem',
                     fontWeight: 600,
-                    background: selectedCategoryFilter === cat.id ? 'var(--accent-primary)' : 'var(--bg-surface-elevated)',
+                    background: selectedCategoryFilter === cat.id ? 'var(--sky-color-primary)' : 'var(--bg-surface-subtle)',
                     color: selectedCategoryFilter === cat.id ? '#ffffff' : 'var(--text-body)',
-                    border: '1px solid var(--border-subtle)'
+                    border: '1px solid var(--border-strong)',
+                    cursor: 'pointer'
                   }}
                 >
                   {cat.label}
@@ -587,62 +591,67 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
             {filteredFeeTypes.map(ft => (
               <div
                 key={ft.feeTypeId}
-                className="card-panel"
+                className="sky-card"
                 style={{
-                  padding: '1.5rem',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  gap: '1rem',
-                  border: '1px solid var(--border-subtle)'
+                  justifyContent: 'space-between'
                 }}
               >
-                <div>
-                  <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-                    <span className={`badge ${getCategoryBadgeClass(ft.category)}`}>
-                      {ft.category}
-                    </span>
-                    <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent-primary)' }}>
-                      {ft.feeTypeId}
-                    </span>
-                  </div>
+                <div className="sky-card-header">
+                  <span className={`badge ${getCategoryBadgeClass(ft.category)}`}>
+                    {ft.category}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--sky-color-primary)' }}>
+                    {ft.feeTypeId}
+                  </span>
+                </div>
 
-                  <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                <div className="sky-card-content" style={{ flex: 1 }}>
+                  <h4 className="sky-heading-3">
                     {ft.name}
                   </h4>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1rem' }}>
-                    <div style={{ padding: '0.65rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
-                        GL Distribution Account
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginTop: '0.85rem' }}>
+                    <div style={{ padding: '0.6rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
+                        GL Account
                       </span>
-                      <code style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                      <code style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)' }}>
                         {ft.glAccountCode}
                       </code>
                     </div>
 
-                    <div style={{ padding: '0.65rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
+                    <div style={{ padding: '0.6rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
                         Default Standard Rate
                       </span>
-                      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--success)' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--success)' }}>
                         ${ft.defaultAmount ? ft.defaultAmount.toFixed(2) : '0.00'}
                       </span>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.85rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     <span>Partial Payments: <strong style={{ color: 'var(--text-heading)' }}>{ft.allowPartialPayment ? 'Supported' : 'One-time Only'}</strong></span>
                   </div>
                 </div>
 
-                <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{
+                  padding: '0.75rem 1.25rem',
+                  background: 'var(--bg-surface-subtle)',
+                  borderTop: '1px solid var(--border-subtle)',
+                  borderBottomLeftRadius: 'var(--radius-md)',
+                  borderBottomRightRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  justifyContent: 'flex-end'
+                }}>
                   <button
-                    className="btn-primary"
+                    className="sky-btn-primary"
                     onClick={() => openCreateModalForFeeType(ft)}
-                    style={{ fontSize: '0.825rem', padding: '0.5rem 1rem' }}
+                    style={{ fontSize: '0.75rem', padding: '0.4rem 0.75rem' }}
                   >
-                    <PlusCircle size={15} />
+                    <PlusCircle size={14} />
                     Deploy Fee with this Category
                   </button>
                 </div>
@@ -660,28 +669,27 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.65)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(0, 34, 56, 0.65)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 110,
           padding: '1.5rem'
         }}>
-          <div className="card-panel" style={{
+          <div className="sky-card" style={{
             width: '100%',
             maxWidth: '560px',
-            padding: '2rem',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-strong)',
-            boxShadow: 'var(--shadow-lg)'
+            padding: 0,
+            overflow: 'hidden',
+            boxShadow: 'var(--shadow-modal)'
           }}>
-            <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+            <div className="sky-card-header" style={{ padding: '1.15rem 1.5rem' }}>
               <div>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                <h3 className="sky-heading-2">
                   Add Fee Category
                 </h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
                   Define a new category and General Ledger chart of account for SKY API sync.
                 </p>
               </div>
@@ -693,126 +701,125 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
               </button>
             </div>
 
-            {catErrorMsg && (
-              <div style={{
-                background: 'var(--danger-bg)',
-                border: '1px solid var(--danger-border)',
-                padding: '0.75rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--danger-text)',
-                marginBottom: '1.25rem',
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                <AlertCircle size={16} />
-                {catErrorMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleAddCategorySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                  Category Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newCatName}
-                  onChange={e => setNewCatName(e.target.value)}
-                  placeholder="e.g. Bus Transportation Fee or AP Exam Package"
-                />
-              </div>
-
-              <div className="grid-cols-2">
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                    Category Type *
-                  </label>
-                  <select
-                    value={newCatType}
-                    onChange={e => setNewCatType(e.target.value as any)}
-                  >
-                    <option value="ACTIVITY">ACTIVITY (Excursion/Club)</option>
-                    <option value="ATHLETIC">ATHLETIC (Uniforms/Teams)</option>
-                    <option value="TUITION">TUITION (Standard Term)</option>
-                    <option value="MANDATORY_FEE">MANDATORY_FEE (Tech/Facility)</option>
-                    <option value="OPTIONAL_FEE">OPTIONAL_FEE (Graduation/Yearbook)</option>
-                    <option value="OTHER">OTHER (Miscellaneous / Other Fee)</option>
-                  </select>
+            <div style={{ padding: '1.5rem' }}>
+              {catErrorMsg && (
+                <div className="sky-alert sky-alert-danger" style={{ marginBottom: '1.25rem' }}>
+                  <AlertCircle size={16} />
+                  <div>{catErrorMsg}</div>
                 </div>
+              )}
 
+              <form onSubmit={handleAddCategorySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                    GL Account Code *
+                  <label>
+                    Category Name *
                   </label>
                   <input
                     type="text"
                     required
-                    value={newCatGl}
-                    onChange={e => setNewCatGl(e.target.value)}
-                    placeholder="e.g. GL-3030-90"
-                  />
-                </div>
-              </div>
-
-              <div className="grid-cols-2">
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                    Default Standard Rate ($ USD) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={newCatAmount}
-                    onChange={e => setNewCatAmount(parseFloat(e.target.value) || 0)}
+                    value={newCatName}
+                    onChange={e => setNewCatName(e.target.value)}
+                    placeholder="e.g. Bus Transportation Fee or AP Exam Package"
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                    Payment Options
-                  </label>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.65rem',
-                    padding: '0.65rem 0.85rem',
-                    background: 'var(--bg-surface-elevated)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-strong)'
-                  }}>
-                    <input
-                      type="checkbox"
-                      id="new_partial_toggle"
-                      checked={newCatPartial}
-                      onChange={e => setNewCatPartial(e.target.checked)}
-                      style={{ width: 'auto' }}
-                    />
-                    <label htmlFor="new_partial_toggle" style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-heading)', cursor: 'pointer' }}>
-                      Allow Partial Payments
+                <div className="grid-cols-2">
+                  <div>
+                    <label>
+                      Category Type *
                     </label>
+                    <select
+                      value={newCatType}
+                      onChange={e => setNewCatType(e.target.value as any)}
+                    >
+                      <option value="ACTIVITY">ACTIVITY (Excursion/Club)</option>
+                      <option value="ATHLETIC">ATHLETIC (Uniforms/Teams)</option>
+                      <option value="TUITION">TUITION (Standard Term)</option>
+                      <option value="MANDATORY_FEE">MANDATORY_FEE (Tech/Facility)</option>
+                      <option value="OPTIONAL_FEE">OPTIONAL_FEE (Graduation/Yearbook)</option>
+                      <option value="OTHER">OTHER (Miscellaneous / Other Fee)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label>
+                      GL Account Code *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newCatGl}
+                      onChange={e => setNewCatGl(e.target.value)}
+                      placeholder="e.g. GL-3030-90"
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div className="flex-between" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
-                <button type="button" className="btn-secondary" onClick={() => setShowAddCategoryModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" disabled={isAddingCategory || !newCatName.trim()}>
-                  {isAddingCategory ? 'Saving Category...' : 'Save & Sync Category'}
-                  <CheckCircle2 size={16} />
-                </button>
-              </div>
-            </form>
+                <div className="grid-cols-2">
+                  <div>
+                    <label>
+                      Default Standard Rate ($ USD) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={newCatAmount}
+                      onChange={e => setNewCatAmount(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+
+                  <div>
+                    <label>
+                      Payment Options
+                    </label>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      padding: '0.55rem 0.75rem',
+                      background: 'var(--bg-surface-subtle)',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-strong)',
+                      height: '38px'
+                    }}>
+                      <input
+                        type="checkbox"
+                        id="new_partial_toggle"
+                        checked={newCatPartial}
+                        onChange={e => setNewCatPartial(e.target.checked)}
+                        style={{ width: 'auto' }}
+                      />
+                      <label htmlFor="new_partial_toggle" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-heading)', cursor: 'pointer', margin: 0 }}>
+                        Allow Partial Payments
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{
+                  marginTop: '0.75rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '0.65rem'
+                }}>
+                  <button type="button" className="sky-btn-default" onClick={() => setShowAddCategoryModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="sky-btn-primary" disabled={isAddingCategory || !newCatName.trim()}>
+                    {isAddingCategory ? 'Saving Category...' : 'Save & Sync Category'}
+                    <CheckCircle2 size={15} />
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
-      {/* MODAL 2: Create Universal Fee Modal */}
+      {/* MODAL 2: Create Universal Fee Modal (4-Step SKY UX Wizard) */}
       {showModal && (
         <div style={{
           position: 'fixed',
@@ -820,29 +827,27 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.65)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(0, 34, 56, 0.65)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 100,
           padding: '1.5rem'
         }}>
-          <div className="card-panel" style={{
+          <div className="sky-card" style={{
             width: '100%',
             maxWidth: '780px',
-            maxHeight: '90vh',
+            maxHeight: '92vh',
             overflowY: 'auto',
-            padding: '2rem',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-strong)',
-            boxShadow: 'var(--shadow-lg)'
+            padding: 0,
+            boxShadow: 'var(--shadow-modal)'
           }}>
-            {/* Modal Header & Step Indicator */}
-            <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+            {/* Modal Header */}
+            <div className="sky-card-header" style={{ padding: '1.15rem 1.5rem' }}>
               <div>
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-heading)' }}>Create & Deploy Universal Fee</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <h3 className="sky-heading-2">Create & Deploy Universal Fee</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
                   Step {currentStep} of 4: {
                     currentStep === 1 ? 'Fee & General Ledger Classification' :
                     currentStep === 2 ? 'Dynamic Form & Electronic Waiver' :
@@ -859,387 +864,412 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
               </button>
             </div>
 
-            {/* Steps Progress Bar */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
-              {[1, 2, 3, 4].map(s => (
-                <div 
-                  key={s} 
-                  style={{ 
-                    flex: 1, 
-                    height: '4px', 
-                    borderRadius: '2px', 
-                    background: currentStep >= s ? 'var(--accent-primary)' : 'var(--border-subtle)' 
-                  }} 
-                />
-              ))}
-            </div>
-
-            {errorMsg && (
-              <div style={{
-                background: 'var(--danger-bg)',
-                border: '1px solid var(--danger-border)',
-                padding: '0.85rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--danger-text)',
-                marginBottom: '1.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '0.875rem'
-              }}>
-                <AlertCircle size={18} />
-                {errorMsg}
-              </div>
-            )}
-
-            {/* STEP 1: Basic Config */}
-            {currentStep === 1 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                    Fee Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    placeholder="e.g. 8th Grade Science Excursion or Varsity Uniform"
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                    Description
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    placeholder="Explain what this fee covers for parents..."
-                  />
-                </div>
-
-                <div className="grid-cols-2">
-                  <div>
-                    <div className="flex-between" style={{ marginBottom: '0.4rem' }}>
-                      <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-                        Fee Category (<code>GetFeeTypes</code>) *
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCatErrorMsg(null);
-                          setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
-                          setShowAddCategoryModal(true);
-                        }}
-                        style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                      >
-                        <Plus size={12} /> Add New
-                      </button>
-                    </div>
-
-                    <select 
-                      value={bbFeeTypeId || (activeFeeTypes[0]?.feeTypeId || '')} 
-                      onChange={e => {
-                        const selected = activeFeeTypes.find(f => f.feeTypeId === e.target.value);
-                        setBbFeeTypeId(e.target.value);
-                        if (selected && selected.defaultAmount) {
-                          setBaseAmount(selected.defaultAmount);
-                          setAllowPartialPayment(selected.allowPartialPayment);
-                        }
-                      }}
-                      style={{ fontWeight: 600 }}
-                    >
-                      {activeFeeTypes.map(ft => (
-                        <option key={ft.feeTypeId} value={ft.feeTypeId}>
-                          {ft.name} - {ft.category} ({ft.glAccountCode})
-                        </option>
-                      ))}
-                    </select>
-                    
-                    {/* Live Category Detail Box */}
-                    {selectedFeeType && (
-                      <div style={{
-                        marginTop: '0.65rem',
-                        padding: '0.75rem 0.85rem',
-                        background: 'var(--bg-surface-elevated)',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--border-subtle)',
-                        fontSize: '0.8rem'
-                      }}>
-                        <div className="flex-between">
-                          <span style={{ color: 'var(--text-muted)' }}>GL Distribution Account:</span>
-                          <strong style={{ color: 'var(--text-heading)', fontFamily: 'var(--font-mono)' }}>{selectedFeeType.glAccountCode}</strong>
-                        </div>
-                        <div className="flex-between" style={{ marginTop: '0.35rem' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Standard Rate:</span>
-                          <strong style={{ color: 'var(--success)' }}>${selectedFeeType.defaultAmount?.toFixed(2)}</strong>
-                        </div>
-                        <div className="flex-between" style={{ marginTop: '0.35rem' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Category Classification:</span>
-                          <span className={`badge ${getCategoryBadgeClass(selectedFeeType.category)}`} style={{ fontSize: '0.65rem' }}>
-                            {selectedFeeType.category}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                      Amount ($ USD) *
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={baseAmount}
-                      onChange={e => setBaseAmount(parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid-cols-2">
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                      Due Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={dueDate}
-                      onChange={e => setDueDate(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.4rem' }}>
-                      Payment Options
-                    </label>
+            {/* SKY UX Step Wizard Indicator */}
+            <div style={{
+              display: 'flex',
+              padding: '0.85rem 1.5rem',
+              background: 'var(--bg-surface-subtle)',
+              borderBottom: '1px solid var(--border-subtle)',
+              gap: '1rem',
+              overflowX: 'auto'
+            }}>
+              {[
+                { step: 1, label: 'Fee Classification' },
+                { step: 2, label: 'Forms & Waivers' },
+                { step: 3, label: 'Audience Roster' },
+                { step: 4, label: 'Review & Deploy' }
+              ].map(s => {
+                const isActive = currentStep === s.step;
+                const isCompleted = currentStep > s.step;
+                return (
+                  <div key={s.step} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}>
                     <div style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: isCompleted ? 'var(--success)' : (isActive ? 'var(--sky-color-primary)' : 'var(--bg-card)'),
+                      color: isCompleted || isActive ? '#ffffff' : 'var(--text-muted)',
+                      border: isCompleted || isActive ? 'none' : '1px solid var(--border-strong)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '0.65rem 0.9rem',
-                      background: 'var(--bg-surface-elevated)',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--border-strong)'
+                      justifyContent: 'center',
+                      fontSize: '0.75rem',
+                      fontWeight: 700
                     }}>
-                      <input
-                        type="checkbox"
-                        id="partial_toggle"
-                        checked={allowPartialPayment}
-                        onChange={e => setAllowPartialPayment(e.target.checked)}
-                        style={{ width: 'auto' }}
-                      />
-                      <label htmlFor="partial_toggle" style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-heading)', cursor: 'pointer' }}>
-                        Allow Partial / Installment Payments
-                      </label>
+                      {isCompleted ? <Check size={13} /> : s.step}
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 2: Custom Forms & Waivers */}
-            {currentStep === 2 && (
-              <div>
-                <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                  <span style={{ fontSize: '0.9rem', color: 'var(--text-body)', fontWeight: 600 }}>
-                    Fields to be completed by parent prior to payment:
-                  </span>
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
-                    <button className="btn-secondary" style={{ fontSize: '0.75rem', padding: '0.4rem 0.65rem' }} onClick={() => addCustomField('text')}>
-                      + Text Field
-                    </button>
-                    <button className="btn-secondary" style={{ fontSize: '0.75rem', padding: '0.4rem 0.65rem' }} onClick={() => addCustomField('select')}>
-                      + Dropdown
-                    </button>
-                    <button className="btn-secondary" style={{ fontSize: '0.75rem', padding: '0.4rem 0.65rem' }} onClick={() => addCustomField('waiver_signature')}>
-                      + Legal Waiver
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                  {customFields.map((field, idx) => (
-                    <div key={field.id} style={{
-                      padding: '1rem',
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-md)'
+                    <span style={{
+                      fontSize: '0.8rem',
+                      fontWeight: isActive ? 700 : 500,
+                      color: isActive ? 'var(--text-heading)' : 'var(--text-muted)'
                     }}>
-                      <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>{field.type}</span>
-                          <input
-                            type="text"
-                            value={field.label}
-                            onChange={e => {
-                              const updated = [...customFields];
-                              updated[idx].label = e.target.value;
-                              setCustomFields(updated);
-                            }}
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', width: '280px' }}
-                          />
-                        </div>
-                        <button onClick={() => removeCustomField(idx)} style={{ color: 'var(--danger)' }}>
-                          <Trash2 size={16} />
+                      {s.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ padding: '1.5rem' }}>
+              {errorMsg && (
+                <div className="sky-alert sky-alert-danger" style={{ marginBottom: '1.25rem' }}>
+                  <AlertCircle size={16} />
+                  <div>{errorMsg}</div>
+                </div>
+              )}
+
+              {/* STEP 1: Basic Config */}
+              {currentStep === 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+                  <div>
+                    <label>
+                      Fee Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={e => setTitle(e.target.value)}
+                      placeholder="e.g. 8th Grade Science Excursion or Varsity Uniform"
+                    />
+                  </div>
+
+                  <div>
+                    <label>
+                      Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={description}
+                      onChange={e => setDescription(e.target.value)}
+                      placeholder="Explain what this fee covers for parents..."
+                    />
+                  </div>
+
+                  <div className="grid-cols-2">
+                    <div>
+                      <div className="flex-between" style={{ marginBottom: '0.35rem' }}>
+                        <label style={{ margin: 0 }}>
+                          Fee Category (<code>GetFeeTypes</code>) *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCatErrorMsg(null);
+                            setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
+                            setShowAddCategoryModal(true);
+                          }}
+                          style={{ fontSize: '0.75rem', color: 'var(--sky-color-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                        >
+                          <Plus size={12} /> Add New
                         </button>
                       </div>
 
-                      {field.type === 'waiver_signature' && (
-                        <textarea
-                          rows={2}
-                          value={field.waiverText || ''}
-                          onChange={e => {
-                            const updated = [...customFields];
-                            updated[idx].waiverText = e.target.value;
-                            setCustomFields(updated);
-                          }}
-                          placeholder="Legal consent text..."
-                          style={{ fontSize: '0.8rem', marginTop: '0.4rem' }}
-                        />
-                      )}
-
-                      {field.type === 'select' && (
-                        <input
-                          type="text"
-                          value={field.options?.join(', ') || ''}
-                          onChange={e => {
-                            const updated = [...customFields];
-                            updated[idx].options = e.target.value.split(',').map(s => s.trim());
-                            setCustomFields(updated);
-                          }}
-                          placeholder="Comma-separated options e.g. Small, Medium, Large"
-                          style={{ fontSize: '0.8rem', marginTop: '0.4rem' }}
-                        />
+                      <select 
+                        value={bbFeeTypeId || (activeFeeTypes[0]?.feeTypeId || '')} 
+                        onChange={e => {
+                          const selected = activeFeeTypes.find(f => f.feeTypeId === e.target.value);
+                          setBbFeeTypeId(e.target.value);
+                          if (selected && selected.defaultAmount) {
+                            setBaseAmount(selected.defaultAmount);
+                            setAllowPartialPayment(selected.allowPartialPayment);
+                          }
+                        }}
+                        style={{ fontWeight: 600 }}
+                      >
+                        {activeFeeTypes.map(ft => (
+                          <option key={ft.feeTypeId} value={ft.feeTypeId}>
+                            {ft.name} - {ft.category} ({ft.glAccountCode})
+                          </option>
+                        ))}
+                      </select>
+                      
+                      {/* Live Category Detail Box */}
+                      {selectedFeeType && (
+                        <div style={{
+                          marginTop: '0.65rem',
+                          padding: '0.65rem 0.85rem',
+                          background: 'var(--bg-surface-subtle)',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--border-subtle)',
+                          fontSize: '0.775rem'
+                        }}>
+                          <div className="flex-between">
+                            <span style={{ color: 'var(--text-muted)' }}>GL Account:</span>
+                            <strong style={{ color: 'var(--text-heading)', fontFamily: 'var(--font-mono)' }}>{selectedFeeType.glAccountCode}</strong>
+                          </div>
+                          <div className="flex-between" style={{ marginTop: '0.25rem' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Standard Rate:</span>
+                            <strong style={{ color: 'var(--success)' }}>${selectedFeeType.defaultAmount?.toFixed(2)}</strong>
+                          </div>
+                        </div>
                       )}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
-            {/* STEP 3: Audience & Roster */}
-            {currentStep === 3 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div>
+                      <label>
+                        Amount ($ USD) *
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={baseAmount}
+                        onChange={e => setBaseAmount(parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid-cols-2">
+                    <div>
+                      <label>
+                        Due Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={dueDate}
+                        onChange={e => setDueDate(e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label>
+                        Payment Options
+                      </label>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.65rem',
+                        padding: '0.55rem 0.75rem',
+                        background: 'var(--bg-surface-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border-strong)',
+                        height: '38px'
+                      }}>
+                        <input
+                          type="checkbox"
+                          id="partial_toggle"
+                          checked={allowPartialPayment}
+                          onChange={e => setAllowPartialPayment(e.target.checked)}
+                          style={{ width: 'auto' }}
+                        />
+                        <label htmlFor="partial_toggle" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-heading)', cursor: 'pointer', margin: 0 }}>
+                          Allow Partial / Installments
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 2: Custom Forms & Waivers */}
+              {currentStep === 2 && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.5rem' }}>
-                    Target Audience Mode
-                  </label>
-                  <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    {[
-                      { id: 'GRADE', label: 'By Grade Level' },
-                      { id: 'ALL_STUDENTS', label: 'Entire School' },
-                      { id: 'ATHLETIC_ROSTER', label: 'Athletic / Activity Roster' }
-                    ].map(mode => (
-                      <button
-                        key={mode.id}
-                        onClick={() => setAudienceType(mode.id)}
-                        className={audienceType === mode.id ? 'btn-primary' : 'btn-secondary'}
-                        style={{ fontSize: '0.85rem' }}
-                      >
-                        {mode.label}
+                  <div className="flex-between" style={{ marginBottom: '1rem' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-body)', fontWeight: 600 }}>
+                      Fields to be completed by parent prior to payment:
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <button className="sky-btn-default" style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }} onClick={() => addCustomField('text')}>
+                        + Text Field
                       </button>
+                      <button className="sky-btn-default" style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }} onClick={() => addCustomField('select')}>
+                        + Dropdown
+                      </button>
+                      <button className="sky-btn-default" style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }} onClick={() => addCustomField('waiver_signature')}>
+                        + Legal Waiver
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {customFields.map((field, idx) => (
+                      <div key={field.id} style={{
+                        padding: '0.85rem 1rem',
+                        background: 'var(--bg-surface-subtle)',
+                        border: '1px solid var(--border-strong)',
+                        borderRadius: 'var(--radius-sm)'
+                      }}>
+                        <div className="flex-between" style={{ marginBottom: '0.4rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                            <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>{field.type}</span>
+                            <input
+                              type="text"
+                              value={field.label}
+                              onChange={e => {
+                                const updated = [...customFields];
+                                updated[idx].label = e.target.value;
+                                setCustomFields(updated);
+                              }}
+                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.85rem', width: '260px' }}
+                            />
+                          </div>
+                          <button onClick={() => removeCustomField(idx)} style={{ color: 'var(--danger)', cursor: 'pointer' }}>
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+
+                        {field.type === 'waiver_signature' && (
+                          <textarea
+                            rows={2}
+                            value={field.waiverText || ''}
+                            onChange={e => {
+                              const updated = [...customFields];
+                              updated[idx].waiverText = e.target.value;
+                              setCustomFields(updated);
+                            }}
+                            placeholder="Legal consent text..."
+                            style={{ fontSize: '0.8rem', marginTop: '0.35rem' }}
+                          />
+                        )}
+
+                        {field.type === 'select' && (
+                          <input
+                            type="text"
+                            value={field.options?.join(', ') || ''}
+                            onChange={e => {
+                              const updated = [...customFields];
+                              updated[idx].options = e.target.value.split(',').map(s => s.trim());
+                              setCustomFields(updated);
+                            }}
+                            placeholder="Comma-separated options e.g. Small, Medium, Large"
+                            style={{ fontSize: '0.8rem', marginTop: '0.35rem' }}
+                          />
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
-
-                {audienceType === 'GRADE' && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.5rem' }}>
-                      Select Grades
-                    </label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      {['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'].map(grade => {
-                        const isSelected = selectedGrades.includes(grade);
-                        const count = students.filter(s => s.grade === grade).length;
-                        return (
-                          <button
-                            key={grade}
-                            onClick={() => handleGradeToggle(grade)}
-                            style={{
-                              padding: '0.5rem 0.85rem',
-                              borderRadius: 'var(--radius-md)',
-                              border: isSelected ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                              background: isSelected ? 'var(--accent-light)' : 'var(--bg-surface-elevated)',
-                              color: isSelected ? 'var(--accent-primary)' : 'var(--text-body)',
-                              fontWeight: isSelected ? 700 : 500,
-                              fontSize: '0.85rem',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.45rem'
-                            }}
-                          >
-                            {grade} <span style={{ opacity: 0.7 }}>({count} students)</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Live Audience Preview */}
-                <div style={{ padding: '1rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                  <div className="flex-between">
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-body)', fontWeight: 600 }}>Targeted Active Students:</span>
-                    <strong style={{ fontSize: '1.1rem', color: 'var(--accent-primary)' }}>{targetedStudents.length} Students</strong>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 4: Review & Ingestion Pipeline Summary */}
-            {currentStep === 4 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div style={{
-                  padding: '1.25rem',
-                  background: 'var(--accent-gradient-card)',
-                  borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--border-accent)'
-                }}>
-                  <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.5rem' }}>{title}</h4>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--text-body)' }}>{description}</p>
-                  
-                  <div className="grid-cols-3" style={{ marginTop: '1.25rem' }}>
-                    <div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Charge per Student</span>
-                      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--success)' }}>${Number(baseAmount).toFixed(2)}</div>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Target Audience</span>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)' }}>{targetedStudents.length} Students</div>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Total Batch Volume</span>
-                      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--accent-primary)' }}>${totalBatchValue.toFixed(2)}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Modal Footer Controls */}
-            <div className="flex-between" style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-subtle)' }}>
-              {currentStep > 1 ? (
-                <button className="btn-secondary" onClick={() => setCurrentStep((currentStep - 1) as any)}>
-                  Back
-                </button>
-              ) : <div />}
-
-              {currentStep < 4 ? (
-                <button className="btn-primary" onClick={() => setCurrentStep((currentStep + 1) as any)}>
-                  Continue <ArrowRight size={16} />
-                </button>
-              ) : (
-                <button 
-                  className="btn-primary" 
-                  disabled={isSubmitting || !title.trim()}
-                  onClick={handleSubmitFee}
-                >
-                  {isSubmitting ? 'Submitting...' : 'Finish'}
-                  <Send size={16} />
-                </button>
               )}
+
+              {/* STEP 3: Audience & Roster */}
+              {currentStep === 3 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+                  <div>
+                    <label>
+                      Target Audience Mode
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {[
+                        { id: 'GRADE', label: 'By Grade Level' },
+                        { id: 'ALL_STUDENTS', label: 'Entire School' },
+                        { id: 'ATHLETIC_ROSTER', label: 'Athletic / Activity Roster' }
+                      ].map(mode => (
+                        <button
+                          key={mode.id}
+                          onClick={() => setAudienceType(mode.id)}
+                          className={audienceType === mode.id ? 'sky-btn-primary' : 'sky-btn-default'}
+                          style={{ fontSize: '0.8rem' }}
+                        >
+                          {mode.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {audienceType === 'GRADE' && (
+                    <div>
+                      <label>
+                        Select Grades
+                      </label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+                        {['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'].map(grade => {
+                          const isSelected = selectedGrades.includes(grade);
+                          const count = students.filter(s => s.grade === grade).length;
+                          return (
+                            <button
+                              key={grade}
+                              onClick={() => handleGradeToggle(grade)}
+                              style={{
+                                padding: '0.4rem 0.75rem',
+                                borderRadius: 'var(--radius-sm)',
+                                border: isSelected ? '2px solid var(--sky-color-primary)' : '1px solid var(--border-strong)',
+                                background: isSelected ? 'var(--sky-color-primary-light)' : 'var(--bg-surface-subtle)',
+                                color: isSelected ? 'var(--sky-color-primary)' : 'var(--text-body)',
+                                fontWeight: isSelected ? 700 : 500,
+                                fontSize: '0.8rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {grade} <span style={{ opacity: 0.7 }}>({count})</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Live Audience Preview */}
+                  <div style={{ padding: '0.85rem 1.15rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-strong)' }}>
+                    <div className="flex-between">
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-body)', fontWeight: 600 }}>Targeted Active Students:</span>
+                      <strong style={{ fontSize: '1rem', color: 'var(--sky-color-primary)' }}>{targetedStudents.length} Students</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4: Review & Summary */}
+              {currentStep === 4 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+                  <div style={{
+                    padding: '1.25rem',
+                    background: 'var(--bg-surface-subtle)',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-strong)'
+                  }}>
+                    <h4 className="sky-heading-3">{title}</h4>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-body)', marginTop: '0.25rem' }}>{description}</p>
+                    
+                    <div className="grid-cols-3" style={{ marginTop: '1.15rem' }}>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Charge per Student</span>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--success)' }}>${Number(baseAmount).toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Target Audience</span>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-heading)' }}>{targetedStudents.length} Students</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Total Batch Volume</span>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--sky-color-primary)' }}>${totalBatchValue.toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Footer Controls */}
+              <div style={{
+                marginTop: '1.5rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid var(--border-subtle)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                {currentStep > 1 ? (
+                  <button className="sky-btn-default" onClick={() => setCurrentStep((currentStep - 1) as any)}>
+                    Back
+                  </button>
+                ) : <div />}
+
+                {currentStep < 4 ? (
+                  <button className="sky-btn-primary" onClick={() => setCurrentStep((currentStep + 1) as any)}>
+                    Continue <ArrowRight size={15} />
+                  </button>
+                ) : (
+                  <button 
+                    className="sky-btn-primary" 
+                    disabled={isSubmitting || !title.trim()}
+                    onClick={handleSubmitFee}
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Finish & Deploy Fee'}
+                    <Send size={15} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

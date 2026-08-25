@@ -1,5 +1,5 @@
 /**
- * Blackbaud SKY API (tms-bmapi) Type Definitions
+ * Blackbaud SKY API (tms-bmapi & BBMS Payments New Checkout) Type Definitions
  */
 
 export interface SchoolBranding {
@@ -78,5 +78,60 @@ export interface BlackbaudEnvironmentContext {
   subscriptionKey: string;
   accessToken?: string;
   tokenExpiresAt?: string;
+  paymentConfigurationId: string;
   branding: SchoolBranding;
+}
+
+/**
+ * Blackbaud Merchant Services (BBMS) - SKY Payments New Checkout
+ * Integration Reference: https://developer.blackbaud.com/skyapi/products/bbms/payments/integrations/new-checkout
+ */
+export interface BlackbaudPaymentConfiguration {
+  paymentConfigurationId: string;
+  name: string;
+  currency: string;
+  merchantAccountId: string;
+  supportsApplePay: boolean;
+  supportsGooglePay: boolean;
+  supportsAch: boolean;
+  supportsPayPalVenmo: boolean;
+  useCompleteCover: boolean;
+}
+
+export interface BlackbaudCheckoutTransactionRequest {
+  checkoutToken: string;
+  chargeId: string;
+  amount: number;
+  paymentConfigurationId?: string;
+  donorEmail?: string;
+  cardholderName?: string;
+  billingAddress?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postcode?: string;
+    country?: string;
+  };
+  customFields?: Record<string, any>;
+  waiverSignature?: {
+    signerName: string;
+    agreed: boolean;
+  };
+  feeCoverAmount?: number;
+}
+
+export interface BlackbaudCheckoutTransactionResponse {
+  success: boolean;
+  transactionId: string;
+  authorizationCode: string;
+  receiptNumber: string;
+  amount: number;
+  feeCoverAmount?: number;
+  paymentMethod: string;
+  cardBrand?: string;
+  last4?: string;
+  status: 'SUCCESS' | 'SETTLED';
+  bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD';
+  subledgerJournalEntryId: string;
+  paidAt: string;
 }

@@ -99,11 +99,14 @@ export interface PaymentTransaction {
   transactionId: string;
   chargeId: string;
   amount: number;
-  paymentMethod: 'APPLE_PAY' | 'GOOGLE_PAY' | 'CREDIT_CARD' | 'ACH_DIRECT_DEBIT' | 'UPI';
+  paymentMethod: string;
   cardBrand?: string;
   last4?: string;
   status: 'SUCCESS' | 'FAILED' | 'PENDING';
   paidAt: string;
   receiptNumber: string;
-  bbLedgerSyncStatus: 'SYNCED' | 'PENDING';
+  bbLedgerSyncStatus: 'SYNCED' | 'POSTED_TO_BLACKBAUD' | 'PENDING';
+  bbmsAuthorizationCode?: string;
+  subledgerJournalEntryId?: string;
+  checkoutToken?: string;
 }

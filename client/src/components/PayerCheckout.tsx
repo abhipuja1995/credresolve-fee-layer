@@ -5,15 +5,18 @@ import {
   Lock, 
   ArrowLeft, 
   FileText, 
-  AlertCircle,
-  Check,
-  Share2,
-  Printer,
-  ShieldCheck,
-  Building2,
-  Calendar,
-  User,
-  Sparkles
+  AlertCircle, 
+  Check, 
+  Share2, 
+  Printer, 
+  ShieldCheck, 
+  Building2, 
+  Calendar, 
+  User, 
+  Sparkles,
+  Zap,
+  Globe,
+  DollarSign
 } from 'lucide-react';
 import { StudentCharge, UniversalFeeDefinition, SchoolBranding } from '../types/index.js';
 import { api } from '../services/api.js';
@@ -35,18 +38,25 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'APPLE_PAY' | 'GOOGLE_PAY' | 'CREDIT_CARD' | 'ACH_DIRECT_DEBIT'>('APPLE_PAY');
+  const [paymentMethod, setPaymentMethod] = useState<'CARD' | 'APPLE_PAY' | 'GOOGLE_PAY' | 'ACH' | 'PAYPAL_VENMO'>('APPLE_PAY');
   const [customAmount, setCustomAmount] = useState<number | string>('');
+  const [useCompleteCover, setUseCompleteCover] = useState(true);
   const [formResponses, setFormResponses] = useState<Record<string, any>>({});
   const [signerName, setSignerName] = useState('');
   const [waiverAgreed, setWaiverAgreed] = useState(false);
   const [successReceipt, setSuccessReceipt] = useState<any>(null);
   const [isLinkCopied, setIsLinkCopied] = useState(false);
 
+  // Card details state
+  const [cardNumber, setCardNumber] = useState('•••• •••• •••• 4242');
+  const [cardExpiry, setCardExpiry] = useState('12/28');
+  const [cardCvc, setCardCvc] = useState('•••');
+  const [cardPostalCode, setCardPostalCode] = useState('94105');
+
   // Branding tokens
-  const primaryColor = branding?.primaryColor || '#4f46e5';
-  const secondaryColor = branding?.secondaryColor || '#7c3aed';
-  const schoolName = branding?.schoolName || 'Oakridge International Prep';
+  const primaryColor = branding?.primaryColor || '#007ea8';
+  const secondaryColor = branding?.secondaryColor || '#00b4e5';
+  const schoolName = branding?.schoolName || 'CredResolve Partner Academy';
   const logoUrl = branding?.logoUrl;
 
   useEffect(() => {
@@ -66,18 +76,20 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
           setWaiverAgreed(true);
         }
 
-        // If this charge is already paid, immediately display the official receipt
+        // If this charge is already paid, display the official BBMS receipt
         if (result.charge.paymentStatus === 'PAID') {
           if (result.charge.paymentReceipts && result.charge.paymentReceipts.length > 0) {
             setSuccessReceipt(result.charge.paymentReceipts[result.charge.paymentReceipts.length - 1]);
           } else {
             setSuccessReceipt({
-              receiptNumber: `REC-${result.charge.id.slice(-6).toUpperCase()}`,
-              transactionId: `TXN-${result.charge.id.slice(-6).toUpperCase()}`,
+              receiptNumber: `REC-BBMS-${result.charge.id.slice(-6).toUpperCase()}`,
+              transactionId: `BBMS-TXN-${result.charge.id.slice(-6).toUpperCase()}`,
+              authorizationCode: `AUTH-892144`,
               amount: result.charge.amountPaid || result.charge.amount,
-              paymentMethod: 'Credit / Debit Card',
+              paymentMethod: 'Blackbaud Merchant Services (BBMS) - New Checkout',
               paidAt: result.charge.createdAt || new Date().toISOString(),
-              bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD'
+              bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
+              subledgerJournalEntryId: `GL-JE-${result.charge.id.slice(-6).toUpperCase()}`
             });
           }
         }
@@ -107,17 +119,17 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
 
   if (loading) {
     return (
-      <div className="card-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-        <div style={{ color: primaryColor, fontWeight: 700 }}>Loading secure payment portal...</div>
+      <div className="sky-card" style={{ padding: '3rem', textAlign: 'center' }}>
+        <div style={{ color: 'var(--sky-color-primary)', fontWeight: 700 }}>Connecting to Blackbaud Merchant Services (BBMS)...</div>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="card-panel" style={{ padding: '2rem', textAlign: 'center' }}>
+      <div className="sky-card" style={{ padding: '2rem', textAlign: 'center' }}>
         <p style={{ color: 'var(--danger-text)', fontWeight: 600 }}>Charge record not found.</p>
-        <button className="btn-secondary" onClick={onBackToLedger} style={{ marginTop: '1rem' }}>
+        <button className="sky-btn-default" onClick={onBackToLedger} style={{ marginTop: '1rem' }}>
           Back to Subledger
         </button>
       </div>
@@ -126,31 +138,73 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
 
   const { charge, fee } = data;
   const remainingBalance = charge.amount - charge.amountPaid;
+  const parsedAmount = Number(customAmount) || 0;
+  const processingFee = useCompleteCover ? +(parsedAmount * 0.029 + 0.30).toFixed(2) : 0;
+  const totalAmountToCharge = +(parsedAmount + processingFee).toFixed(2);
 
-  const handlePay = async () => {
+  const handlePayWithBlackbaudCheckout = async () => {
     setErrorMsg(null);
     setIsProcessing(true);
 
     try {
-      const res = await api.processCheckout({
+      // Validate Custom Form Fields
+      if (fee.customFormSchema && fee.customFormSchema.length > 0) {
+        for (const field of fee.customFormSchema) {
+          if (field.type === 'waiver_signature') {
+            if (field.required && (!waiverAgreed || !signerName.trim())) {
+              throw new Error(`Please acknowledge and electronically sign "${field.label}" before submitting payment.`);
+            }
+          } else if (field.required) {
+            const val = formResponses[field.id];
+            if (val === undefined || val === null || val === '') {
+              throw new Error(`Please complete the required field: "${field.label}".`);
+            }
+          }
+        }
+      }
+
+      // Generate Blackbaud New Checkout Token (Client-side tokenization)
+      const simulatedCheckoutToken = `chk_tok_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`;
+
+      // Call Blackbaud Merchant Services (BBMS) New Checkout Transaction Finalize
+      const res = await api.processBbmsCheckout({
+        checkoutToken: simulatedCheckoutToken,
         chargeId: charge.id,
-        amount: Number(customAmount),
-        paymentMethod,
-        cardDetails: paymentMethod === 'CREDIT_CARD' ? { brand: 'Visa', last4: '4242' } : undefined,
-        customFormResponses: formResponses,
-        waiverSignature: {
+        amount: parsedAmount,
+        feeCoverAmount: processingFee,
+        donorEmail: charge.parentEmail,
+        cardholderName: signerName || charge.studentName,
+        customFields: {
+          ...formResponses,
+          studentId: charge.studentId,
+          feeTitle: charge.feeTitle,
+          bbFeeTypeId: charge.bbFeeTypeId,
+          paymentMethod
+        },
+        waiverSignature: signerName ? {
           signerName,
           agreed: waiverAgreed
-        }
+        } : undefined
       });
 
-      const receipt = res.transaction || res.receipt || {
-        receiptNumber: `REC-${Date.now().toString().slice(-6)}`,
-        transactionId: `TXN-${Date.now().toString().slice(-6)}`,
-        amount: Number(customAmount),
-        paymentMethod: paymentMethod === 'APPLE_PAY' ? ' Apple Pay' : (paymentMethod === 'GOOGLE_PAY' ? 'Google Pay' : 'Credit Card (Visa •••• 4242)'),
-        paidAt: new Date().toISOString(),
-        bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD'
+      const receipt = {
+        receiptNumber: res.receiptNumber || `REC-BBMS-${Date.now().toString().slice(-6)}`,
+        transactionId: res.transactionId || `BBMS-TXN-${Date.now().toString().slice(-6)}`,
+        authorizationCode: res.authorizationCode || `AUTH-992144`,
+        amount: parsedAmount,
+        feeCoverAmount: processingFee,
+        paymentMethod: paymentMethod === 'APPLE_PAY' 
+          ? 'Blackbaud New Checkout ( Apple Pay)' 
+          : paymentMethod === 'GOOGLE_PAY' 
+          ? 'Blackbaud New Checkout (Google Pay)' 
+          : paymentMethod === 'ACH' 
+          ? 'Blackbaud New Checkout (ACH Direct Debit)'
+          : paymentMethod === 'PAYPAL_VENMO'
+          ? 'Blackbaud New Checkout (PayPal / Venmo)'
+          : 'Blackbaud New Checkout (Visa •••• 4242)',
+        paidAt: res.paidAt || new Date().toISOString(),
+        bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
+        subledgerJournalEntryId: res.subledgerJournalEntryId || `GL-JE-${Date.now().toString().slice(-6)}`
       };
 
       setSuccessReceipt(receipt);
@@ -163,13 +217,13 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* Top Header & Navigation Bar */}
       <div className="flex-between" style={{ alignItems: 'center' }}>
         <button 
-          className="btn-secondary" 
+          className="sky-btn-default" 
           onClick={onBackToLedger}
-          style={{ padding: '0.45rem 0.9rem', fontSize: '0.825rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+          style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
         >
           <ArrowLeft size={14} /> Back to Student Accounts
         </button>
@@ -177,305 +231,297 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
         {/* Copy Payment Link CTA (Shown only on unpaid payment checkout) */}
         {!successReceipt && charge.paymentStatus !== 'PAID' && (
           <button
-            className="btn-secondary"
+            className="sky-btn-default"
             onClick={handleCopyPaymentLink}
             style={{
-              padding: '0.45rem 0.9rem',
-              fontSize: '0.825rem',
+              padding: '0.4rem 0.8rem',
+              fontSize: '0.8rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.45rem',
-              borderColor: isLinkCopied ? 'var(--success)' : 'var(--border-subtle)',
+              gap: '0.4rem',
               color: isLinkCopied ? 'var(--success)' : 'var(--text-heading)'
             }}
           >
-            {isLinkCopied ? <Check size={14} color="var(--success)" /> : <Share2 size={14} color={primaryColor} />}
-            <span style={{ fontWeight: 600 }}>{isLinkCopied ? 'Link Copied!' : 'Share Payment Link'}</span>
+            {isLinkCopied ? <Check size={13} color="var(--success)" /> : <Share2 size={13} />}
+            <span>{isLinkCopied ? 'Link Copied!' : 'Share Payment Link'}</span>
           </button>
         )}
       </div>
 
       {/* Main Card */}
-      <div className="card-panel" style={{
-        padding: '2.25rem',
-        border: '1px solid var(--border-subtle)',
-        boxShadow: 'var(--shadow-lg)'
+      <div className="sky-card" style={{
+        padding: 0,
+        overflow: 'hidden',
+        boxShadow: 'var(--shadow-modal)'
       }}>
         {/* Official Receipt View */}
         {successReceipt ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Branded Header */}
-            <div style={{ borderBottom: '2px solid var(--border-subtle)', paddingBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            {/* Header */}
+            <div className="sky-card-header" style={{ padding: '1.25rem 1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 {logoUrl ? (
                   <img
                     src={logoUrl}
                     alt={schoolName}
                     style={{
-                      width: '46px',
-                      height: '46px',
-                      borderRadius: '8px',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: 'var(--radius-sm)',
                       objectFit: 'cover',
                       border: '1px solid var(--border-subtle)'
                     }}
                   />
                 ) : (
                   <div style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '8px',
-                    background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--sky-color-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#ffffff',
-                    fontWeight: 800,
-                    fontSize: '1.2rem'
+                    fontWeight: 700,
+                    fontSize: '1rem'
                   }}>
                     {schoolName.charAt(0)}
                   </div>
                 )}
                 <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                  <h3 className="sky-heading-2">
                     {schoolName}
                   </h3>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Official Fee Payment & Subledger Receipt
+                    Blackbaud Merchant Services (BBMS) Official Subledger Receipt
                   </p>
                 </div>
               </div>
 
-              <div style={{ textAlign: 'right' }}>
-                <span className="badge badge-success" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
-                  <Check size={13} /> PAID & RECONCILED
+              <div>
+                <span className="badge badge-success">
+                  <Check size={12} /> PAID & RECONCILED
                 </span>
               </div>
             </div>
 
-            {/* Receipt Key-Value Details */}
-            <div style={{
-              background: 'var(--bg-surface-elevated)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-subtle)',
-              padding: '1.5rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-              fontSize: '0.875rem'
-            }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Receipt Number</span>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--text-heading)', fontSize: '1.05rem', marginTop: '0.15rem' }}>
-                    {successReceipt.receiptNumber || `REC-${Date.now().toString().slice(-6)}`}
-                  </div>
-                </div>
-
-                <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Payment Date</span>
-                  <div style={{ fontWeight: 600, color: 'var(--text-heading)', marginTop: '0.15rem' }}>
-                    {successReceipt.paidAt ? new Date(successReceipt.paidAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleDateString()}
-                  </div>
-                </div>
-
-                <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Student Account</span>
-                  <div style={{ fontWeight: 700, color: 'var(--text-heading)', marginTop: '0.15rem' }}>
-                    {charge.studentName}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Roll / ID: {charge.studentId}</div>
-                </div>
-
-                <div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Parent / Payer</span>
-                  <div style={{ fontWeight: 600, color: 'var(--text-heading)', marginTop: '0.15rem' }}>
-                    {charge.parentEmail}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{charge.parentPhone}</div>
-                </div>
-              </div>
-
-              {/* Obligation Item Table */}
-              <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem', marginTop: '0.25rem' }}>
-                <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Item Description</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Amount</span>
-                </div>
-                <div className="flex-between" style={{ alignItems: 'center' }}>
-                  <div>
-                    <strong style={{ color: 'var(--text-heading)', fontSize: '0.95rem' }}>{charge.feeTitle}</strong>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>GL Category: {charge.bbFeeTypeId}</div>
-                  </div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--success)' }}>
-                    ${Number(successReceipt.amount || charge.amount).toFixed(2)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Responses if any */}
-              {charge.customFormResponses && Object.keys(charge.customFormResponses).length > 0 && (
-                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.85rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: '0.35rem' }}>
-                    Registration & Form Selections
-                  </span>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
-                    {Object.entries(charge.customFormResponses).map(([key, val]) => (
-                      <div key={key}>
-                        <span style={{ color: 'var(--text-muted)', textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}:</span>{' '}
-                        <strong style={{ color: 'var(--text-heading)' }}>{String(val)}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Legal Waiver Signature */}
-              {(charge.waiverSignerName || signerName) && (
-                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.85rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block', marginBottom: '0.2rem' }}>
-                    Digital Waiver Consent
-                  </span>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-body)' }}>
-                    Signed by <strong style={{ color: 'var(--text-heading)' }}>{charge.waiverSignerName || signerName}</strong> • Verified Legal Consent
-                  </div>
-                </div>
-              )}
-
-              {/* Blackbaud Subledger Sync Confirmation */}
+            {/* Receipt Body */}
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {/* Amount & Status Banner */}
               <div style={{
-                borderTop: '1px solid var(--border-subtle)',
-                paddingTop: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '0.5rem'
+                background: 'var(--sky-color-primary-light)',
+                border: '1px solid var(--border-strong)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '1.25rem',
+                textAlign: 'center'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                  <ShieldCheck size={16} color="var(--success)" />
-                  <span>Blackbaud Subledger Sync:</span>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Amount Paid & Reconciled
                 </div>
-                <span className="badge badge-success" style={{ fontSize: '0.75rem' }}>
-                  <CheckCircle2 size={12} /> {successReceipt.bbLedgerSyncStatus || 'POSTED_TO_BLACKBAUD'}
-                </span>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--sky-color-primary)', margin: '0.25rem 0' }}>
+                  ${Number(successReceipt.amount).toFixed(2)}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-body)' }}>
+                  Fee: <strong>{charge.feeTitle}</strong>
+                </div>
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <button
-                className="btn-secondary"
-                onClick={handlePrint}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem', padding: '0.75rem' }}
-              >
-                <Printer size={16} />
-                Print / Save PDF
-              </button>
-              <button
-                className="btn-primary"
-                onClick={onBackToLedger}
-                style={{ flex: 1, padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
-              >
-                <ArrowLeft size={16} />
-                Back to Student Accounts
-              </button>
+              {/* Subledger Details Grid */}
+              <div style={{
+                background: 'var(--bg-surface-subtle)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '1rem 1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem'
+              }}>
+                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Student Name / Roll Number</span>
+                  <strong style={{ color: 'var(--text-heading)' }}>{charge.studentName} ({charge.studentId})</strong>
+                </div>
+                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>BBMS Transaction Reference</span>
+                  <code style={{ color: 'var(--sky-color-primary)', fontWeight: 700 }}>{successReceipt.transactionId}</code>
+                </div>
+                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>BBMS Authorization Code</span>
+                  <code style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{successReceipt.authorizationCode || 'AUTH-982133'}</code>
+                </div>
+                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Receipt Number</span>
+                  <strong style={{ color: 'var(--text-heading)' }}>{successReceipt.receiptNumber}</strong>
+                </div>
+                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Payment Channel</span>
+                  <strong style={{ color: 'var(--text-heading)' }}>{successReceipt.paymentMethod}</strong>
+                </div>
+                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Blackbaud General Ledger Sync</span>
+                  <span className="badge badge-success">
+                    <CheckCircle2 size={11} /> Posted ({successReceipt.subledgerJournalEntryId || 'GL-JE-2026'})
+                  </span>
+                </div>
+                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Settlement Timestamp</span>
+                  <span style={{ color: 'var(--text-body)' }}>{new Date(successReceipt.paidAt || Date.now()).toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button className="sky-btn-default" onClick={handlePrint} style={{ flex: 1 }}>
+                  <Printer size={15} /> Print Receipt
+                </button>
+                <button className="sky-btn-primary" onClick={onBackToLedger} style={{ flex: 1 }}>
+                  Done & Return to Ledger
+                </button>
+              </div>
             </div>
           </div>
         ) : (
-          /* Checkout Form */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Header / Branded School Summary */}
-            <div style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1.25rem' }}>
-              <div className="flex-between" style={{ alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  {logoUrl ? (
-                    <img
-                      src={logoUrl}
-                      alt={schoolName}
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '8px',
-                        objectFit: 'cover',
-                        border: '1px solid var(--border-subtle)'
-                      }}
-                    />
-                  ) : (
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '8px',
-                      background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#ffffff',
-                      fontWeight: 800,
-                      boxShadow: 'var(--shadow-sm)'
-                    }}>
-                      {schoolName.charAt(0)}
-                    </div>
-                  )}
-                  <div>
-                    <span style={{ fontSize: '0.825rem', color: primaryColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.025em' }}>
-                      {schoolName}
-                    </span>
-                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, marginTop: '0.1rem', color: 'var(--text-heading)' }}>
-                      {charge.feeTitle}
-                    </h3>
+          /* Payment Form */
+          <div>
+            {/* Header */}
+            <div className="sky-card-header" style={{ padding: '1.25rem 1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={schoolName}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: 'var(--radius-sm)',
+                      objectFit: 'cover'
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--sky-color-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    fontWeight: 700
+                  }}>
+                    {schoolName.charAt(0)}
+                  </div>
+                )}
+                <div>
+                  <h3 className="sky-heading-2">
+                    {charge.feeTitle}
+                  </h3>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    Student: <strong>{charge.studentName}</strong> • Roll: <strong>{charge.studentId}</strong>
                   </div>
                 </div>
-
-                <span className="badge badge-info">
-                  Blackbaud Checkout
-                </span>
               </div>
 
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.65rem' }}>
-                Student: <strong style={{ color: 'var(--text-heading)' }}>{charge.studentName}</strong> • Due by {charge.dueDate}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--sky-color-primary)', fontSize: '0.75rem', fontWeight: 700 }}>
+                <ShieldCheck size={16} />
+                <span>BBMS Verified</span>
+              </div>
             </div>
 
-            {errorMsg && (
+            {/* Body */}
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {errorMsg && (
+                <div style={{
+                  padding: '0.75rem 1rem',
+                  background: 'var(--danger-bg)',
+                  border: '1px solid var(--danger-border)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--danger-text)',
+                  fontSize: '0.825rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <AlertCircle size={16} />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              {/* Amount Selection */}
               <div style={{
-                background: 'var(--danger-bg)',
-                border: '1px solid var(--danger-border)',
-                padding: '0.75rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--danger-text)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '0.85rem'
+                background: 'var(--bg-surface-subtle)',
+                border: '1px solid var(--border-strong)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '1.25rem'
               }}>
-                <AlertCircle size={16} />
-                {errorMsg}
+                <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                    Payment Amount
+                  </label>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    Total Due: <strong>${charge.amount.toFixed(2)}</strong>
+                    {charge.amountPaid > 0 && ` (Paid: $${charge.amountPaid.toFixed(2)})`}
+                  </span>
+                </div>
+
+                <div style={{ position: 'relative' }}>
+                  <span style={{
+                    position: 'absolute',
+                    left: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)'
+                  }}>$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={fee.minPartialAmount || 1}
+                    max={remainingBalance}
+                    value={customAmount}
+                    onChange={e => setCustomAmount(e.target.value)}
+                    disabled={!fee.allowPartialPayment}
+                    style={{
+                      paddingLeft: '1.75rem',
+                      fontSize: '1.1rem',
+                      fontWeight: 700,
+                      color: 'var(--text-heading)'
+                    }}
+                  />
+                </div>
+
+                {fee.allowPartialPayment && (
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+                    💡 Partial payments allowed (Min: ${fee.minPartialAmount?.toFixed(2) || '1.00'}). Remaining balance will update immediately.
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Custom Form Fields Section */}
-            {fee.customFormSchema && fee.customFormSchema.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-heading)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <FileText size={16} color={primaryColor} />
-                  Required Information & Details
-                </h4>
+              {/* Custom Form Schema Inputs */}
+              {fee.customFormSchema && fee.customFormSchema.filter(f => f.type !== 'waiver_signature').length > 0 && (
+                <div style={{
+                  border: '1px solid var(--border-strong)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.85rem'
+                }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                    Required Registration Details
+                  </div>
 
-                {fee.customFormSchema.map(field => {
-                  if (field.type === 'waiver_signature') return null;
-
-                  return (
+                  {fee.customFormSchema.filter(f => f.type !== 'waiver_signature').map(field => (
                     <div key={field.id}>
-                      <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.35rem' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>
                         {field.label} {field.required && <span style={{ color: 'var(--danger)' }}>*</span>}
                       </label>
-
+                      
                       {field.type === 'select' ? (
                         <select
                           value={formResponses[field.id] || ''}
                           onChange={e => setFormResponses({ ...formResponses, [field.id]: e.target.value })}
                         >
-                          <option value="">Select option...</option>
+                          <option value="">-- Select {field.label} --</option>
                           {field.options?.map(opt => (
                             <option key={opt} value={opt}>{opt}</option>
                           ))}
@@ -483,197 +529,224 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                       ) : (
                         <input
                           type={field.type === 'number' ? 'number' : 'text'}
-                          placeholder={field.placeholder || ''}
+                          placeholder={field.placeholder || field.label}
                           value={formResponses[field.id] || ''}
                           onChange={e => setFormResponses({ ...formResponses, [field.id]: e.target.value })}
                         />
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            {/* Legal Waiver & Electronic Signature */}
-            {fee.customFormSchema?.some(f => f.type === 'waiver_signature') && (
-              <div style={{
-                padding: '1.25rem',
-                background: 'var(--bg-surface-elevated)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.85rem'
-              }}>
-                <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-heading)' }}>
-                  Electronic Consent & Liability Waiver *
-                </h4>
+              {/* Digital Waiver & Signature */}
+              {fee.customFormSchema && fee.customFormSchema.some(f => f.type === 'waiver_signature') && (
+                <div style={{
+                  border: '1px solid var(--sky-color-primary)',
+                  background: 'var(--sky-color-primary-light)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.85rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--sky-color-primary)', fontWeight: 700, fontSize: '0.85rem' }}>
+                    <FileText size={16} />
+                    <span>Parent/Guardian Electronic Consent & Legal Waiver</span>
+                  </div>
 
+                  {fee.customFormSchema.filter(f => f.type === 'waiver_signature').map(waiver => (
+                    <div key={waiver.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                      <div style={{
+                        padding: '0.75rem',
+                        background: '#ffffff',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.775rem',
+                        color: 'var(--text-body)',
+                        lineHeight: '1.5',
+                        maxHeight: '120px',
+                        overflowY: 'auto'
+                      }}>
+                        {waiver.waiverText || 'I hereby grant permission for the student to participate in this school activity and accept all terms and fee obligations.'}
+                      </div>
+
+                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-heading)', cursor: 'pointer', margin: 0 }}>
+                        <input
+                          type="checkbox"
+                          checked={waiverAgreed}
+                          onChange={e => setWaiverAgreed(e.target.checked)}
+                          style={{ marginTop: '0.15rem', width: 'auto' }}
+                        />
+                        <span>I have read, acknowledge, and agree to the legal terms of this waiver. <span style={{ color: 'var(--danger)' }}>*</span></span>
+                      </label>
+
+                      <div>
+                        <label style={{ fontSize: '0.775rem', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+                          Electronic Signature (Type Full Legal Name) <span style={{ color: 'var(--danger)' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Michael Hayes"
+                          value={signerName}
+                          onChange={e => setSignerName(e.target.value)}
+                          style={{ background: '#ffffff' }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Blackbaud Merchant Services (BBMS) New Checkout Experience */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <div className="flex-between" style={{ alignItems: 'center' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                    Blackbaud New Checkout Payment Method
+                  </label>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    PCI-DSS v4.0 Level 1 Encrypted
+                  </span>
+                </div>
+
+                {/* Method Tabs */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.4rem' }}>
+                  {[
+                    { id: 'APPLE_PAY', label: ' Apple Pay' },
+                    { id: 'GOOGLE_PAY', label: 'G Pay' },
+                    { id: 'CARD', label: 'Card' },
+                    { id: 'ACH', label: 'ACH / Bank' },
+                    { id: 'PAYPAL_VENMO', label: 'PayPal' }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setPaymentMethod(tab.id as any)}
+                      style={{
+                        padding: '0.6rem 0.25rem',
+                        fontSize: '0.775rem',
+                        fontWeight: paymentMethod === tab.id ? 700 : 500,
+                        background: paymentMethod === tab.id ? 'var(--sky-color-primary-light)' : 'var(--bg-surface-subtle)',
+                        border: paymentMethod === tab.id ? '2px solid var(--sky-color-primary)' : '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: paymentMethod === tab.id ? 'var(--sky-color-primary)' : 'var(--text-body)',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Interactive Card Form when CARD is selected */}
+                {paymentMethod === 'CARD' && (
+                  <div style={{
+                    padding: '1rem',
+                    background: 'var(--bg-surface-subtle)',
+                    border: '1px solid var(--border-strong)',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.65rem'
+                  }}>
+                    <div>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Card Number</label>
+                      <input
+                        type="text"
+                        value={cardNumber}
+                        onChange={e => setCardNumber(e.target.value)}
+                        placeholder="4242 •••• •••• 4242"
+                      />
+                    </div>
+                    <div className="grid-cols-3">
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Expires</label>
+                        <input
+                          type="text"
+                          value={cardExpiry}
+                          onChange={e => setCardExpiry(e.target.value)}
+                          placeholder="MM/YY"
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>CVC</label>
+                        <input
+                          type="text"
+                          value={cardCvc}
+                          onChange={e => setCardCvc(e.target.value)}
+                          placeholder="CVC"
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Zip Code</label>
+                        <input
+                          type="text"
+                          value={cardPostalCode}
+                          onChange={e => setCardPostalCode(e.target.value)}
+                          placeholder="Postal"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Complete Cover™ Option (Blackbaud New Checkout Feature) */}
                 <div style={{
                   padding: '0.85rem 1rem',
-                  background: 'var(--bg-card)',
+                  background: useCompleteCover ? 'var(--sky-color-primary-light)' : 'var(--bg-surface-subtle)',
+                  border: '1px solid var(--border-strong)',
                   borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-subtle)',
-                  fontSize: '0.825rem',
-                  color: 'var(--text-body)',
-                  lineHeight: '1.5'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '0.75rem'
                 }}>
-                  {fee.customFormSchema.find(f => f.type === 'waiver_signature')?.waiverText}
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <input
-                    type="checkbox"
-                    id="consent_check"
-                    checked={waiverAgreed}
-                    onChange={e => setWaiverAgreed(e.target.checked)}
-                    style={{ width: 'auto' }}
-                  />
-                  <label htmlFor="consent_check" style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-heading)', cursor: 'pointer' }}>
-                    I acknowledge and electronically sign this agreement
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer', margin: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={useCompleteCover}
+                      onChange={e => setUseCompleteCover(e.target.checked)}
+                      style={{ width: 'auto' }}
+                    />
+                    <div>
+                      <strong style={{ color: 'var(--text-heading)' }}>Blackbaud Complete Cover™</strong>
+                      <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
+                        Cover ${processingFee.toFixed(2)} in transaction costs so 100% of your payment supports {schoolName}.
+                      </div>
+                    </div>
                   </label>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                    Parent / Guardian Legal Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Jessica Bennett"
-                    value={signerName}
-                    onChange={e => setSignerName(e.target.value)}
-                  />
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--sky-color-primary)' }}>
+                    +${processingFee.toFixed(2)}
+                  </span>
                 </div>
               </div>
-            )}
 
-            {/* Amount Selection */}
-            <div>
-              <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>Payment Amount</label>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Outstanding Balance: <strong style={{ color: 'var(--text-heading)' }}>${remainingBalance.toFixed(2)}</strong>
-                </span>
+              {/* Submit CTA */}
+              <button
+                className="sky-btn-primary"
+                onClick={handlePayWithBlackbaudCheckout}
+                disabled={isProcessing || parsedAmount <= 0}
+                style={{
+                  padding: '0.85rem',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <Lock size={16} />
+                {isProcessing 
+                  ? 'Authorizing with Blackbaud Merchant Services...' 
+                  : `Pay $${totalAmountToCharge.toFixed(2)} via Blackbaud Checkout`}
+              </button>
+
+              <div style={{ textAlign: 'center', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
+                Powered by <strong>Blackbaud Merchant Services (BBMS)</strong> • Instant Subledger Reconciliation
               </div>
-
-              <input
-                type="number"
-                step="0.01"
-                max={remainingBalance}
-                value={customAmount}
-                onChange={e => setCustomAmount(parseFloat(e.target.value) || 0)}
-                disabled={!fee.allowPartialPayment}
-              />
-            </div>
-
-            {/* Payment Method Selector */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.5rem' }}>
-                Select Payment Method
-              </label>
-
-              <div className="grid-cols-2" style={{ gap: '0.65rem' }}>
-                <button
-                  onClick={() => setPaymentMethod('APPLE_PAY')}
-                  style={{
-                    padding: '0.75rem',
-                    borderRadius: 'var(--radius-md)',
-                    background: paymentMethod === 'APPLE_PAY' ? '#000000' : 'var(--bg-surface-elevated)',
-                    border: paymentMethod === 'APPLE_PAY' ? '2px solid #000000' : '1px solid var(--border-subtle)',
-                    color: paymentMethod === 'APPLE_PAY' ? '#ffffff' : 'var(--text-heading)',
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.4rem'
-                  }}
-                >
-                   Apple Pay
-                </button>
-
-                <button
-                  onClick={() => setPaymentMethod('GOOGLE_PAY')}
-                  style={{
-                    padding: '0.75rem',
-                    borderRadius: 'var(--radius-md)',
-                    background: paymentMethod === 'GOOGLE_PAY' ? '#000000' : 'var(--bg-surface-elevated)',
-                    border: paymentMethod === 'GOOGLE_PAY' ? '2px solid #000000' : '1px solid var(--border-subtle)',
-                    color: paymentMethod === 'GOOGLE_PAY' ? '#ffffff' : 'var(--text-heading)',
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.4rem'
-                  }}
-                >
-                  Google Pay
-                </button>
-
-                <button
-                  onClick={() => setPaymentMethod('CREDIT_CARD')}
-                  style={{
-                    padding: '0.75rem',
-                    borderRadius: 'var(--radius-md)',
-                    background: paymentMethod === 'CREDIT_CARD' ? 'var(--accent-light)' : 'var(--bg-surface-elevated)',
-                    border: paymentMethod === 'CREDIT_CARD' ? `2px solid ${primaryColor}` : '1px solid var(--border-subtle)',
-                    color: paymentMethod === 'CREDIT_CARD' ? primaryColor : 'var(--text-heading)',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.4rem'
-                  }}
-                >
-                  <CreditCard size={16} /> Credit / Debit
-                </button>
-
-                <button
-                  onClick={() => setPaymentMethod('ACH_DIRECT_DEBIT')}
-                  style={{
-                    padding: '0.75rem',
-                    borderRadius: 'var(--radius-md)',
-                    background: paymentMethod === 'ACH_DIRECT_DEBIT' ? 'var(--accent-light)' : 'var(--bg-surface-elevated)',
-                    border: paymentMethod === 'ACH_DIRECT_DEBIT' ? `2px solid ${primaryColor}` : '1px solid var(--border-subtle)',
-                    color: paymentMethod === 'ACH_DIRECT_DEBIT' ? primaryColor : 'var(--text-heading)',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.4rem'
-                  }}
-                >
-                  ACH Direct Debit
-                </button>
-              </div>
-            </div>
-
-            {/* Pay Button */}
-            <button
-              className="btn-primary"
-              onClick={handlePay}
-              disabled={isProcessing || Number(customAmount) <= 0}
-              style={{
-                width: '100%',
-                padding: '0.9rem',
-                fontSize: '1rem',
-                marginTop: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <Lock size={16} />
-              {isProcessing ? 'Capturing & Reconciling...' : `Authorize & Pay $${Number(customAmount).toFixed(2)}`}
-            </button>
-
-            <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              🔒 256-Bit Encrypted • Directly reconciles to {schoolName}'s Billing Management
             </div>
           </div>
         )}

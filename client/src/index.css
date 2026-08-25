@@ -1,109 +1,141 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
+/* Blackbaud SKY UX Design System Tokens (Modern & Classic Themes) */
 :root {
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Typography */
+  --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Default Light Theme (Crisp, High-Contrast Executive Look) */
-  --bg-page: #f8fafc;
+  /* SKY UX Primary Palette (Blackbaud Sky Blue & Navy) */
+  --sky-color-primary: #007ea8;
+  --sky-color-primary-hover: #005977;
+  --sky-color-primary-active: #003e54;
+  --sky-color-primary-light: #e5f6fd;
+  --sky-color-primary-border: #a8e2fa;
+
+  --sky-color-navy: #002238;
+  --sky-color-navy-light: #0d364f;
+  --sky-color-charcoal: #282b30;
+  --sky-color-slate: #4d525a;
+  --sky-color-muted: #686c73;
+
+  /* Core Canvas & Surfaces */
+  --bg-page: #f4f5f7;
   --bg-card: #ffffff;
-  --bg-surface-elevated: #f1f5f9;
-  --bg-surface-hover: #e2e8f0;
-  --bg-nav: rgba(255, 255, 255, 0.92);
+  --bg-surface-elevated: #ffffff;
+  --bg-surface-subtle: #f8f9fa;
+  --bg-surface-hover: #f1f5f9;
+  --bg-nav: #002238;
+  --bg-nav-surface: #ffffff;
 
-  --text-heading: #0f172a;
-  --text-body: #334155;
-  --text-muted: #64748b;
+  /* Text Colors */
+  --text-heading: #282b30;
+  --text-body: #4d525a;
+  --text-muted: #686c73;
   --text-inverse: #ffffff;
+  --text-link: #007ea8;
+  --text-link-hover: #005977;
 
+  /* Borders & Dividers */
   --border-subtle: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --border-accent: rgba(79, 70, 229, 0.35);
+  --border-strong: #cdcfd2;
+  --border-focus: #007ea8;
+  --border-accent: rgba(0, 126, 168, 0.35);
 
-  --accent-primary: #4f46e5;
-  --accent-secondary: #7c3aed;
-  --accent-hover: #4338ca;
-  --accent-light: #eef2ff;
-  --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  --accent-gradient-card: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  /* Accents & Gradients */
+  --accent-primary: #007ea8;
+  --accent-secondary: #00b4e5;
+  --accent-hover: #005977;
+  --accent-light: #e5f6fd;
+  --accent-gradient: linear-gradient(135deg, #007ea8 0%, #00b4e5 100%);
+  --accent-gradient-card: linear-gradient(135deg, #f8f9fa 0%, #e5f6fd 100%);
 
-  --success: #059669;
-  --success-bg: #ecfdf5;
-  --success-border: #a7f3d0;
-  --success-text: #065f46;
+  /* SKY UX Status Colors */
+  --success: #108436;
+  --success-bg: #eaf7ec;
+  --success-border: #b6e8bf;
+  --success-text: #0d6b2c;
 
-  --warning: #d97706;
-  --warning-bg: #fffbeb;
-  --warning-border: #fde68a;
-  --warning-text: #92400e;
+  --warning: #c25e00;
+  --warning-bg: #fff4e5;
+  --warning-border: #ffd699;
+  --warning-text: #964800;
 
-  --danger: #dc2626;
-  --danger-bg: #fef2f2;
-  --danger-border: #fecaca;
-  --danger-text: #991b1b;
+  --danger: #d12a2a;
+  --danger-bg: #fbebeb;
+  --danger-border: #f6bebe;
+  --danger-text: #a81c1c;
 
-  --info: #0284c7;
-  --info-bg: #f0f9ff;
-  --info-border: #bae6fd;
-  --info-text: #075985;
+  --info: #007ea8;
+  --info-bg: #e5f6fd;
+  --info-border: #a8e2fa;
+  --info-text: #005977;
 
+  /* SKY UX Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
+  /* SKY UX Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
   --radius-full: 9999px;
 }
 
-/* Dark Mode Tokens */
+/* Dark Mode Tokens (SKY UX High-Contrast Dark) */
 .dark-theme {
-  --bg-page: #0b0f19;
-  --bg-card: #111827;
-  --bg-surface-elevated: #1e293b;
-  --bg-surface-hover: #334155;
-  --bg-nav: rgba(11, 15, 25, 0.9);
+  --bg-page: #12161a;
+  --bg-card: #1c2228;
+  --bg-surface-elevated: #242c34;
+  --bg-surface-subtle: #192026;
+  --bg-surface-hover: #2e3740;
+  --bg-nav: #0d1217;
+  --bg-nav-surface: #1c2228;
 
-  --text-heading: #f8fafc;
-  --text-body: #cbd5e1;
-  --text-muted: #94a3b8;
-  --text-inverse: #0f172a;
+  --text-heading: #f4f5f7;
+  --text-body: #d2d6dc;
+  --text-muted: #9aa1a9;
+  --text-inverse: #12161a;
+  --text-link: #38bdf8;
+  --text-link-hover: #7dd3fc;
 
-  --border-subtle: #1e293b;
-  --border-strong: #334155;
-  --border-accent: rgba(99, 102, 241, 0.4);
+  --border-subtle: #2e3740;
+  --border-strong: #414d59;
+  --border-focus: #38bdf8;
+  --border-accent: rgba(56, 189, 248, 0.4);
 
-  --accent-primary: #6366f1;
-  --accent-secondary: #a855f7;
-  --accent-hover: #4f46e5;
-  --accent-light: rgba(99, 102, 241, 0.15);
-  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  --accent-gradient-card: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%);
+  --accent-primary: #0284c7;
+  --accent-secondary: #38bdf8;
+  --accent-hover: #0369a1;
+  --accent-light: rgba(56, 189, 248, 0.15);
+  --accent-gradient: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+  --accent-gradient-card: linear-gradient(135deg, rgba(2, 132, 199, 0.12) 0%, rgba(56, 189, 248, 0.08) 100%);
 
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.12);
-  --success-border: rgba(16, 185, 129, 0.3);
-  --success-text: #34d399;
+  --success: #22c55e;
+  --success-bg: rgba(34, 197, 94, 0.14);
+  --success-border: rgba(34, 197, 94, 0.35);
+  --success-text: #4ade80;
 
   --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.12);
-  --warning-border: rgba(245, 158, 11, 0.3);
+  --warning-bg: rgba(245, 158, 11, 0.14);
+  --warning-border: rgba(245, 158, 11, 0.35);
   --warning-text: #fbbf24;
 
   --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.12);
-  --danger-border: rgba(239, 68, 68, 0.3);
+  --danger-bg: rgba(239, 68, 68, 0.14);
+  --danger-border: rgba(239, 68, 68, 0.35);
   --danger-text: #f87171;
 
   --info: #38bdf8;
-  --info-bg: rgba(14, 165, 233, 0.12);
-  --info-border: rgba(14, 165, 233, 0.3);
+  --info-bg: rgba(56, 189, 248, 0.14);
+  --info-border: rgba(56, 189, 248, 0.35);
   --info-text: #38bdf8;
 
-  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.35);
 }
 
 * {
@@ -118,36 +150,150 @@ body {
   color: var(--text-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Headings */
+/* SKY UX Typography Classes */
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-heading);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
+.sky-heading-1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
+}
+
+.sky-heading-2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.sky-heading-3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.sky-heading-4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.sky-font-deemphasized {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Interactive Elements & Buttons */
 button {
   font-family: inherit;
   cursor: pointer;
   border: none;
   background: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s ease-in-out;
 }
 
+/* SKY UX Standard Buttons */
+.btn-primary, .sky-btn-primary {
+  background-color: var(--sky-color-primary) !important;
+  background: var(--sky-color-primary) !important;
+  color: #ffffff !important;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.btn-primary:hover:not(:disabled), .sky-btn-primary:hover:not(:disabled) {
+  background-color: var(--sky-color-primary-hover) !important;
+  background: var(--sky-color-primary-hover) !important;
+  box-shadow: var(--shadow-md);
+  transform: none;
+}
+
+.btn-primary:active:not(:disabled), .sky-btn-primary:active:not(:disabled) {
+  background-color: var(--sky-color-primary-active) !important;
+  background: var(--sky-color-primary-active) !important;
+}
+
+.btn-secondary, .sky-btn-default {
+  background-color: var(--bg-card) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-heading) !important;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 0.95rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.btn-secondary:hover:not(:disabled), .sky-btn-default:hover:not(:disabled) {
+  background-color: var(--bg-surface-subtle) !important;
+  border-color: var(--border-strong) !important;
+  color: var(--text-heading) !important;
+}
+
+.btn-link, .sky-btn-link {
+  color: var(--sky-color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: var(--radius-sm);
+}
+
+.btn-link:hover, .sky-btn-link:hover {
+  color: var(--sky-color-primary-hover);
+  text-decoration: underline;
+}
+
+button:disabled, .btn-primary:disabled, .btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* SKY UX Form Controls & Inputs */
 input, select, textarea {
   font-family: inherit;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   color: var(--text-heading);
   background-color: var(--bg-card);
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.75rem;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
   width: 100%;
+  line-height: 1.4;
 }
 
 select {
@@ -159,83 +305,91 @@ select {
 select option {
   background-color: var(--bg-card);
   color: var(--text-heading);
-  padding: 0.6rem;
+  padding: 0.5rem;
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: var(--sky-color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 126, 168, 0.2);
 }
 
-/* Main Cards */
-.card-panel {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card-panel:hover {
-  border-color: var(--border-strong);
-}
-
-/* Buttons */
-.btn-primary {
-  background: var(--accent-gradient);
-  color: #ffffff !important;
+label {
+  font-size: 0.85rem;
   font-weight: 600;
-  padding: 0.55rem 1.15rem;
-  border-radius: var(--radius-md);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  box-shadow: var(--shadow-sm);
-  border: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.btn-primary:hover:not(:disabled) {
-  opacity: 0.92;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-}
-
-.btn-secondary {
-  background: var(--bg-surface-elevated);
   color: var(--text-heading);
-  font-weight: 600;
-  padding: 0.5rem 0.95rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  white-space: nowrap;
-  flex-shrink: 0;
+  margin-bottom: 0.3rem;
+  display: block;
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bg-surface-hover);
+/* SKY UX Cards & Panels */
+.card-panel, .sky-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-panel:hover, .sky-card:hover {
   border-color: var(--border-strong);
 }
 
-/* Badges */
+.sky-card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface-subtle);
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+}
+
+.sky-card-content {
+  padding: 1.25rem;
+}
+
+/* SKY UX Page Summary Tile */
+.sky-summary-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 1.15rem 1.25rem;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sky-summary-tile-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+
+.sky-summary-tile-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  line-height: 1.15;
+}
+
+/* SKY UX Badges & Status Indicators */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.25rem 0.65rem;
+  padding: 0.2rem 0.55rem;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.725rem;
   font-weight: 700;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   flex-shrink: 0;
+  line-height: 1.2;
 }
 
 .badge-success {
@@ -263,9 +417,80 @@ input:focus, select:focus, textarea:focus {
 }
 
 .badge-neutral {
-  background: var(--bg-surface-elevated);
+  background: var(--bg-surface-subtle);
   color: var(--text-body);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-strong);
+}
+
+/* SKY UX Alerts / Callouts */
+.sky-alert {
+  padding: 0.85rem 1.15rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  border-left-width: 4px;
+}
+
+.sky-alert-info {
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-left: 4px solid var(--sky-color-primary);
+  color: var(--info-text);
+}
+
+.sky-alert-success {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  border-left: 4px solid var(--success);
+  color: var(--success-text);
+}
+
+.sky-alert-warning {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-left: 4px solid var(--warning);
+  color: var(--warning-text);
+}
+
+.sky-alert-danger {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-left: 4px solid var(--danger);
+  color: var(--danger-text);
+}
+
+/* SKY UX Data Table / Data Grid */
+.sky-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.sky-table th {
+  background: var(--bg-surface-subtle);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--border-strong);
+  white-space: nowrap;
+}
+
+.sky-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-heading);
+  vertical-align: middle;
+}
+
+.sky-table tr:hover td {
+  background-color: var(--bg-surface-hover);
 }
 
 /* Layout Utilities */
@@ -300,6 +525,9 @@ input:focus, select:focus, textarea:focus {
 }
 
 @media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
   .grid-cols-2, .grid-cols-3, .grid-cols-4 {
     grid-template-columns: 1fr;
   }

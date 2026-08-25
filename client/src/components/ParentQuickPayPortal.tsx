@@ -9,12 +9,11 @@ import {
   Clock, 
   FileCheck, 
   AlertCircle, 
-  ShieldCheck,
-  ChevronRight,
-  ArrowLeft,
-  Sparkles,
-  Lock,
-  Check
+  ShieldCheck, 
+  ChevronRight, 
+  ArrowLeft, 
+  Lock, 
+  Check 
 } from 'lucide-react';
 import { StudentLookupResult, StudentCharge, UniversalFeeDefinition, SchoolBranding } from '../types/index.js';
 import { api } from '../services/api.js';
@@ -39,8 +38,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activePayingChargeId, setActivePayingChargeId] = useState<string | null>(null);
 
-  const primaryColor = branding?.primaryColor || '#4f46e5';
-  const schoolName = branding?.schoolName || 'Oakridge International Prep';
+  const schoolName = branding?.schoolName || 'CredResolve Partner Academy';
   const logoUrl = branding?.logoUrl;
 
   const handleLookup = async (searchStr?: string) => {
@@ -78,7 +76,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
   ];
 
   return (
-    <div style={{ maxWidth: isEmbedded ? '100%' : '860px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ maxWidth: isEmbedded ? '100%' : '860px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       {/* Checkout Screen Overlay if paying a fee */}
       {activePayingChargeId ? (
         <div>
@@ -99,49 +97,49 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
         <>
           {/* Header Banner */}
           {!isEmbedded && (
-            <div className="card-panel" style={{ padding: '2rem', background: 'var(--accent-gradient-card)' }}>
+            <div className="sky-card" style={{ padding: '1.5rem 2rem' }}>
               <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   {logoUrl ? (
                     <img
                       src={logoUrl}
                       alt={schoolName}
-                      style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '1px solid var(--border-subtle)' }}
+                      style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-sm)', objectFit: 'cover', border: '1px solid var(--border-subtle)' }}
                     />
                   ) : (
-                    <div style={{ width: '48px', height: '48px', borderRadius: '10px', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Sparkles size={24} color="#ffffff" />
+                    <div style={{ width: '42px', height: '42px', borderRadius: 'var(--radius-sm)', background: 'var(--sky-color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontWeight: 800 }}>
+                      CR
                     </div>
                   )}
 
                   <div>
-                    <span style={{ fontSize: '0.8rem', color: primaryColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.025em' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--sky-color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       {schoolName} • Self-Service Payments
                     </span>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-heading)', marginTop: '0.1rem' }}>
+                    <h2 className="sky-heading-1" style={{ marginTop: '0.1rem' }}>
                       Parent Quick-Pay Portal
                     </h2>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-card)', padding: '0.45rem 0.85rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-subtle)', fontSize: '0.8rem' }}>
-                  <ShieldCheck size={16} color="var(--success)" />
-                  <span style={{ fontWeight: 600, color: 'var(--text-heading)' }}>Direct Blackbaud Subledger Sync</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-surface-subtle)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-strong)', fontSize: '0.75rem' }}>
+                  <ShieldCheck size={14} color="var(--success)" />
+                  <span style={{ fontWeight: 600, color: 'var(--text-heading)' }}>Direct SKY API Sync</span>
                 </div>
               </div>
             </div>
           )}
 
           {/* Lookup Input Card */}
-          <div className="card-panel" style={{ padding: '1.75rem 2rem' }}>
-            <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '0.5rem' }}>
+          <div className="sky-card" style={{ padding: '1.5rem 2rem' }}>
+            <label style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.35rem' }}>
               Find Your Student's Fees
             </label>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
               Enter your student's <strong>Roll Number / Student ID</strong> (e.g. <code>BB-STU-101</code>) or registered <strong>Parent Mobile Phone Number</strong> to fetch outstanding dues. No password required.
             </p>
 
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.65rem' }}>
               <div style={{ position: 'relative', flex: 1 }}>
                 <input
                   type="text"
@@ -152,29 +150,25 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                     if (e.key === 'Enter') handleLookup();
                   }}
                   style={{
-                    paddingLeft: '2.5rem',
-                    fontSize: '1rem',
-                    paddingTop: '0.75rem',
-                    paddingBottom: '0.75rem'
+                    paddingLeft: '2.4rem'
                   }}
                 />
-                <Search size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)' }} />
+                <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
               </div>
 
               <button
-                className="btn-primary"
+                className="sky-btn-primary"
                 onClick={() => handleLookup()}
                 disabled={isLoading || !query.trim()}
-                style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}
               >
                 {isLoading ? 'Searching...' : 'Find Dues'}
-                <ChevronRight size={16} />
+                <ChevronRight size={15} />
               </button>
             </div>
 
             {/* Quick Helper Sample Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
-              <span style={{ fontSize: '0.775rem', color: 'var(--text-muted)', fontWeight: 600 }}>Try sample student:</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.45rem', marginTop: '0.85rem' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Try sample student:</span>
               {sampleLookups.map(s => (
                 <button
                   key={s.val}
@@ -182,8 +176,8 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                     setQuery(s.val);
                     handleLookup(s.val);
                   }}
-                  className="btn-secondary"
-                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.6rem' }}
+                  className="sky-btn-default"
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem' }}
                 >
                   {s.label}
                 </button>
@@ -191,52 +185,41 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
             </div>
 
             {errorMessage && (
-              <div style={{
-                background: 'var(--danger-bg)',
-                border: '1px solid var(--danger-border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '0.85rem 1rem',
-                color: 'var(--danger-text)',
-                marginTop: '1.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '0.875rem'
-              }}>
-                <AlertCircle size={18} />
-                {errorMessage}
+              <div className="sky-alert sky-alert-danger" style={{ marginTop: '1rem' }}>
+                <AlertCircle size={16} />
+                <div>{errorMessage}</div>
               </div>
             )}
           </div>
 
           {/* Lookup Results */}
           {lookupResult && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Student Profile Card */}
-              <div className="card-panel" style={{ padding: '1.5rem 2rem', background: 'var(--bg-card)' }}>
+              <div className="sky-card" style={{ padding: '1.25rem 1.5rem' }}>
                 <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                     <div style={{
-                      width: '48px',
-                      height: '48px',
+                      width: '42px',
+                      height: '42px',
                       borderRadius: '50%',
-                      background: 'var(--accent-light)',
-                      border: '2px solid var(--accent-primary)',
+                      background: 'var(--sky-color-primary-light)',
+                      border: '2px solid var(--sky-color-primary)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: 'var(--accent-primary)',
-                      fontWeight: 800,
-                      fontSize: '1.2rem'
+                      color: 'var(--sky-color-primary)',
+                      fontWeight: 700,
+                      fontSize: '1.1rem'
                     }}>
                       {lookupResult.student.studentName.charAt(0)}
                     </div>
 
                     <div>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                      <h3 className="sky-heading-2">
                         {lookupResult.student.studentName}
                       </h3>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.85rem', marginTop: '0.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.2rem', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
                         <span>Roll / ID: <strong style={{ color: 'var(--text-heading)' }}>{lookupResult.student.studentId}</strong></span>
                         <span>Grade: <strong style={{ color: 'var(--text-heading)' }}>{lookupResult.student.grade}</strong> ({lookupResult.student.homeroom})</span>
                         <span>Parent: <strong style={{ color: 'var(--text-heading)' }}>{lookupResult.student.parentName}</strong></span>
@@ -245,11 +228,11 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                   </div>
 
                   {/* Total Due Amount */}
-                  <div style={{ textAlign: 'right', background: 'var(--bg-surface-elevated)', padding: '0.75rem 1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                      Total Outstanding Balance
+                  <div style={{ textAlign: 'right', background: 'var(--bg-surface-subtle)', padding: '0.65rem 1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-strong)' }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                      Total Balance
                     </span>
-                    <div style={{ fontSize: '1.6rem', fontWeight: 800, color: lookupResult.totalDue > 0 ? 'var(--warning)' : 'var(--success)' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: lookupResult.totalDue > 0 ? 'var(--warning)' : 'var(--success)' }}>
                       ${lookupResult.totalDue.toFixed(2)}
                     </div>
                   </div>
@@ -257,14 +240,16 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
               </div>
 
               {/* Fee Charges List */}
-              <div className="card-panel" style={{ padding: '1.75rem 2rem' }}>
-                <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '1rem' }}>
-                  Fee Obligations ({lookupResult.charges.length})
-                </h4>
+              <div className="sky-card" style={{ padding: 0, overflow: 'hidden' }}>
+                <div className="sky-card-header">
+                  <h4 className="sky-heading-3">
+                    Fee Obligations ({lookupResult.charges.length})
+                  </h4>
+                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   {lookupResult.charges.length === 0 ? (
-                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                       No active fee charges assigned to this student account.
                     </div>
                   ) : (
@@ -276,20 +261,20 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                         <div
                           key={charge.id}
                           style={{
-                            padding: '1.25rem 1.5rem',
-                            borderRadius: 'var(--radius-md)',
+                            padding: '1rem 1.25rem',
+                            borderRadius: 'var(--radius-sm)',
                             border: isPaid ? '1px solid var(--success-border)' : '1px solid var(--border-strong)',
                             background: isPaid ? 'var(--success-bg)' : 'var(--bg-card)',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             flexWrap: 'wrap',
-                            gap: '1rem'
+                            gap: '0.85rem'
                           }}
                         >
                           <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                              <h5 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-heading)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <h5 className="sky-heading-4">
                                 {charge.feeTitle}
                               </h5>
                               {isPaid ? (
@@ -301,7 +286,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                               )}
                             </div>
 
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.35rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.25rem', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
                               <span>Due Date: <strong style={{ color: 'var(--text-heading)' }}>{charge.dueDate}</strong></span>
                               <span>Total: <strong>${charge.amount.toFixed(2)}</strong></span>
                               {charge.amountPaid > 0 && (
@@ -310,29 +295,29 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                             </div>
                           </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             <div style={{ textAlign: 'right' }}>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Amount Due</span>
-                              <div style={{ fontSize: '1.35rem', fontWeight: 800, color: isPaid ? 'var(--success)' : 'var(--text-heading)' }}>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Amount Due</span>
+                              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: isPaid ? 'var(--success)' : 'var(--text-heading)' }}>
                                 ${remaining.toFixed(2)}
                               </div>
                             </div>
 
                             {!isPaid ? (
                               <button
-                                className="btn-primary"
+                                className="sky-btn-primary"
                                 onClick={() => setActivePayingChargeId(charge.id)}
-                                style={{ padding: '0.55rem 1.15rem', fontSize: '0.875rem' }}
+                                style={{ padding: '0.45rem 0.95rem', fontSize: '0.8rem' }}
                               >
-                                <CreditCard size={15} /> Pay Now
+                                <CreditCard size={14} /> Pay Now
                               </button>
                             ) : (
                               <button
-                                className="btn-secondary"
+                                className="sky-btn-default"
                                 onClick={() => setActivePayingChargeId(charge.id)}
-                                style={{ padding: '0.55rem 1.15rem', fontSize: '0.875rem' }}
+                                style={{ padding: '0.45rem 0.95rem', fontSize: '0.8rem', color: 'var(--success)' }}
                               >
-                                <FileCheck size={15} /> View Receipt
+                                <FileCheck size={14} color="var(--success)" /> View Receipt
                               </button>
                             )}
                           </div>
