@@ -13,9 +13,12 @@ import {
   ChevronRight, 
   ArrowLeft, 
   Lock, 
-  Check 
+  Check,
+  Users,
+  HeartHandshake,
+  Sparkles
 } from 'lucide-react';
-import { StudentLookupResult, StudentCharge, UniversalFeeDefinition, SchoolBranding } from '../types/index.js';
+import { StudentLookupResult, StudentCharge, UniversalFeeDefinition, SchoolBranding, StudentAccount } from '../types/index.js';
 import { api } from '../services/api.js';
 import { PayerCheckout } from './PayerCheckout.js';
 
@@ -35,6 +38,8 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
   const [query, setQuery] = useState(initialQuery);
   const [isLoading, setIsLoading] = useState(false);
   const [lookupResult, setLookupResult] = useState<StudentLookupResult | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [isThirdPartyPayer, setIsThirdPartyPayer] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activePayingChargeId, setActivePayingChargeId] = useState<string | null>(null);
 
@@ -55,8 +60,10 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
     try {
       const result = await api.lookupStudent(q);
       setLookupResult(result);
+      setSelectedStudentId(result.student.studentId);
     } catch (err: any) {
       setLookupResult(null);
+      setSelectedStudentId(null);
       setErrorMessage(err.message || 'No student found matching this query.');
     } finally {
       setIsLoading(false);
@@ -70,10 +77,25 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
   }, [initialQuery]);
 
   const sampleLookups = [
-    { label: 'Alexander Hayes (Roll: BB-STU-101)', val: 'BB-STU-101' },
-    { label: 'Sophia Patel (Phone: 555-0102)', val: '555-0102' },
+    { label: 'Michael Hayes (Parent Multi-Child: Alex & Maya)', val: 'michael.hayes@example.com' },
+    { label: 'Priya Patel (Parent Multi-Child: Sophia & Aarav)', val: 'priya.patel@example.com' },
+    { label: 'Lucas Vance (Roll: BB-STU-103)', val: 'BB-STU-103' },
     { label: 'Noah Bennett (Roll: BB-STU-109)', val: 'BB-STU-109' }
   ];
+
+  // Active student in view (either primary student or selected sibling)
+  const currentStudent: StudentAccount | undefined = lookupResult ? (
+    lookupResult.student.studentId === selectedStudentId 
+      ? lookupResult.student 
+      : (lookupResult.siblings.find(s => s.studentId === selectedStudentId) || lookupResult.student)
+  ) : undefined;
+
+  // Charges for active student
+  const activeStudentCharges: StudentCharge[] = lookupResult && currentStudent ? (
+    lookupResult.charges.filter(c => c.studentId === currentStudent.studentId)
+  ) : [];
+
+  const activeStudentDue = activeStudentCharges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
 
   return (
     <div style={{ maxWidth: isEmbedded ? '100%' : '860px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -84,11 +106,11 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
             chargeId={activePayingChargeId}
             onBackToLedger={() => {
               setActivePayingChargeId(null);
-              if (lookupResult) handleLookup(lookupResult.student.studentId);
+              if (currentStudent) handleLookup(currentStudent.studentId);
             }}
             onPaymentCompleted={() => {
               if (onPaymentCompleted) onPaymentCompleted();
-              if (lookupResult) handleLookup(lookupResult.student.studentId);
+              if (currentStudent) handleLookup(currentStudent.studentId);
             }}
             branding={branding}
           />
@@ -117,14 +139,16 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                       {schoolName} • Self-Service Payments
                     </span>
                     <h2 className="sky-heading-1" style={{ marginTop: '0.1rem' }}>
-                      Parent Quick-Pay Portal
+                      Parent & Student Payment Portal
                     </h2>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-surface-subtle)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-strong)', fontSize: '0.75rem' }}>
-                  <ShieldCheck size={14} color="var(--success)" />
-                  <span style={{ fontWeight: 600, color: 'var(--text-heading)' }}>Direct SKY API Sync</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-surface-subtle)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-strong)', fontSize: '0.75rem' }}>
+                    <ShieldCheck size={14} color="var(--success)" />
+                    <span style={{ fontWeight: 600, color: 'var(--text-heading)' }}>Blackbaud SKY API Synced</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -132,18 +156,51 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
 
           {/* Lookup Input Card */}
           <div className="sky-card" style={{ padding: '1.5rem 2rem' }}>
-            <label style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.35rem' }}>
-              Find Your Student's Fees
-            </label>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-              Enter your student's <strong>Roll Number / Student ID</strong> (e.g. <code>BB-STU-101</code>) or registered <strong>Parent Mobile Phone Number</strong> to fetch outstanding dues. No password required.
-            </p>
+            <div className="flex-between" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <div>
+                <label style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                  Find Fees (Parent, Student or Sponsor)
+                </label>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                  Enter your <strong>Parent Email / Mobile Phone</strong> (to see all children) or <strong>Student Roll Number / ID</strong> (e.g. <code>BB-STU-101</code>).
+                </p>
+              </div>
+
+              {/* Sponsor Mode Toggle */}
+              <button
+                type="button"
+                onClick={() => setIsThirdPartyPayer(!isThirdPartyPayer)}
+                style={{
+                  fontSize: '0.75rem',
+                  padding: '0.3rem 0.65rem',
+                  borderRadius: 'var(--radius-sm)',
+                  border: isThirdPartyPayer ? '1px solid var(--sky-color-primary)' : '1px solid var(--border-subtle)',
+                  background: isThirdPartyPayer ? 'var(--sky-color-primary-light)' : 'transparent',
+                  color: isThirdPartyPayer ? 'var(--sky-color-primary)' : 'var(--text-muted)',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  cursor: 'pointer'
+                }}
+              >
+                <HeartHandshake size={13} />
+                <span>{isThirdPartyPayer ? 'Third-Party / Sponsor Mode ON' : 'Paying as Sponsor / Relative?'}</span>
+              </button>
+            </div>
+
+            {isThirdPartyPayer && (
+              <div style={{ padding: '0.65rem 0.85rem', background: 'var(--sky-color-primary-light)', border: '1px solid var(--sky-color-primary)', borderRadius: 'var(--radius-sm)', fontSize: '0.775rem', color: 'var(--sky-color-primary)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <Sparkles size={14} />
+                <span><strong>Third-Party Sponsor Mode:</strong> You can pay directly on behalf of any student without logging into a parent account. Payment will be credited directly to their student subledger.</span>
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: '0.65rem' }}>
               <div style={{ position: 'relative', flex: 1 }}>
                 <input
                   type="text"
-                  placeholder="Enter Student ID / Roll No (e.g. BB-STU-101) or Mobile (e.g. 555-0101)..."
+                  placeholder="Enter Student ID / Roll No, Parent Email, or Mobile Phone..."
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   onKeyDown={e => {
@@ -168,7 +225,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
 
             {/* Quick Helper Sample Buttons */}
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.45rem', marginTop: '0.85rem' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Try sample student:</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Try quick sample:</span>
               {sampleLookups.map(s => (
                 <button
                   key={s.val}
@@ -193,8 +250,65 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
           </div>
 
           {/* Lookup Results */}
-          {lookupResult && (
+          {lookupResult && currentStudent && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              
+              {/* USE CASE 1: Multi-Child Family Hub Bar */}
+              {lookupResult.siblings.length > 0 && (
+                <div className="sky-card" style={{ padding: '1rem 1.5rem', background: 'var(--bg-surface-subtle)', border: '1px solid var(--sky-color-primary)' }}>
+                  <div className="flex-between" style={{ flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Users size={18} color="var(--sky-color-primary)" />
+                      <strong style={{ fontSize: '0.9rem', color: 'var(--text-heading)' }}>
+                        Family Account: {lookupResult.student.parentName}
+                      </strong>
+                      <span className="badge badge-info">{lookupResult.siblings.length + 1} Children Enrolled</span>
+                    </div>
+
+                    <div style={{ fontSize: '0.85rem' }}>
+                      Total Family Balance: <strong style={{ color: lookupResult.totalFamilyBalance > 0 ? 'var(--warning)' : 'var(--success)', fontSize: '1rem' }}>${lookupResult.totalFamilyBalance.toFixed(2)}</strong>
+                    </div>
+                  </div>
+
+                  {/* Sibling Switcher Tabs */}
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {[lookupResult.student, ...lookupResult.siblings].map(child => {
+                      const isSelected = child.studentId === selectedStudentId;
+                      const childCharges = lookupResult.charges.filter(c => c.studentId === child.studentId);
+                      const childDue = childCharges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
+
+                      return (
+                        <button
+                          key={child.studentId}
+                          type="button"
+                          onClick={() => setSelectedStudentId(child.studentId)}
+                          style={{
+                            padding: '0.5rem 0.85rem',
+                            borderRadius: 'var(--radius-sm)',
+                            border: isSelected ? '2px solid var(--sky-color-primary)' : '1px solid var(--border-strong)',
+                            background: isSelected ? '#ffffff' : 'transparent',
+                            color: isSelected ? 'var(--sky-color-primary)' : 'var(--text-body)',
+                            fontWeight: isSelected ? 700 : 500,
+                            fontSize: '0.8rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            cursor: 'pointer',
+                            boxShadow: isSelected ? 'var(--shadow-sm)' : 'none'
+                          }}
+                        >
+                          <User size={13} />
+                          <span>{child.studentName} ({child.grade})</span>
+                          <span className={`badge ${childDue > 0 ? 'badge-warning' : 'badge-success'}`} style={{ fontSize: '0.65rem' }}>
+                            ${childDue.toFixed(2)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Student Profile Card */}
               <div className="sky-card" style={{ padding: '1.25rem 1.5rem' }}>
                 <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
@@ -212,17 +326,25 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                       fontWeight: 700,
                       fontSize: '1.1rem'
                     }}>
-                      {lookupResult.student.studentName.charAt(0)}
+                      {currentStudent.studentName.charAt(0)}
                     </div>
 
                     <div>
-                      <h3 className="sky-heading-2">
-                        {lookupResult.student.studentName}
-                      </h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <h3 className="sky-heading-2">
+                          {currentStudent.studentName}
+                        </h3>
+                        {currentStudent.gender && (
+                          <span className="badge badge-neutral" style={{ fontSize: '0.65rem' }}>
+                            {currentStudent.gender}
+                          </span>
+                        )}
+                      </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.2rem', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
-                        <span>Roll / ID: <strong style={{ color: 'var(--text-heading)' }}>{lookupResult.student.studentId}</strong></span>
-                        <span>Grade: <strong style={{ color: 'var(--text-heading)' }}>{lookupResult.student.grade}</strong> ({lookupResult.student.homeroom})</span>
-                        <span>Parent: <strong style={{ color: 'var(--text-heading)' }}>{lookupResult.student.parentName}</strong></span>
+                        <span>Roll: <strong style={{ color: 'var(--text-heading)' }}>{currentStudent.studentId}</strong></span>
+                        <span>Grade: <strong style={{ color: 'var(--text-heading)' }}>{currentStudent.grade}</strong> ({currentStudent.school || 'Oakridge Prep'})</span>
+                        <span>Parent: <strong style={{ color: 'var(--text-heading)' }}>{currentStudent.parentName}</strong></span>
+                        <span>Email: <strong>{currentStudent.studentEmail || currentStudent.parentEmail}</strong></span>
                       </div>
                     </div>
                   </div>
@@ -230,10 +352,10 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                   {/* Total Due Amount */}
                   <div style={{ textAlign: 'right', background: 'var(--bg-surface-subtle)', padding: '0.65rem 1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-strong)' }}>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                      Total Balance
+                      Outstanding for {currentStudent.studentName.split(' ')[0]}
                     </span>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: lookupResult.totalDue > 0 ? 'var(--warning)' : 'var(--success)' }}>
-                      ${lookupResult.totalDue.toFixed(2)}
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: activeStudentDue > 0 ? 'var(--warning)' : 'var(--success)' }}>
+                      ${activeStudentDue.toFixed(2)}
                     </div>
                   </div>
                 </div>
@@ -243,17 +365,17 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
               <div className="sky-card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div className="sky-card-header">
                   <h4 className="sky-heading-3">
-                    Fee Obligations ({lookupResult.charges.length})
+                    Assigned Fee Obligations ({activeStudentCharges.length})
                   </h4>
                 </div>
 
                 <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                  {lookupResult.charges.length === 0 ? (
+                  {activeStudentCharges.length === 0 ? (
                     <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      No active fee charges assigned to this student account.
+                      No active fee charges assigned to {currentStudent.studentName}. All accounts are up to date!
                     </div>
                   ) : (
-                    lookupResult.charges.map(charge => {
+                    activeStudentCharges.map(charge => {
                       const remaining = charge.amount - charge.amountPaid;
                       const isPaid = charge.paymentStatus === 'PAID';
 

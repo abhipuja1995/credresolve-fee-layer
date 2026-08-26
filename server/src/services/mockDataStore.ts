@@ -79,26 +79,18 @@ export class MockDataStore {
   ];
 
   public students: StudentAccount[] = [
-    { studentId: 'BB-STU-101', familyId: 'BB-FAM-501', studentName: 'Alexander Hayes', parentName: 'Michael Hayes', parentEmail: 'michael.hayes@example.com', parentPhone: '+1-555-0101', grade: 'Grade 8', homeroom: '8-A', currentBalance: 450.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-102', familyId: 'BB-FAM-502', studentName: 'Sophia Patel', parentName: 'Priya Patel', parentEmail: 'priya.patel@example.com', parentPhone: '+1-555-0102', grade: 'Grade 8', homeroom: '8-A', currentBalance: 0.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-103', familyId: 'BB-FAM-503', studentName: 'Lucas Vance', parentName: 'David Vance', parentEmail: 'david.vance@example.com', parentPhone: '+1-555-0103', grade: 'Grade 8', homeroom: '8-B', currentBalance: 125.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-104', familyId: 'BB-FAM-504', studentName: 'Emma Richardson', parentName: 'Sarah Richardson', parentEmail: 'sarah.r@example.com', parentPhone: '+1-555-0104', grade: 'Grade 8', homeroom: '8-B', currentBalance: 80.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-105', familyId: 'BB-FAM-505', studentName: 'Benjamin Walker', parentName: 'James Walker', parentEmail: 'james.walker@example.com', parentPhone: '+1-555-0105', grade: 'Grade 7', homeroom: '7-A', currentBalance: 0.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-106', familyId: 'BB-FAM-506', studentName: 'Olivia Martinez', parentName: 'Carlos Martinez', parentEmail: 'carlos.m@example.com', parentPhone: '+1-555-0106', grade: 'Grade 7', homeroom: '7-A', currentBalance: 250.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-107', familyId: 'BB-FAM-507', studentName: 'Ethan Wright', parentName: 'Laura Wright', parentEmail: 'laura.wright@example.com', parentPhone: '+1-555-0107', grade: 'Grade 7', homeroom: '7-B', currentBalance: 0.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-108', familyId: 'BB-FAM-508', studentName: 'Mia Kim', parentName: 'Daniel Kim', parentEmail: 'daniel.kim@example.com', parentPhone: '+1-555-0108', grade: 'Grade 9', homeroom: '9-A', currentBalance: 175.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-109', familyId: 'BB-FAM-509', studentName: 'Noah Bennett', parentName: 'Jessica Bennett', parentEmail: 'jessica.b@example.com', parentPhone: '+1-555-0109', grade: 'Grade 9', homeroom: '9-A', currentBalance: 320.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-110', familyId: 'BB-FAM-510', studentName: 'Ava Jenkins', parentName: 'Robert Jenkins', parentEmail: 'robert.j@example.com', parentPhone: '+1-555-0110', grade: 'Grade 9', homeroom: '9-B', currentBalance: 0.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-111', familyId: 'BB-FAM-511', studentName: 'Liam O\'Connor', parentName: 'Patrick O\'Connor', parentEmail: 'patrick.oc@example.com', parentPhone: '+1-555-0111', grade: 'Grade 10', homeroom: '10-A', currentBalance: 500.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-112', familyId: 'BB-FAM-512', studentName: 'Charlotte Hughes', parentName: 'Karen Hughes', parentEmail: 'karen.h@example.com', parentPhone: '+1-555-0112', grade: 'Grade 10', homeroom: '10-A', currentBalance: 0.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-113', familyId: 'BB-FAM-513', studentName: 'Mason Cooper', parentName: 'Brian Cooper', parentEmail: 'brian.cooper@example.com', parentPhone: '+1-555-0113', grade: 'Grade 11', homeroom: '11-A', currentBalance: 120.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-114', familyId: 'BB-FAM-514', studentName: 'Amelia Reed', parentName: 'Helen Reed', parentEmail: 'helen.reed@example.com', parentPhone: '+1-555-0114', grade: 'Grade 11', homeroom: '11-B', currentBalance: 0.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-115', familyId: 'BB-FAM-515', studentName: 'Elijah Brooks', parentName: 'Thomas Brooks', parentEmail: 'thomas.b@example.com', parentPhone: '+1-555-0115', grade: 'Grade 12', homeroom: '12-A', currentBalance: 195.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-116', familyId: 'BB-FAM-516', studentName: 'Harper Foster', parentName: 'Rachel Foster', parentEmail: 'rachel.foster@example.com', parentPhone: '+1-555-0116', grade: 'Grade 12', homeroom: '12-A', currentBalance: 0.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-117', familyId: 'BB-FAM-517', studentName: 'William Clark', parentName: 'Sandra Clark', parentEmail: 'sandra.c@example.com', parentPhone: '+1-555-0117', grade: 'Grade 12', homeroom: '12-B', currentBalance: 640.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-118', familyId: 'BB-FAM-518', studentName: 'Evelyn Ross', parentName: 'Mark Ross', parentEmail: 'mark.ross@example.com', parentPhone: '+1-555-0118', grade: 'Grade 6', homeroom: '6-A', currentBalance: 0.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-119', familyId: 'BB-FAM-519', studentName: 'James Turner', parentName: 'Claire Turner', parentEmail: 'claire.t@example.com', parentPhone: '+1-555-0119', grade: 'Grade 6', homeroom: '6-A', currentBalance: 150.00, status: 'ACTIVE' },
-    { studentId: 'BB-STU-120', familyId: 'BB-FAM-520', studentName: 'Isabella Morgan', parentName: 'Arthur Morgan', parentEmail: 'arthur.m@example.com', parentPhone: '+1-555-0120', grade: 'Grade 6', homeroom: '6-B', currentBalance: 0.00, status: 'ACTIVE' }
+    { studentId: 'BB-STU-101', familyId: 'BB-FAM-501', studentName: 'Alexander Hayes', studentEmail: 'alex.h@oakridge.edu', studentMobile: '+1-555-0101', gender: 'Male', grade: 'Grade 8', school: 'Oakridge Middle School', homeroom: '8-A', parentName: 'Michael Hayes', parentEmail: 'michael.hayes@example.com', parentPhone: '+1-555-0101', parentMobile: '+1-555-0101', currentBalance: 450.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-111', familyId: 'BB-FAM-501', studentName: 'Maya Hayes', studentEmail: 'maya.h@oakridge.edu', studentMobile: '+1-555-0101', gender: 'Female', grade: 'Grade 5', school: 'Oakridge Lower School', homeroom: '5-B', parentName: 'Michael Hayes', parentEmail: 'michael.hayes@example.com', parentPhone: '+1-555-0101', parentMobile: '+1-555-0101', currentBalance: 125.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-102', familyId: 'BB-FAM-502', studentName: 'Sophia Patel', studentEmail: 'sophia.p@oakridge.edu', studentMobile: '+1-555-0102', gender: 'Female', grade: 'Grade 8', school: 'Oakridge Middle School', homeroom: '8-A', parentName: 'Priya Patel', parentEmail: 'priya.patel@example.com', parentPhone: '+1-555-0102', parentMobile: '+1-555-0102', currentBalance: 0.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-112', familyId: 'BB-FAM-502', studentName: 'Aarav Patel', studentEmail: 'aarav.p@oakridge.edu', studentMobile: '+1-555-0102', gender: 'Male', grade: 'Grade 3', school: 'Oakridge Lower School', homeroom: '3-A', parentName: 'Priya Patel', parentEmail: 'priya.patel@example.com', parentPhone: '+1-555-0102', parentMobile: '+1-555-0102', currentBalance: 75.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-103', familyId: 'BB-FAM-503', studentName: 'Lucas Vance', studentEmail: 'lucas.v@oakridge.edu', studentMobile: '+1-555-0103', gender: 'Male', grade: 'Grade 8', school: 'Oakridge Middle School', homeroom: '8-B', parentName: 'David Vance', parentEmail: 'david.vance@example.com', parentPhone: '+1-555-0103', parentMobile: '+1-555-0103', currentBalance: 125.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-104', familyId: 'BB-FAM-504', studentName: 'Emma Richardson', studentEmail: 'emma.r@oakridge.edu', studentMobile: '+1-555-0104', gender: 'Female', grade: 'Grade 8', school: 'Oakridge Middle School', homeroom: '8-B', parentName: 'Sarah Richardson', parentEmail: 'sarah.r@example.com', parentPhone: '+1-555-0104', parentMobile: '+1-555-0104', currentBalance: 80.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-105', familyId: 'BB-FAM-505', studentName: 'Benjamin Walker', studentEmail: 'ben.w@oakridge.edu', studentMobile: '+1-555-0105', gender: 'Male', grade: 'Grade 7', school: 'Oakridge Middle School', homeroom: '7-A', parentName: 'James Walker', parentEmail: 'james.walker@example.com', parentPhone: '+1-555-0105', parentMobile: '+1-555-0105', currentBalance: 0.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-106', familyId: 'BB-FAM-506', studentName: 'Olivia Martinez', studentEmail: 'olivia.m@oakridge.edu', studentMobile: '+1-555-0106', gender: 'Female', grade: 'Grade 7', school: 'Oakridge Middle School', homeroom: '7-A', parentName: 'Carlos Martinez', parentEmail: 'carlos.m@example.com', parentPhone: '+1-555-0106', parentMobile: '+1-555-0106', currentBalance: 250.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-107', familyId: 'BB-FAM-507', studentName: 'Ethan Wright', studentEmail: 'ethan.w@oakridge.edu', studentMobile: '+1-555-0107', gender: 'Male', grade: 'Grade 7', school: 'Oakridge Middle School', homeroom: '7-B', parentName: 'Laura Wright', parentEmail: 'laura.wright@example.com', parentPhone: '+1-555-0107', parentMobile: '+1-555-0107', currentBalance: 0.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-108', familyId: 'BB-FAM-508', studentName: 'Mia Kim', studentEmail: 'mia.k@oakridge.edu', studentMobile: '+1-555-0108', gender: 'Female', grade: 'Grade 9', school: 'Oakridge Upper Academy', homeroom: '9-A', parentName: 'Daniel Kim', parentEmail: 'daniel.kim@example.com', parentPhone: '+1-555-0108', parentMobile: '+1-555-0108', currentBalance: 175.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-109', familyId: 'BB-FAM-509', studentName: 'Noah Bennett', studentEmail: 'noah.b@oakridge.edu', studentMobile: '+1-555-0109', gender: 'Male', grade: 'Grade 9', school: 'Oakridge Upper Academy', homeroom: '9-A', parentName: 'Jessica Bennett', parentEmail: 'jessica.b@example.com', parentPhone: '+1-555-0109', parentMobile: '+1-555-0109', currentBalance: 320.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-110', familyId: 'BB-FAM-510', studentName: 'Ava Jenkins', studentEmail: 'ava.j@oakridge.edu', studentMobile: '+1-555-0110', gender: 'Female', grade: 'Grade 9', school: 'Oakridge Upper Academy', homeroom: '9-B', parentName: 'Robert Jenkins', parentEmail: 'robert.j@example.com', parentPhone: '+1-555-0110', parentMobile: '+1-555-0110', currentBalance: 0.00, status: 'ACTIVE' }
   ];
 
   public fees: Map<string, UniversalFeeDefinition> = new Map();
@@ -142,24 +134,111 @@ export class MockDataStore {
       if (s.studentId.toLowerCase() === cleanQuery) return true;
       if (s.studentName.toLowerCase().includes(cleanQuery)) return true;
       if (s.parentEmail.toLowerCase() === cleanQuery) return true;
+      if (s.studentEmail?.toLowerCase() === cleanQuery) return true;
       
-      const phoneDigits = s.parentPhone.replace(/\D/g, '');
+      const phoneDigits = (s.parentPhone || '').replace(/\D/g, '');
       if (digitsOnly.length >= 4 && phoneDigits.endsWith(digitsOnly)) return true;
-      if (s.parentPhone.toLowerCase() === cleanQuery) return true;
+      if (s.parentPhone?.toLowerCase() === cleanQuery) return true;
+
+      const studentPhoneDigits = (s.studentMobile || '').replace(/\D/g, '');
+      if (digitsOnly.length >= 4 && studentPhoneDigits.endsWith(digitsOnly)) return true;
 
       return false;
     });
 
     if (!student) return null;
 
-    const charges = Array.from(this.studentCharges.values()).filter(c => c.studentId === student.studentId);
-    const totalDue = charges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
+    // Find siblings under same familyId
+    const siblings = this.students.filter(s => s.familyId === student.familyId && s.studentId !== student.studentId);
+    
+    // Get charges for primary student and siblings
+    const allFamilyStudentIds = [student.studentId, ...siblings.map(s => s.studentId)];
+    const charges = Array.from(this.studentCharges.values()).filter(c => allFamilyStudentIds.includes(c.studentId));
+    
+    const studentCharges = charges.filter(c => c.studentId === student.studentId);
+    const totalDue = studentCharges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
+    const totalFamilyBalance = charges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
 
     return {
       student,
+      siblings,
       charges,
-      totalDue
+      totalDue,
+      totalFamilyBalance
     };
+  }
+
+  public importStudentsCsv(rows: Array<import('../types/blackbaud.js').StudentCsvRow>) {
+    let importedCount = 0;
+    let updatedCount = 0;
+
+    for (const row of rows) {
+      if (!row.student_id || !row.student_name || !row.grade) continue;
+
+      const existingIndex = this.students.findIndex(s => s.studentId.toLowerCase() === row.student_id.toLowerCase());
+      const studentObj: StudentAccount = {
+        studentId: row.student_id.trim(),
+        familyId: row.family_id?.trim() || `BB-FAM-${Math.floor(500 + Math.random() * 499)}`,
+        studentName: row.student_name.trim(),
+        studentEmail: row.student_email?.trim() || `${row.student_name.toLowerCase().replace(/\s+/g, '.')}@oakridge.edu`,
+        studentMobile: row.student_mobile?.trim() || '+1-555-0199',
+        gender: row.gender || 'Prefer not to say',
+        grade: row.grade.trim(),
+        school: row.school?.trim() || 'Oakridge International Prep',
+        homeroom: row.homeroom?.trim() || `${row.grade.slice(-1)}-A`,
+        parentName: row.parent_name?.trim() || 'Parent / Guardian',
+        parentEmail: row.parent_email?.trim() || 'parent@example.com',
+        parentPhone: row.parent_mobile?.trim() || '+1-555-0100',
+        parentMobile: row.parent_mobile?.trim() || '+1-555-0100',
+        currentBalance: 0.00,
+        status: 'ACTIVE'
+      };
+
+      if (existingIndex >= 0) {
+        this.students[existingIndex] = {
+          ...this.students[existingIndex],
+          ...studentObj,
+          currentBalance: this.students[existingIndex].currentBalance
+        };
+        updatedCount++;
+      } else {
+        this.students.push(studentObj);
+        importedCount++;
+      }
+    }
+
+    return {
+      importedCount,
+      updatedCount,
+      totalStudents: this.students.length
+    };
+  }
+
+  public getCandidateStudents(): Array<import('../types/blackbaud.js').BlackbaudCandidateStudent> {
+    return this.students.map(s => {
+      const nameParts = s.studentName.split(' ');
+      const parentParts = s.parentName.split(' ');
+      return {
+        candidate_id: s.studentId,
+        first_name: nameParts[0] || s.studentName,
+        last_name: nameParts.slice(1).join(' ') || '',
+        email: s.studentEmail || `${s.studentId.toLowerCase()}@oakridge.edu`,
+        phone: s.studentMobile || s.parentPhone,
+        gender: s.gender as string || 'Unspecified',
+        grade_level: s.grade,
+        school_name: s.school || 'Oakridge International Prep',
+        parents: [
+          {
+            parent_id: `PAR-${s.studentId}`,
+            first_name: parentParts[0] || s.parentName,
+            last_name: parentParts.slice(1).join(' ') || '',
+            email: s.parentEmail,
+            phone: s.parentMobile || s.parentPhone,
+            relationship: 'Parent / Guardian'
+          }
+        ]
+      };
+    });
   }
 
   private seedInitialData() {
@@ -291,6 +370,51 @@ export class MockDataStore {
       };
 
       this.studentCharges.set(chargeId, charge);
+    });
+
+    // Seed sibling charges for multi-child testing
+    const mayaChargeId = `CHG-fee-stem-lab-BB-STU-111`;
+    this.studentCharges.set(mayaChargeId, {
+      id: mayaChargeId,
+      feeId: 'fee-stem-lab-2026',
+      feeTitle: '5th Grade Junior Robotics & STEM Lab Kit',
+      schoolId: this.environmentContext.environmentId,
+      studentId: 'BB-STU-111',
+      studentName: 'Maya Hayes',
+      parentEmail: 'michael.hayes@example.com',
+      parentPhone: '+1-555-0101',
+      bbFeeTypeId: 'FT-TECH-04',
+      amount: 125.00,
+      amountPaid: 0.00,
+      dueDate: '2026-10-15',
+      paymentStatus: 'UNPAID',
+      bbSyncStatus: 'SYNCED',
+      bbClientChargeReferenceId: `REF-${mayaChargeId}`,
+      paymentReceipts: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    const aaravChargeId = `CHG-fee-art-supplies-BB-STU-112`;
+    this.studentCharges.set(aaravChargeId, {
+      id: aaravChargeId,
+      feeId: 'fee-art-2026',
+      feeTitle: '3rd Grade Creative Arts & Ceramic Supplies',
+      schoolId: this.environmentContext.environmentId,
+      studentId: 'BB-STU-112',
+      studentName: 'Aarav Patel',
+      parentEmail: 'priya.patel@example.com',
+      parentPhone: '+1-555-0102',
+      bbFeeTypeId: 'FT-ACT-05',
+      amount: 75.00,
+      amountPaid: 0.00,
+      dueDate: '2026-10-20',
+      paymentStatus: 'UNPAID',
+      bbSyncStatus: 'SYNCED',
+      bbClientChargeReferenceId: `REF-${aaravChargeId}`,
+      paymentReceipts: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
   }
 }

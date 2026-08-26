@@ -61,13 +61,25 @@ export interface StudentAccount {
   studentId: string;
   familyId: string;
   studentName: string;
+  studentEmail?: string;
+  studentMobile?: string;
+  gender?: 'Male' | 'Female' | 'Non-Binary' | 'Prefer not to say' | string;
+  grade: string;
+  school?: string;
+  homeroom: string;
   parentName: string;
   parentEmail: string;
   parentPhone: string;
-  grade: string;
-  homeroom: string;
+  parentMobile?: string;
   currentBalance: number;
   status: 'ACTIVE' | 'INACTIVE' | 'GRADUATED';
+}
+
+export interface StudentLookupResult {
+  student: StudentAccount;
+  siblings: StudentAccount[];
+  charges: StudentCharge[];
+  totalFamilyBalance: number;
 }
 
 export interface StudentCharge {

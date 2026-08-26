@@ -88,7 +88,12 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   // Audience State
   const [audienceType, setAudienceType] = useState<string>('GRADE');
   const [selectedGrades, setSelectedGrades] = useState<string[]>(['Grade 8']);
-  
+  const [candidateStudents, setCandidateStudents] = useState<import('../types/index.js').BlackbaudCandidateStudent[]>([]);
+  const [isFetchingCandidates, setIsFetchingCandidates] = useState(false);
+  const [csvUploadedStudents, setCsvUploadedStudents] = useState<import('../types/index.js').StudentCsvRow[]>([]);
+  const [csvFileName, setCsvFileName] = useState<string | null>(null);
+  const [csvUploadStatus, setCsvUploadStatus] = useState<string | null>(null);
+
   // Custom Form Fields
   const [customFields, setCustomFields] = useState<FormFieldSchema[]>([
     {
@@ -126,15 +131,106 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
     }
   }, [activeFeeTypes]);
 
+  const handleFetchBlackbaudCandidates = async () => {
+    setIsFetchingCandidates(true);
+    try {
+      const candidates = await api.getCandidateStudents();
+      setCandidateStudents(candidates);
+    } catch (err) {
+      console.error('Failed to fetch Blackbaud candidates:', err);
+    } finally {
+      setIsFetchingCandidates(false);
+    }
+  };
+
+  const handleDownloadCsvTemplate = () => {
+    const headers = 'student_id,student_name,student_email,student_mobile,gender,grade,school,parent_name,parent_email,parent_mobile,family_id\n';
+    const sample = 'BB-STU-201,Lucas Miller,lucas.m@oakridge.edu,+1-555-0201,Male,Grade 8,Oakridge Middle School,Robert Miller,robert.m@example.com,+1-555-0201,BB-FAM-601\nBB-STU-202,Chloe Zhang,chloe.z@oakridge.edu,+1-555-0202,Female,Grade 8,Oakridge Middle School,Wei Zhang,wei.z@example.com,+1-555-0202,BB-FAM-602\n';
+    const blob = new Blob([headers + sample], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'oakridge_student_roster_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCsvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsvFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const text = evt.target?.result as string;
+      if (!text) return;
+      const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+      if (lines.length <= 1) return;
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[\s"-]/g, '_'));
+      const parsedRows: import('../types/index.js').StudentCsvRow[] = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+        if (cols.length < 2) continue;
+        const row: any = {};
+        headers.forEach((h, idx) => {
+          row[h] = cols[idx] || '';
+        });
+        if (row.student_id || row.student_name) {
+          parsedRows.push({
+            student_id: row.student_id || `BB-STU-${Date.now().toString().slice(-4)}`,
+            student_name: row.student_name || 'Unnamed Student',
+            student_email: row.student_email || `${row.student_name?.toLowerCase().replace(/\s+/g, '.')}@oakridge.edu`,
+            student_mobile: row.student_mobile || '+1-555-0199',
+            gender: row.gender || 'Prefer not to say',
+            grade: row.grade || 'Grade 8',
+            school: row.school || 'Oakridge International Prep',
+            parent_name: row.parent_name || 'Parent / Guardian',
+            parent_email: row.parent_email || 'parent@example.com',
+            parent_mobile: row.parent_mobile || '+1-555-0100',
+            family_id: row.family_id || `BB-FAM-${Math.floor(500 + Math.random() * 499)}`
+          });
+        }
+      }
+      setCsvUploadedStudents(parsedRows);
+      try {
+        const res = await api.importStudentsCsv(parsedRows);
+        setCsvUploadStatus(res.message);
+      } catch (err: any) {
+        setCsvUploadStatus(`Parsed ${parsedRows.length} student records from CSV.`);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // Calculations
   const selectedFeeType = activeFeeTypes.find(f => f.feeTypeId === bbFeeTypeId) || activeFeeTypes[0];
   
-  const targetedStudents = activeStudents.filter(s => {
-    if (s.status !== 'ACTIVE') return false;
-    if (audienceType === 'ALL_STUDENTS') return true;
-    if (audienceType === 'GRADE') return selectedGrades.includes(s.grade);
-    return true;
-  });
+  const targetedStudents = (() => {
+    if (audienceType === 'CSV_UPLOAD' && csvUploadedStudents.length > 0) {
+      return csvUploadedStudents.map(c => ({
+        studentId: c.student_id,
+        familyId: c.family_id || 'BB-FAM-501',
+        studentName: c.student_name,
+        studentEmail: c.student_email,
+        studentMobile: c.student_mobile,
+        gender: c.gender,
+        grade: c.grade,
+        school: c.school,
+        homeroom: '8-A',
+        parentName: c.parent_name,
+        parentEmail: c.parent_email,
+        parentPhone: c.parent_mobile || '+1-555-0100',
+        parentMobile: c.parent_mobile,
+        currentBalance: 0,
+        status: 'ACTIVE'
+      }));
+    }
+    return activeStudents.filter(s => {
+      if (s.status !== 'ACTIVE') return false;
+      if (audienceType === 'ALL_STUDENTS') return true;
+      if (audienceType === 'GRADE') return selectedGrades.includes(s.grade);
+      return true;
+    });
+  })();
 
   const totalBatchValue = targetedStudents.length * Number(baseAmount || 0);
 
@@ -1147,15 +1243,22 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     <label>
                       Target Audience Mode
                     </label>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       {[
                         { id: 'GRADE', label: 'By Grade Level' },
-                        { id: 'ALL_STUDENTS', label: 'Entire School' },
-                        { id: 'ATHLETIC_ROSTER', label: 'Athletic / Activity Roster' }
+                        { id: 'ALL_STUDENTS', label: 'Entire School Roster' },
+                        { id: 'BLACKBAUD_API', label: 'Auto-Fetch Blackbaud Candidates/Students' },
+                        { id: 'CSV_UPLOAD', label: 'Upload Student CSV Roster' }
                       ].map(mode => (
                         <button
                           key={mode.id}
-                          onClick={() => setAudienceType(mode.id)}
+                          type="button"
+                          onClick={() => {
+                            setAudienceType(mode.id);
+                            if (mode.id === 'BLACKBAUD_API' && candidateStudents.length === 0) {
+                              handleFetchBlackbaudCandidates();
+                            }
+                          }}
                           className={audienceType === mode.id ? 'sky-btn-primary' : 'sky-btn-default'}
                           style={{ fontSize: '0.8rem' }}
                         >
@@ -1165,18 +1268,20 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                     </div>
                   </div>
 
+                  {/* Mode 1: Grade Selection */}
                   {audienceType === 'GRADE' && (
                     <div>
                       <label>
                         Select Grades
                       </label>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-                        {['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'].map(grade => {
+                        {['Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'].map(grade => {
                           const isSelected = selectedGrades.includes(grade);
-                          const count = students.filter(s => s.grade === grade).length;
+                          const count = activeStudents.filter(s => s.grade === grade).length;
                           return (
                             <button
                               key={grade}
+                              type="button"
                               onClick={() => handleGradeToggle(grade)}
                               style={{
                                 padding: '0.4rem 0.75rem',
@@ -1197,6 +1302,142 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                           );
                         })}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Mode 2: Blackbaud Candidates & Students API (afe-edems) */}
+                  {audienceType === 'BLACKBAUD_API' && (
+                    <div style={{
+                      padding: '1rem',
+                      background: 'var(--bg-surface-subtle)',
+                      border: '1px solid var(--border-strong)',
+                      borderRadius: 'var(--radius-sm)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem'
+                    }}>
+                      <div className="flex-between" style={{ alignItems: 'center' }}>
+                        <div>
+                          <strong style={{ color: 'var(--text-heading)', fontSize: '0.85rem' }}>
+                            Blackbaud Education Management Candidates API Sync
+                          </strong>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Endpoint: <code>GET /afe-edems/v1/candidates</code> • Fetches student profiles & parent contacts.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="sky-btn-default"
+                          onClick={handleFetchBlackbaudCandidates}
+                          disabled={isFetchingCandidates}
+                          style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}
+                        >
+                          {isFetchingCandidates ? 'Syncing...' : '🔄 Refresh API Roster'}
+                        </button>
+                      </div>
+
+                      <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                        <table className="sky-table" style={{ fontSize: '0.75rem' }}>
+                          <thead>
+                            <tr>
+                              <th>Candidate/Student ID</th>
+                              <th>Name</th>
+                              <th>Email & Phone</th>
+                              <th>Gender</th>
+                              <th>Grade & School</th>
+                              <th>Parent Contact</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(candidateStudents.length > 0 ? candidateStudents : activeStudents).map((c: any) => (
+                              <tr key={c.candidate_id || c.studentId}>
+                                <td><code>{c.candidate_id || c.studentId}</code></td>
+                                <td><strong>{c.studentName || `${c.first_name} ${c.last_name}`}</strong></td>
+                                <td>{c.email || c.studentEmail}<br /><span style={{ color: 'var(--text-muted)' }}>{c.phone || c.studentMobile}</span></td>
+                                <td><span className="badge badge-neutral">{c.gender}</span></td>
+                                <td>{c.grade_level || c.grade} ({c.school_name || c.school})</td>
+                                <td>{c.parents?.[0]?.first_name ? `${c.parents[0].first_name} ${c.parents[0].last_name}` : c.parentName}<br /><span style={{ color: 'var(--text-muted)' }}>{c.parents?.[0]?.email || c.parentEmail}</span></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mode 3: CSV Upload */}
+                  {audienceType === 'CSV_UPLOAD' && (
+                    <div style={{
+                      padding: '1.25rem',
+                      background: 'var(--bg-surface-subtle)',
+                      border: '1px dashed var(--sky-color-primary)',
+                      borderRadius: 'var(--radius-sm)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.85rem'
+                    }}>
+                      <div className="flex-between" style={{ alignItems: 'flex-start' }}>
+                        <div>
+                          <strong style={{ color: 'var(--text-heading)', fontSize: '0.875rem' }}>
+                            Upload Student & Parent Roster CSV
+                          </strong>
+                          <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                            Upload a spreadsheet mapping students, institutional emails, phones, grades, schools, parent names, and family IDs.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="sky-btn-default"
+                          onClick={handleDownloadCsvTemplate}
+                          style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem', whiteSpace: 'nowrap' }}
+                        >
+                          📥 Download CSV Template
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <input
+                          type="file"
+                          accept=".csv"
+                          onChange={handleCsvFileUpload}
+                          style={{ fontSize: '0.8rem', background: '#ffffff' }}
+                        />
+                      </div>
+
+                      {csvUploadStatus && (
+                        <div style={{ padding: '0.5rem 0.75rem', background: 'var(--sky-color-primary-light)', borderRadius: 'var(--radius-sm)', fontSize: '0.775rem', color: 'var(--sky-color-primary)', fontWeight: 600 }}>
+                          ✓ {csvUploadStatus} ({csvUploadedStudents.length} students ready for fee assignment)
+                        </div>
+                      )}
+
+                      {csvUploadedStudents.length > 0 && (
+                        <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                          <table className="sky-table" style={{ fontSize: '0.75rem' }}>
+                            <thead>
+                              <tr>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Email & Phone</th>
+                                <th>Grade</th>
+                                <th>Parent Name</th>
+                                <th>Parent Email & Phone</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {csvUploadedStudents.map((row, i) => (
+                                <tr key={i}>
+                                  <td><code>{row.student_id}</code></td>
+                                  <td><strong>{row.student_name}</strong></td>
+                                  <td>{row.student_email}<br /><span style={{ color: 'var(--text-muted)' }}>{row.student_mobile}</span></td>
+                                  <td>{row.grade}</td>
+                                  <td>{row.parent_name}</td>
+                                  <td>{row.parent_email}<br /><span style={{ color: 'var(--text-muted)' }}>{row.parent_mobile}</span></td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                     </div>
                   )}
 

@@ -135,3 +135,42 @@ export interface BlackbaudCheckoutTransactionResponse {
   subledgerJournalEntryId: string;
   paidAt: string;
 }
+
+/**
+ * Blackbaud Education Management API (afe-edems) Candidate/Student Model
+ * Ref: https://developer.sky.blackbaud.com/api#api=afe-edems&operation=V1CandidatesByCandidate_idGet
+ */
+export interface BlackbaudCandidateStudent {
+  candidate_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  gender: string;
+  grade_level: string;
+  school_name: string;
+  parents: Array<{
+    parent_id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    relationship: string;
+  }>;
+}
+
+export interface StudentCsvRow {
+  student_id: string;
+  student_name: string;
+  student_email?: string;
+  student_mobile?: string;
+  gender?: string;
+  grade: string;
+  school?: string;
+  parent_name: string;
+  parent_email: string;
+  parent_mobile?: string;
+  family_id?: string;
+  homeroom?: string;
+}
+

@@ -6,11 +6,13 @@ import {
   Palette,
   BookOpen,
   Grid,
-  ChevronDown
+  ChevronDown,
+  Globe,
+  CreditCard
 } from 'lucide-react';
 import { BlackbaudContext } from '../types/index.js';
 
-export type ActiveTab = 'fees' | 'ledger' | 'guide';
+export type ActiveTab = 'fees' | 'ledger' | 'quickpay' | 'school_site' | 'guide';
 
 interface NavigationProps {
   activeTab: ActiveTab;
@@ -234,6 +236,36 @@ export const Navigation: React.FC<NavigationProps> = ({
                   <button
                     onClick={() => {
                       setIsSettingsOpen(false);
+                      onTabChange('school_site');
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      fontSize: '0.825rem',
+                      fontWeight: 600,
+                      color: 'var(--text-heading)',
+                      background: 'transparent',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-surface-subtle)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Globe size={15} color="var(--sky-color-primary)" />
+                    <div>
+                      <div>School Website Preview</div>
+                      <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                        Oakridge Academy portal & redirection simulation
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsSettingsOpen(false);
                       onTabChange('guide');
                     }}
                     style={{
@@ -326,6 +358,48 @@ export const Navigation: React.FC<NavigationProps> = ({
             >
               <Users size={16} color={activeTab === 'ledger' ? 'var(--sky-color-primary)' : 'var(--text-muted)'} />
               Student Account Subledgers
+            </button>
+
+            <button
+              onClick={() => onTabChange('quickpay')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.85rem 0.25rem',
+                fontWeight: activeTab === 'quickpay' ? 700 : 500,
+                fontSize: '0.9rem',
+                background: 'transparent',
+                color: activeTab === 'quickpay' ? 'var(--sky-color-primary)' : 'var(--text-body)',
+                borderBottom: activeTab === 'quickpay' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                borderRadius: 0,
+                whiteSpace: 'nowrap',
+                cursor: 'pointer'
+              }}
+            >
+              <CreditCard size={16} color={activeTab === 'quickpay' ? 'var(--sky-color-primary)' : 'var(--text-muted)'} />
+              Parent Quick-Pay Portal
+            </button>
+
+            <button
+              onClick={() => onTabChange('school_site')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.85rem 0.25rem',
+                fontWeight: activeTab === 'school_site' ? 700 : 500,
+                fontSize: '0.9rem',
+                background: 'transparent',
+                color: activeTab === 'school_site' ? 'var(--sky-color-primary)' : 'var(--text-body)',
+                borderBottom: activeTab === 'school_site' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                borderRadius: 0,
+                whiteSpace: 'nowrap',
+                cursor: 'pointer'
+              }}
+            >
+              <Globe size={16} color={activeTab === 'school_site' ? 'var(--sky-color-primary)' : 'var(--text-muted)'} />
+              Dummy School Website
             </button>
 
             {activeTab === 'guide' && (

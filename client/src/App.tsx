@@ -7,6 +7,7 @@ import { StudentLedgerView } from './components/StudentLedgerView.js';
 import { BrandingSettingsModal } from './components/BrandingSettingsModal.js';
 import { SharePaymentLinkModal } from './components/SharePaymentLinkModal.js';
 import { UserGuideView } from './components/UserGuideView.js';
+import { DummySchoolWebsite } from './components/DummySchoolWebsite.js';
 import { api } from './services/api.js';
 import { 
   BlackbaudContext, 
@@ -250,6 +251,25 @@ export const App: React.FC = () => {
                 onOpenCheckout={handleOpenCheckout}
                 branding={context?.environment.branding}
                 onPaymentCompleted={() => loadData()}
+              />
+            )}
+
+            {activeTab === 'quickpay' && (
+              <ParentQuickPayPortal
+                branding={context?.environment.branding}
+                onPaymentCompleted={() => loadData()}
+                initialQuery={parentInitialQuery}
+              />
+            )}
+
+            {activeTab === 'school_site' && (
+              <DummySchoolWebsite
+                branding={context?.environment.branding}
+                onNavigateToQuickPay={(query) => {
+                  setParentInitialQuery(query);
+                  setActiveTab('quickpay');
+                }}
+                onNavigateToAdmin={() => setActiveTab('fees')}
               />
             )}
 

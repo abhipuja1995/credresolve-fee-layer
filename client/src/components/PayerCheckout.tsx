@@ -368,10 +368,66 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 </div>
               </div>
 
+              {/* Multi-Channel Post-Payment Dispatch Bar */}
+              <div style={{
+                background: 'var(--bg-surface-subtle)',
+                border: '1px solid var(--border-strong)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '1rem 1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem'
+              }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                  Dispatch Official Receipt to Parent & Student Channels:
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="sky-btn-default"
+                    onClick={async () => {
+                      const msg = `*Official Payment Receipt - ${schoolName}*\nReceipt: ${successReceipt.receiptNumber}\nStudent: ${charge.studentName} (${charge.studentId})\nFee: ${charge.feeTitle}\nAmount Paid: $${Number(successReceipt.amount).toFixed(2)}\nStatus: Reconciled & Posted to General Ledger\nVerify: ${window.location.origin}/?chargeId=${charge.id}`;
+                      const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(charge.parentPhone || '')}&text=${encodeURIComponent(msg)}`;
+                      window.open(whatsappUrl, '_blank');
+                      await api.sendReceiptNotification({
+                        channel: 'whatsapp',
+                        recipient: charge.parentPhone || '+1-555-0101',
+                        receiptNumber: successReceipt.receiptNumber,
+                        studentName: charge.studentName,
+                        amount: Number(successReceipt.amount),
+                        feeTitle: charge.feeTitle
+                      });
+                    }}
+                    style={{ fontSize: '0.75rem', padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#16a34a' }}
+                  >
+                    💬 Send via WhatsApp
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sky-btn-default"
+                    onClick={async () => {
+                      const res = await api.sendReceiptNotification({
+                        channel: 'email',
+                        recipient: charge.parentEmail || 'parent@example.com',
+                        receiptNumber: successReceipt.receiptNumber,
+                        studentName: charge.studentName,
+                        amount: Number(successReceipt.amount),
+                        feeTitle: charge.feeTitle
+                      });
+                      alert(`✓ ${res.message}`);
+                    }}
+                    style={{ fontSize: '0.75rem', padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--sky-color-primary)' }}
+                  >
+                    ✉️ Send via Email
+                  </button>
+                </div>
+              </div>
+
               {/* Actions */}
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button className="sky-btn-default" onClick={handlePrint} style={{ flex: 1 }}>
-                  <Printer size={15} /> Print Receipt
+                  <Printer size={15} /> Print / Save PDF
                 </button>
                 <button className="sky-btn-primary" onClick={onBackToLedger} style={{ flex: 1 }}>
                   Done & Return to Ledger

@@ -167,6 +167,27 @@ apiRouter.get('/students', (req, res) => {
   res.json(dataStore.students);
 });
 
+apiRouter.get('/blackbaud/candidates/students', (req, res) => {
+  res.json(dataStore.getCandidateStudents());
+});
+
+apiRouter.post('/students/import-csv', (req, res) => {
+  try {
+    const { rows } = req.body;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(400).json({ error: 'No student CSV rows provided for ingestion.' });
+    }
+    const result = dataStore.importStudentsCsv(rows);
+    res.json({
+      success: true,
+      message: `Successfully processed CSV roster: ${result.importedCount} created, ${result.updatedCount} updated.`,
+      ...result
+    });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 apiRouter.post('/students/lookup', (req, res) => {
   const { query } = req.body;
   if (!query || typeof query !== 'string') {
@@ -181,6 +202,21 @@ apiRouter.post('/students/lookup', (req, res) => {
   }
 
   res.json(result);
+});
+
+apiRouter.post('/receipts/send-notification', (req, res) => {
+  const { channel, recipient, receiptNumber, studentName, amount, feeTitle } = req.body;
+  if (!channel || !recipient || !receiptNumber) {
+    return res.status(400).json({ error: 'Missing required notification parameters.' });
+  }
+
+  res.json({
+    success: true,
+    channel,
+    recipient,
+    message: `Payment receipt #${receiptNumber} ($${amount}) for ${studentName} successfully triggered via ${channel.toUpperCase()}.`,
+    dispatchedAt: new Date().toISOString()
+  });
 });
 
 apiRouter.get('/charges', (req, res) => {
