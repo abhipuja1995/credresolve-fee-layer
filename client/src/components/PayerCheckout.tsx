@@ -796,8 +796,8 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
               >
                 <Lock size={16} />
                 {isProcessing 
-                  ? 'Authorizing with Blackbaud Merchant Services...' 
-                  : `Pay $${totalAmountToCharge.toFixed(2)} via Blackbaud Checkout`}
+                  ? 'Authorizing Payment...' 
+                  : `Pay $${totalAmountToCharge.toFixed(2)}`}
               </button>
 
               <div style={{ textAlign: 'center', fontSize: '0.725rem', color: 'var(--text-muted)' }}>

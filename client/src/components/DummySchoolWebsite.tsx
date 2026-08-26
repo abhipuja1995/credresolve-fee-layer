@@ -29,7 +29,11 @@ import {
   HeartHandshake,
   Clock,
   Compass,
-  Check
+  Check,
+  Receipt,
+  Printer,
+  Download,
+  FileText
 } from 'lucide-react';
 import { SchoolBranding, StudentLookupResult } from '../types/index.js';
 import { api } from '../services/api.js';
@@ -55,6 +59,7 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
   const [isParentLoading, setIsParentLoading] = useState(false);
   const [parentLoginError, setParentLoginError] = useState<string | null>(null);
   const [loggedInParentResult, setLoggedInParentResult] = useState<StudentLookupResult | null>(null);
+  const [viewingReceiptForChild, setViewingReceiptForChild] = useState<any | null>(null);
 
   const schoolName = branding?.schoolName || 'Oakridge International Preparatory Academy';
   const logoUrl = branding?.logoUrl;
@@ -454,26 +459,54 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                     </div>
 
                     <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: '0.65rem' }}>
-                      <button
-                        onClick={() => onNavigateToQuickPay(child.studentId)}
-                        style={{
-                          background: 'var(--sky-color-primary)',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '0.6rem 1.15rem',
-                          fontSize: '0.825rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.45rem'
-                        }}
-                      >
-                        <CreditCard size={14} />
-                        <span>Pay {child.studentName.split(' ')[0]}'s Balance (${childDue.toFixed(2)})</span>
-                        <ChevronRight size={14} />
-                      </button>
+                      {childDue > 0 ? (
+                        <button
+                          onClick={() => onNavigateToQuickPay(child.studentId)}
+                          style={{
+                            background: 'var(--sky-color-primary)',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '0.6rem 1.15rem',
+                            fontSize: '0.825rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.45rem'
+                          }}
+                        >
+                          <CreditCard size={14} />
+                          <span>Pay {child.studentName.split(' ')[0]}'s Balance (${childDue.toFixed(2)})</span>
+                          <ChevronRight size={14} />
+                        </button>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.775rem', color: '#16a34a', fontWeight: 700 }}>
+                            <CheckCircle size={15} />
+                            <span>Account Settled • Ref: CONF-REC-{child.studentId.replace('BB-STU-', '')}</span>
+                          </div>
+                          <button
+                            onClick={() => setViewingReceiptForChild(child)}
+                            style={{
+                              background: '#ffffff',
+                              border: '1px solid #cbd5e1',
+                              borderRadius: '6px',
+                              padding: '0.45rem 0.85rem',
+                              fontSize: '0.775rem',
+                              fontWeight: 700,
+                              color: '#0f172a',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.35rem'
+                            }}
+                          >
+                            <Receipt size={14} color="#0284c7" />
+                            <span>Download Receipt</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -483,349 +516,354 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
         </section>
       )}
 
-      {/* 5. HERO SECTION: ACADEMIC EXCELLENCE & FRICTIONLESS COMMERCE */}
-      <section style={{
-        background: 'linear-gradient(135deg, #001f33 0%, #00385c 50%, #006699 100%)',
-        color: '#ffffff',
-        padding: '4.5rem 1.5rem',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          maxWidth: '1320px',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: '1.2fr 0.8fr',
-          gap: '3rem',
-          alignItems: 'center'
-        }}>
-          {/* Left Narrative */}
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255, 255, 255, 0.2)', padding: '0.35rem 0.85rem', borderRadius: '30px', fontSize: '0.775rem', fontWeight: 700, letterSpacing: '0.04em', color: '#7dd3fc', marginBottom: '1.25rem' }}>
-              <Sparkles size={14} />
-              <span>ACADEMIC YEAR 2026–2027 ENROLLMENT &amp; ACTIVITIES</span>
-            </div>
-
-            <h2 style={{ fontSize: '2.75rem', fontWeight: 800, lineHeight: 1.15, margin: '0 0 1.25rem 0', letterSpacing: '-0.02em' }}>
-              Where Curiosity Meets Character.
-            </h2>
-
-            <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.65, maxWidth: '600px', margin: '0 0 2rem 0' }}>
-              Welcome to the official digital portal of {schoolName}. We cultivate critical inquiry, athletic dedication, and creative artistry while providing parents with a modern, transparent fee and excursion management experience.
-            </p>
-
-            {/* Campus Impact Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginTop: '2rem', paddingTop: '1.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)', maxWidth: '400px' }}>
-              <div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#38bdf8' }}>100%</div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.1rem' }}>University Placement</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#38bdf8' }}>14+</div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.1rem' }}>AP &amp; IB STEM Courses</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Action Station: Instant Fee Lookup & Guest Pay */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '16px',
-            padding: '2.25rem',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
-            color: '#0f172a'
+      {/* PUBLIC ACADEMY HOMEPAGE SECTIONS - Hidden when Parent is Logged In */}
+      {!loggedInParentResult && (
+        <>
+          {/* 5. HERO SECTION: ACADEMIC EXCELLENCE & FRICTIONLESS COMMERCE */}
+          <section style={{
+            background: 'linear-gradient(135deg, #001f33 0%, #00385c 50%, #006699 100%)',
+            color: '#ffffff',
+            padding: '4.5rem 1.5rem',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--sky-color-primary)', fontWeight: 800, fontSize: '0.825rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              <Sparkles size={16} />
-              <span>Self-Service Payment Station</span>
-            </div>
-
-            <h3 style={{ fontSize: '1.45rem', fontWeight: 800, margin: '0.4rem 0 0.5rem 0', color: '#002238' }}>
-              Pay School Fees in 1-Click
-            </h3>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, marginBottom: '1.5rem' }}>
-              Lookup student obligations, sign excursion waivers, and settle dues without logging in.
-            </p>
-
-            <form onSubmit={handleQuickPaySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{
+              maxWidth: '1320px',
+              margin: '0 auto',
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 0.8fr',
+              gap: '3rem',
+              alignItems: 'center'
+            }}>
+              {/* Left Narrative */}
               <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
-                  Student Roll Number, Parent Email, or Mobile
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="text"
-                    placeholder="e.g. BB-STU-101 or 555-0101"
-                    value={quickStudentLookup}
-                    onChange={e => setQuickStudentLookup(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 0.85rem 0.75rem 2.4rem',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      fontSize: '0.9rem',
-                      background: '#ffffff'
-                    }}
-                  />
-                  <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255, 255, 255, 0.2)', padding: '0.35rem 0.85rem', borderRadius: '30px', fontSize: '0.775rem', fontWeight: 700, letterSpacing: '0.04em', color: '#7dd3fc', marginBottom: '1.25rem' }}>
+                  <Sparkles size={14} />
+                  <span>ACADEMIC YEAR 2026–2027 ENROLLMENT &amp; ACTIVITIES</span>
+                </div>
+
+                <h2 style={{ fontSize: '2.75rem', fontWeight: 800, lineHeight: 1.15, margin: '0 0 1.25rem 0', letterSpacing: '-0.02em' }}>
+                  Where Curiosity Meets Character.
+                </h2>
+
+                <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.65, maxWidth: '600px', margin: '0 0 2rem 0' }}>
+                  Welcome to the official digital portal of {schoolName}. We cultivate critical inquiry, athletic dedication, and creative artistry while providing parents with a modern, transparent fee and excursion management experience.
+                </p>
+
+                {/* Campus Impact Metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginTop: '2rem', paddingTop: '1.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)', maxWidth: '400px' }}>
+                  <div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#38bdf8' }}>100%</div>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.1rem' }}>University Placement</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#38bdf8' }}>14+</div>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.1rem' }}>AP &amp; IB STEM Courses</div>
+                  </div>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                style={{
-                  background: 'var(--sky-color-primary)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '0.85rem',
-                  fontWeight: 800,
-                  fontSize: '0.95rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  boxShadow: '0 2px 8px rgba(0, 126, 168, 0.3)'
-                }}
-              >
-                <span>Find &amp; Pay Dues</span>
-                <ArrowRight size={16} />
-              </button>
+              {/* Right Action Station: Instant Fee Lookup & Guest Pay */}
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                padding: '2.25rem',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                color: '#0f172a'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--sky-color-primary)', fontWeight: 800, fontSize: '0.825rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <Sparkles size={16} />
+                  <span>Self-Service Payment Station</span>
+                </div>
 
-              {/* Quick Persona Suggestions */}
-              <div style={{ paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
-                <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>
-                  Sample Student IDs:
-                </span>
-                <div style={{ display: 'flex', gap: '0.45rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
-                  {['BB-STU-101', 'BB-STU-111', 'BB-STU-112', '555-0101'].map(val => (
+                <h3 style={{ fontSize: '1.45rem', fontWeight: 800, margin: '0.4rem 0 0.5rem 0', color: '#002238' }}>
+                  Pay School Fees in 1-Click
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+                  Lookup student obligations, sign excursion waivers, and settle dues without logging in.
+                </p>
+
+                <form onSubmit={handleQuickPaySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                      Student Roll Number, Parent Email, or Mobile
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        placeholder="e.g. BB-STU-101 or 555-0101"
+                        value={quickStudentLookup}
+                        onChange={e => setQuickStudentLookup(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem 0.85rem 0.75rem 2.4rem',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '8px',
+                          fontSize: '0.9rem',
+                          background: '#ffffff'
+                        }}
+                      />
+                      <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    style={{
+                      background: 'var(--sky-color-primary)',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '0.85rem',
+                      fontWeight: 800,
+                      fontSize: '0.95rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      boxShadow: '0 2px 8px rgba(0, 126, 168, 0.3)'
+                    }}
+                  >
+                    <span>Find &amp; Pay Dues</span>
+                    <ArrowRight size={16} />
+                  </button>
+
+                  {/* Quick Persona Suggestions */}
+                  <div style={{ paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>
+                      Sample Student IDs:
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.45rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
+                      {['BB-STU-101', 'BB-STU-111', 'BB-STU-112', '555-0101'].map(val => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => {
+                            setQuickStudentLookup(val);
+                            onNavigateToQuickPay(val);
+                          }}
+                          style={{
+                            background: '#f1f5f9',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '4px',
+                            padding: '0.2rem 0.5rem',
+                            fontSize: '0.725rem',
+                            color: '#475569',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {val}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '0.725rem', color: '#64748b', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', marginTop: '0.25rem' }}>
+                    <ShieldCheck size={14} color="#16a34a" />
+                    <span>PCI-DSS v4.0 Level 1 Encrypted Payment Flow</span>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          {/* 6. BENTO GRID: PARENT SERVICES & COMMERCE ADVANTAGES */}
+          <section style={{ maxWidth: '1320px', margin: '0 auto', padding: '4.5rem 1.5rem', width: '100%' }}>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Unified Campus Payment Experience
+              </div>
+              <h2 style={{ fontSize: '2.25rem', fontWeight: 800, color: '#002238', margin: '0.35rem 0' }}>
+                Designed for Modern Families &amp; EdTech Leaders
+              </h2>
+              <p style={{ color: '#64748b', fontSize: '0.95rem', maxWidth: '640px', margin: '0 auto' }}>
+                Delivering a unified portal for tuition, activities, athletic gear, and field trips.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+              {/* Bento Card 1 */}
+              <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.4rem 0' }}>
+                    Multi-Child Family Hub
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                    Manage all your children across Lower, Middle, and Upper School from a single parent view with combined family balance checkout.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bento Card 2 */}
+              <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileCheck size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.4rem 0' }}>
+                    Digital Legal Waivers
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                    Sign excursion liability consents, enter emergency phone numbers, and specify dietary requirements in one flow prior to payment.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bento Card 3 */}
+              <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <HeartHandshake size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.4rem 0' }}>
+                    Third-Party Sponsor Mode
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                    Allow grandparents, booster clubs, or scholarship sponsors to pay directly towards a student’s account without requiring parent logins.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bento Card 4 */}
+              <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: '#f3e8ff', color: '#9333ea', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Share2 size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.4rem 0' }}>
+                    WhatsApp &amp; Email Receipts
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                    Automatic multi-channel notification dispatch with formatted WhatsApp receipts and official PDF confirmation vouchers.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 7. CURRENT CAMPUS INITIATIVES & EXCURSION BILLING SCHEDULE */}
+          <section style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', padding: '4.5rem 1.5rem' }}>
+            <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
+              <div className="flex-between" style={{ alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Active Registration Schedules
+                  </div>
+                  <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#002238', margin: '0.25rem 0 0 0' }}>
+                    Upcoming Campus Excursions &amp; Lab Fees
+                  </h2>
+                </div>
+
+                {/* Division Filter Pills */}
+                <div style={{ display: 'flex', gap: '0.4rem', background: '#f1f5f9', padding: '0.35rem', borderRadius: '8px' }}>
+                  {[
+                    { id: 'ALL', label: 'All Divisions' },
+                    { id: 'LOWER', label: 'Lower School (K-5)' },
+                    { id: 'MIDDLE', label: 'Middle School (6-8)' },
+                    { id: 'UPPER', label: 'Upper School (9-12)' }
+                  ].map(tab => (
                     <button
-                      key={val}
+                      key={tab.id}
                       type="button"
-                      onClick={() => {
-                        setQuickStudentLookup(val);
-                        onNavigateToQuickPay(val);
-                      }}
+                      onClick={() => setSelectedDivisionFilter(tab.id as any)}
                       style={{
-                        background: '#f1f5f9',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '4px',
-                        padding: '0.2rem 0.5rem',
-                        fontSize: '0.725rem',
-                        color: '#475569',
-                        cursor: 'pointer'
+                        background: selectedDivisionFilter === tab.id ? '#ffffff' : 'transparent',
+                        color: selectedDivisionFilter === tab.id ? '#002238' : '#64748b',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '0.4rem 0.85rem',
+                        fontSize: '0.8rem',
+                        fontWeight: selectedDivisionFilter === tab.id ? 700 : 500,
+                        cursor: 'pointer',
+                        boxShadow: selectedDivisionFilter === tab.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
                       }}
                     >
-                      {val}
+                      {tab.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div style={{ fontSize: '0.725rem', color: '#64748b', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', marginTop: '0.25rem' }}>
-                <ShieldCheck size={14} color="#16a34a" />
-                <span>PCI-DSS v4.0 Level 1 Encrypted via Blackbaud BBMS</span>
-              </div>
-            </form>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. BENTO GRID: PARENT SERVICES & COMMERCE ADVANTAGES */}
-      <section style={{ maxWidth: '1320px', margin: '0 auto', padding: '4.5rem 1.5rem', width: '100%' }}>
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Unified Campus Payment Experience
-          </div>
-          <h2 style={{ fontSize: '2.25rem', fontWeight: 800, color: '#002238', margin: '0.35rem 0' }}>
-            Designed for Modern Families &amp; EdTech Leaders
-          </h2>
-          <p style={{ color: '#64748b', fontSize: '0.95rem', maxWidth: '640px', margin: '0 auto' }}>
-            CredResolve wraps Blackbaud SKY API to deliver a unified portal for tuition, activities, athletic gear, and field trips.
-          </p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          {/* Bento Card 1 */}
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)' }}>
-            <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={22} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.4rem 0' }}>
-                Multi-Child Family Hub
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
-                Manage all your children across Lower, Middle, and Upper School from a single parent view with combined family balance checkout.
-              </p>
-            </div>
-          </div>
-
-          {/* Bento Card 2 */}
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)' }}>
-            <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FileCheck size={22} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.4rem 0' }}>
-                Digital Legal Waivers
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
-                Sign excursion liability consents, enter emergency phone numbers, and specify dietary requirements in one flow prior to payment.
-              </p>
-            </div>
-          </div>
-
-          {/* Bento Card 3 */}
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)' }}>
-            <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <HeartHandshake size={22} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.4rem 0' }}>
-                Third-Party Sponsor Mode
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
-                Allow grandparents, booster clubs, or scholarship sponsors to pay directly towards a student’s account without requiring parent logins.
-              </p>
-            </div>
-          </div>
-
-          {/* Bento Card 4 */}
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)' }}>
-            <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: '#f3e8ff', color: '#9333ea', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Share2 size={22} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.4rem 0' }}>
-                WhatsApp &amp; Email Receipts
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
-                Automatic multi-channel notification dispatch with formatted WhatsApp receipts, PDF vouchers, and Blackbaud general ledger entries.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. CURRENT CAMPUS INITIATIVES & EXCURSION BILLING SCHEDULE */}
-      <section style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', padding: '4.5rem 1.5rem' }}>
-        <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
-          <div className="flex-between" style={{ alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '2.5rem' }}>
-            <div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Active Registration Schedules
-              </div>
-              <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#002238', margin: '0.25rem 0 0 0' }}>
-                Upcoming Campus Excursions &amp; Lab Fees
-              </h2>
-            </div>
-
-            {/* Division Filter Pills */}
-            <div style={{ display: 'flex', gap: '0.4rem', background: '#f1f5f9', padding: '0.35rem', borderRadius: '8px' }}>
-              {[
-                { id: 'ALL', label: 'All Divisions' },
-                { id: 'LOWER', label: 'Lower School (K-5)' },
-                { id: 'MIDDLE', label: 'Middle School (6-8)' },
-                { id: 'UPPER', label: 'Upper School (9-12)' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setSelectedDivisionFilter(tab.id as any)}
-                  style={{
-                    background: selectedDivisionFilter === tab.id ? '#ffffff' : 'transparent',
-                    color: selectedDivisionFilter === tab.id ? '#002238' : '#64748b',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '0.4rem 0.85rem',
-                    fontSize: '0.8rem',
-                    fontWeight: selectedDivisionFilter === tab.id ? 700 : 500,
-                    cursor: 'pointer',
-                    boxShadow: selectedDivisionFilter === tab.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {filteredPrograms.map(program => (
-              <div
-                key={program.id}
-                style={{
-                  background: '#ffffff',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  padding: '1.75rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                  transition: 'transform 0.15s ease, box-shadow 0.15s ease'
-                }}
-              >
-                <div>
-                  <div className="flex-between" style={{ marginBottom: '0.65rem' }}>
-                    <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>{program.category}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#0284c7', fontSize: '0.75rem', fontWeight: 700 }}>
-                      <Calendar size={13} />
-                      <span>Due {program.dueDate}</span>
-                    </div>
-                  </div>
-
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.5rem 0' }}>
-                    {program.title}
-                  </h3>
-
-                  <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, marginBottom: '1.25rem' }}>
-                    {program.description}
-                  </p>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1.25rem' }}>
-                    {program.features.map((feat, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.775rem', color: '#334155' }}>
-                        <Check size={13} color="#16a34a" />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex-between" style={{ alignItems: 'center', paddingTop: '1.25rem', borderTop: '1px solid #f1f5f9' }}>
-                  <div>
-                    <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Standard Amount</span>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#002238' }}>${program.amount.toFixed(2)}</div>
-                  </div>
-
-                  <button
-                    onClick={() => onNavigateToQuickPay(program.studentId)}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                {filteredPrograms.map(program => (
+                  <div
+                    key={program.id}
                     style={{
-                      background: 'var(--sky-color-primary)',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '0.55rem 1.15rem',
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
+                      background: '#ffffff',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      padding: '1.75rem',
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.35rem'
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease'
                     }}
                   >
-                    <span>Register &amp; Pay</span>
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
+                    <div>
+                      <div className="flex-between" style={{ marginBottom: '0.65rem' }}>
+                        <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>{program.category}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#0284c7', fontSize: '0.75rem', fontWeight: 700 }}>
+                          <Calendar size={13} />
+                          <span>Due {program.dueDate}</span>
+                        </div>
+                      </div>
+
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#002238', margin: '0 0 0.5rem 0' }}>
+                        {program.title}
+                      </h3>
+
+                      <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+                        {program.description}
+                      </p>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1.25rem' }}>
+                        {program.features.map((feat, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.775rem', color: '#334155' }}>
+                            <Check size={13} color="#16a34a" />
+                            <span>{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex-between" style={{ alignItems: 'center', paddingTop: '1.25rem', borderTop: '1px solid #f1f5f9' }}>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 800 }}>Standard Amount</span>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#002238' }}>${program.amount.toFixed(2)}</div>
+                      </div>
+
+                      <button
+                        onClick={() => onNavigateToQuickPay(program.studentId)}
+                        style={{
+                          background: 'var(--sky-color-primary)',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '0.55rem 1.15rem',
+                          fontSize: '0.85rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
+                        }}
+                      >
+                        <span>Register &amp; Pay</span>
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </div>
+          </section>
+        </>
+      )}
 
       {/* 8. EMBEDDED WIDGET SIMULATION MODAL */}
       {activeModalWidget && (
@@ -1048,6 +1086,130 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* OFFICIAL RECEIPT MODAL FOR SETTLED STUDENT ACCOUNTS */}
+      {viewingReceiptForChild && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 34, 56, 0.8)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 110,
+          padding: '1.5rem'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '580px',
+            padding: '2rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.25rem'
+          }}>
+            {/* Modal Header */}
+            <div className="flex-between" style={{ alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Receipt size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#002238', margin: 0 }}>
+                    Official Payment Voucher &amp; Receipt
+                  </h3>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    {schoolName} • Bursar Office Reconciled
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingReceiptForChild(null)}
+                style={{ background: 'none', border: 'none', fontSize: '1.35rem', cursor: 'pointer', color: '#64748b' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Receipt Summary Card */}
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem'
+            }}>
+              <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                <span style={{ color: '#64748b' }}>Student Name</span>
+                <strong style={{ color: '#0f172a' }}>{viewingReceiptForChild.studentName} ({viewingReceiptForChild.studentId})</strong>
+              </div>
+              <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                <span style={{ color: '#64748b' }}>Grade &amp; Division</span>
+                <strong style={{ color: '#0f172a' }}>{viewingReceiptForChild.grade} • {viewingReceiptForChild.school || 'Oakridge Prep'}</strong>
+              </div>
+              <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                <span style={{ color: '#64748b' }}>Confirmation Reference</span>
+                <code style={{ color: '#0284c7', fontWeight: 700 }}>CONF-REC-{viewingReceiptForChild.studentId.replace('BB-STU-', '')}894</code>
+              </div>
+              <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                <span style={{ color: '#64748b' }}>Payment Status</span>
+                <span className="badge badge-success">
+                  <Check size={11} /> PAID &amp; ACCOUNT SETTLED
+                </span>
+              </div>
+              <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                <span style={{ color: '#64748b' }}>Payment Channel</span>
+                <span style={{ color: '#0f172a', fontWeight: 600 }}>Apple Pay / Online BBMS</span>
+              </div>
+              <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                <span style={{ color: '#64748b' }}>General Ledger Entry</span>
+                <code style={{ color: '#16a34a', fontWeight: 700 }}>GL-JE-2026-REC</code>
+              </div>
+              <div className="flex-between" style={{ fontSize: '0.825rem' }}>
+                <span style={{ color: '#64748b' }}>Settlement Date</span>
+                <span style={{ color: '#0f172a' }}>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+              <button
+                onClick={() => window.print()}
+                className="sky-btn-default"
+                style={{ flex: 1, padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem', fontSize: '0.875rem' }}
+              >
+                <Printer size={15} />
+                <span>Print / Save PDF</span>
+              </button>
+
+              <button
+                onClick={() => setViewingReceiptForChild(null)}
+                style={{
+                  flex: 1,
+                  background: 'var(--sky-color-primary)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '0.65rem',
+                  fontWeight: 700,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
