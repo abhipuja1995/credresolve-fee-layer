@@ -445,317 +445,115 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
         </div>
       </div>
 
-      {/* SKY UX Sub-Navigation Bar */}
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-strong)',
-        borderRadius: 'var(--radius-md)',
-        padding: '0.5rem 0.75rem',
-        display: 'flex',
-        gap: '0.5rem',
-        flexWrap: 'wrap'
-      }}>
-        <button
-          onClick={() => setSubView('deployed')}
-          className={subView === 'deployed' ? 'sky-btn-primary' : 'sky-btn-default'}
-          style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
-        >
-          <Layers size={14} />
-          Active Deployed Fees ({existingFees.length})
-        </button>
-
-        <button
-          onClick={() => setSubView('categories')}
-          className={subView === 'categories' ? 'sky-btn-primary' : 'sky-btn-default'}
-          style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
-        >
-          <Tag size={14} />
-          Fee Categories (GetFeeTypes) ({activeFeeTypes.length})
-        </button>
-      </div>
-
-      {categorySuccessMsg && (
-        <div className="sky-alert sky-alert-success">
-          <CheckCircle2 size={18} />
-          <div>{categorySuccessMsg}</div>
-        </div>
-      )}
-
-      {/* VIEW 1: Deployed Fees */}
-      {subView === 'deployed' && (
-        <div>
-          <div className="flex-between" style={{ marginBottom: '1rem' }}>
-            <h3 className="sky-heading-3" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <Layers size={18} color="var(--sky-color-primary)" />
-              Active Deployed Fees ({existingFees.length})
-            </h3>
-            <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-              Total Active Student Rosters: <strong>{students.filter(s => s.status === 'ACTIVE').length}</strong>
-            </span>
+      {/* Fee Cards Grid */}
+      <div>
+        {existingFees.length === 0 ? (
+          <div className="sky-card" style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            No fees deployed yet. Click <strong>"Create Universal Fee"</strong> to deploy your first fee.
           </div>
-
-          {existingFees.length === 0 ? (
-            <div className="sky-card" style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-              No fees deployed yet. Click <strong>"Create Universal Fee"</strong> or choose a <strong>Fee Category</strong> to deploy your first fee.
-            </div>
-          ) : (
-            <div className="grid-cols-2">
-              {existingFees.map(fee => {
-                const feeType = activeFeeTypes.find(f => f.feeTypeId === fee.bbFeeTypeId);
-                return (
-                  <div key={fee.id} className="sky-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div className="sky-card-header">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                        <span className="badge badge-success">{fee.status}</span>
-                        <span className={`badge ${getCategoryBadgeClass(feeType?.category || '')}`} style={{ fontSize: '0.65rem' }}>
-                          {feeType?.category || 'FEE'}
-                        </span>
-                      </div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                        {fee.bbFeeTypeId}
-                      </span>
-                    </div>
-
-                    <div className="sky-card-content" style={{ flex: 1 }}>
-                      <h4 className="sky-heading-3">
-                        {fee.title}
-                      </h4>
-                      <p style={{ color: 'var(--text-body)', fontSize: '0.85rem', marginTop: '0.35rem', lineHeight: '1.4' }}>
-                        {fee.description}
-                      </p>
-
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', marginTop: '1rem' }}>
-                        <div style={{
-                          padding: '0.25rem 0.55rem',
-                          background: 'var(--bg-surface-subtle)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.75rem',
-                          color: 'var(--text-body)'
-                        }}>
-                          GL Account: <strong style={{ color: 'var(--text-heading)' }}>{feeType?.glAccountCode || 'GL-1010-00'}</strong>
-                        </div>
-
-                        <div style={{
-                          padding: '0.25rem 0.55rem',
-                          background: 'var(--bg-surface-subtle)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.75rem',
-                          color: 'var(--text-body)'
-                        }}>
-                          Audience: <strong style={{ color: 'var(--text-heading)' }}>
-                            {fee.audience.type === 'GRADE' ? fee.audience.grades?.join(', ') : fee.audience.type}
-                          </strong>
-                        </div>
-
-                        <div style={{
-                          padding: '0.25rem 0.55rem',
-                          background: 'var(--bg-surface-subtle)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.75rem',
-                          color: 'var(--text-body)'
-                        }}>
-                          Custom Fields: <strong style={{ color: 'var(--text-heading)' }}>{fee.customFormSchema.length}</strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{
-                      padding: '0.85rem 1.25rem',
-                      background: 'var(--bg-surface-subtle)',
-                      borderTop: '1px solid var(--border-subtle)',
-                      borderBottomLeftRadius: 'var(--radius-md)',
-                      borderBottomRightRadius: 'var(--radius-md)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      flexWrap: 'wrap',
-                      gap: '0.75rem'
-                    }}>
-                      <div>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Standard Amount</span>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>
-                          ${fee.baseAmount.toFixed(2)}
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                        <button
-                          className="sky-btn-default"
-                          onClick={() => onOpenShareModal ? onOpenShareModal(fee.id) : window.open(`${window.location.origin}/?view=quickpay`, '_blank')}
-                          style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem' }}
-                        >
-                          <Share2 size={13} />
-                          Share Link
-                        </button>
-                        <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Due Date</span>
-                          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-heading)' }}>{fee.dueDate}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* VIEW 2: Blackbaud Fee Categories Catalog (GetFeeTypes) */}
-      {subView === 'categories' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Catalog Info & Controls */}
-          <div className="sky-card" style={{ padding: '1.25rem 1.5rem' }}>
-            <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <h3 className="sky-heading-2">
-                    Fee Category Catalog (<code>GetFeeTypes</code>)
-                  </h3>
-                  <span className="badge badge-success">
-                    <ShieldCheck size={12} /> {activeFeeTypes.length} Types
-                  </span>
-                </div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                  Synchronized from Blackbaud SKY API endpoint <code>GET /fee-types</code>. Each category maps to its designated General Ledger account.
-                </p>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-                <button
-                  className="sky-btn-primary"
-                  onClick={() => {
-                    setCatErrorMsg(null);
-                    setNewCatGl(`GL-${Math.floor(1000 + Math.random() * 8999)}-${Math.floor(10 + Math.random() * 89)}`);
-                    setShowAddCategoryModal(true);
-                  }}
-                  style={{ fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
-                >
-                  <Plus size={14} />
-                  Add Category
-                </button>
-
-                {/* Search Bar */}
-                <div style={{ position: 'relative', width: '260px' }}>
-                  <input
-                    type="text"
-                    placeholder="Search categories or GL codes..."
-                    value={categorySearch}
-                    onChange={e => setCategorySearch(e.target.value)}
-                    style={{ paddingLeft: '2.2rem' }}
-                  />
-                  <Search size={14} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Category Filter Pills */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
-              {[
-                { id: 'ALL', label: 'All Categories' },
-                { id: 'TUITION', label: 'Tuition' },
-                { id: 'ACTIVITY', label: 'Activity & Excursions' },
-                { id: 'ATHLETIC', label: 'Athletics & Uniforms' },
-                { id: 'MANDATORY_FEE', label: 'Mandatory Fees' },
-                { id: 'OPTIONAL_FEE', label: 'Optional Packages' },
-                { id: 'OTHER', label: 'Other' }
-              ].map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategoryFilter(cat.id)}
-                  style={{
-                    padding: '0.3rem 0.7rem',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    background: selectedCategoryFilter === cat.id ? 'var(--sky-color-primary)' : 'var(--bg-surface-subtle)',
-                    color: selectedCategoryFilter === cat.id ? '#ffffff' : 'var(--text-body)',
-                    border: '1px solid var(--border-strong)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Fee Types Grid */}
+        ) : (
           <div className="grid-cols-2">
-            {filteredFeeTypes.map(ft => (
-              <div
-                key={ft.feeTypeId}
-                className="sky-card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <div className="sky-card-header">
-                  <span className={`badge ${getCategoryBadgeClass(ft.category)}`}>
-                    {ft.category}
-                  </span>
-                  <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--sky-color-primary)' }}>
-                    {ft.feeTypeId}
-                  </span>
-                </div>
-
-                <div className="sky-card-content" style={{ flex: 1 }}>
-                  <h4 className="sky-heading-3">
-                    {ft.name}
-                  </h4>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginTop: '0.85rem' }}>
-                    <div style={{ padding: '0.6rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
-                        GL Account
+            {existingFees.map(fee => {
+              const feeType = activeFeeTypes.find(f => f.feeTypeId === fee.bbFeeTypeId);
+              return (
+                <div key={fee.id} className="sky-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div className="sky-card-header">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      <span className="badge badge-success">{fee.status}</span>
+                      <span className={`badge ${getCategoryBadgeClass(feeType?.category || '')}`} style={{ fontSize: '0.65rem' }}>
+                        {feeType?.category || 'FEE'}
                       </span>
-                      <code style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-                        {ft.glAccountCode}
-                      </code>
                     </div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                      {fee.bbFeeTypeId}
+                    </span>
+                  </div>
 
-                    <div style={{ padding: '0.6rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>
-                        Default Standard Rate
-                      </span>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--success)' }}>
-                        ${ft.defaultAmount ? ft.defaultAmount.toFixed(2) : '0.00'}
-                      </span>
+                  <div className="sky-card-content" style={{ flex: 1 }}>
+                    <h4 className="sky-heading-3">
+                      {fee.title}
+                    </h4>
+                    <p style={{ color: 'var(--text-body)', fontSize: '0.85rem', marginTop: '0.35rem', lineHeight: '1.4' }}>
+                      {fee.description}
+                    </p>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', marginTop: '1rem' }}>
+                      <div style={{
+                        padding: '0.25rem 0.55rem',
+                        background: 'var(--bg-surface-subtle)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.75rem',
+                        color: 'var(--text-body)'
+                      }}>
+                        GL Account: <strong style={{ color: 'var(--text-heading)' }}>{feeType?.glAccountCode || 'GL-1010-00'}</strong>
+                      </div>
+
+                      <div style={{
+                        padding: '0.25rem 0.55rem',
+                        background: 'var(--bg-surface-subtle)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.75rem',
+                        color: 'var(--text-body)'
+                      }}>
+                        Audience: <strong style={{ color: 'var(--text-heading)' }}>
+                          {fee.audience.type === 'GRADE' ? fee.audience.grades?.join(', ') : fee.audience.type}
+                        </strong>
+                      </div>
+
+                      <div style={{
+                        padding: '0.25rem 0.55rem',
+                        background: 'var(--bg-surface-subtle)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.75rem',
+                        color: 'var(--text-body)'
+                      }}>
+                        Custom Fields: <strong style={{ color: 'var(--text-heading)' }}>{fee.customFormSchema.length}</strong>
+                      </div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    <span>Partial Payments: <strong style={{ color: 'var(--text-heading)' }}>{ft.allowPartialPayment ? 'Supported' : 'One-time Only'}</strong></span>
+                  <div style={{
+                    padding: '0.85rem 1.25rem',
+                    background: 'var(--bg-surface-subtle)',
+                    borderTop: '1px solid var(--border-subtle)',
+                    borderBottomLeftRadius: 'var(--radius-md)',
+                    borderBottomRightRadius: 'var(--radius-md)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem'
+                  }}>
+                    <div>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Standard Amount</span>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>
+                        ${fee.baseAmount.toFixed(2)}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                      <button
+                        className="sky-btn-default"
+                        onClick={() => onOpenShareModal ? onOpenShareModal(fee.id) : window.open(`${window.location.origin}/?view=quickpay`, '_blank')}
+                        style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem' }}
+                      >
+                        <Share2 size={13} />
+                        Share Link
+                      </button>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Due Date</span>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-heading)' }}>{fee.dueDate}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div style={{
-                  padding: '0.75rem 1.25rem',
-                  background: 'var(--bg-surface-subtle)',
-                  borderTop: '1px solid var(--border-subtle)',
-                  borderBottomLeftRadius: 'var(--radius-md)',
-                  borderBottomRightRadius: 'var(--radius-md)',
-                  display: 'flex',
-                  justifyContent: 'flex-end'
-                }}>
-                  <button
-                    className="sky-btn-primary"
-                    onClick={() => openCreateModalForFeeType(ft)}
-                    style={{ fontSize: '0.75rem', padding: '0.4rem 0.75rem' }}
-                  >
-                    <PlusCircle size={14} />
-                    Deploy Fee with this Category
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* MODAL 1: Add New Fee Category Modal */}
       {showAddCategoryModal && (

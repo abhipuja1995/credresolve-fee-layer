@@ -383,14 +383,11 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#0369a1', fontSize: '0.775rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   <ShieldCheck size={16} />
-                  <span>Authenticated Parent Portal • Blackbaud Education Management</span>
+                  <span>Authenticated Parent Portal</span>
                 </div>
                 <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0c4a6e', marginTop: '0.25rem' }}>
-                  Family Subledger: {loggedInParentResult.student.parentName}
+                  Family Account &amp; Student Fees: {loggedInParentResult.student.parentName}
                 </h2>
-                <p style={{ fontSize: '0.875rem', color: '#0284c7', marginTop: '0.2rem' }}>
-                  Managing fee schedules, required excursion consent forms, and payments for {loggedInParentResult.siblings.length + 1} enrolled students.
-                </p>
               </div>
 
               <div style={{ textAlign: 'right', background: '#ffffff', padding: '1rem 1.5rem', borderRadius: '10px', border: '1px solid #bae6fd', boxShadow: '0 4px 12px rgba(3, 105, 161, 0.08)' }}>
@@ -517,52 +514,8 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
               Welcome to the official digital portal of {schoolName}. We cultivate critical inquiry, athletic dedication, and creative artistry while providing parents with a modern, transparent fee and excursion management experience.
             </p>
 
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => setIsParentLoginModalOpen(true)}
-                style={{
-                  background: '#ffffff',
-                  color: '#002238',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '0.85rem 1.65rem',
-                  fontSize: '0.95rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.6rem',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
-                }}
-              >
-                <User size={18} color="var(--sky-color-primary)" />
-                <span>Parent Portal (View All Children)</span>
-                <ArrowRight size={16} />
-              </button>
-
-              <button
-                onClick={() => setActiveModalWidget('INLINE')}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.12)',
-                  color: '#ffffff',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '6px',
-                  padding: '0.85rem 1.35rem',
-                  fontSize: '0.95rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <Globe size={16} />
-                <span>Embed Widget Simulator</span>
-              </button>
-            </div>
-
             {/* Campus Impact Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginTop: '2.75rem', paddingTop: '1.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginTop: '2rem', paddingTop: '1.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)', maxWidth: '400px' }}>
               <div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#38bdf8' }}>100%</div>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.1rem' }}>University Placement</div>
@@ -570,10 +523,6 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
               <div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#38bdf8' }}>14+</div>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.1rem' }}>AP &amp; IB STEM Courses</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#38bdf8' }}>SKY API</div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.1rem' }}>Blackbaud Subledger Sync</div>
               </div>
             </div>
           </div>

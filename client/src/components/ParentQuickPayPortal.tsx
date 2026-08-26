@@ -154,100 +154,116 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
             </div>
           )}
 
-          {/* Lookup Input Card */}
-          <div className="sky-card" style={{ padding: '1.5rem 2rem' }}>
-            <div className="flex-between" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <div>
-                <label style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-                  Find Fees (Parent, Student or Sponsor)
-                </label>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                  Enter your <strong>Parent Email / Mobile Phone</strong> (to see all children) or <strong>Student Roll Number / ID</strong> (e.g. <code>BB-STU-101</code>).
-                </p>
-              </div>
+          {/* Lookup Input Card - Only displayed when no student/family is selected */}
+          {!lookupResult ? (
+            <div className="sky-card" style={{ padding: '1.5rem 2rem' }}>
+              <div className="flex-between" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <div>
+                  <label style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                    Find Fees (Parent, Student or Sponsor)
+                  </label>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                    Enter your <strong>Parent Email / Mobile Phone</strong> (to see all children) or <strong>Student Roll Number / ID</strong> (e.g. <code>BB-STU-101</code>).
+                  </p>
+                </div>
 
-              {/* Sponsor Mode Toggle */}
-              <button
-                type="button"
-                onClick={() => setIsThirdPartyPayer(!isThirdPartyPayer)}
-                style={{
-                  fontSize: '0.75rem',
-                  padding: '0.3rem 0.65rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: isThirdPartyPayer ? '1px solid var(--sky-color-primary)' : '1px solid var(--border-subtle)',
-                  background: isThirdPartyPayer ? 'var(--sky-color-primary-light)' : 'transparent',
-                  color: isThirdPartyPayer ? 'var(--sky-color-primary)' : 'var(--text-muted)',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  cursor: 'pointer'
-                }}
-              >
-                <HeartHandshake size={13} />
-                <span>{isThirdPartyPayer ? 'Third-Party / Sponsor Mode ON' : 'Paying as Sponsor / Relative?'}</span>
-              </button>
-            </div>
-
-            {isThirdPartyPayer && (
-              <div style={{ padding: '0.65rem 0.85rem', background: 'var(--sky-color-primary-light)', border: '1px solid var(--sky-color-primary)', borderRadius: 'var(--radius-sm)', fontSize: '0.775rem', color: 'var(--sky-color-primary)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                <Sparkles size={14} />
-                <span><strong>Third-Party Sponsor Mode:</strong> You can pay directly on behalf of any student without logging into a parent account. Payment will be credited directly to their student subledger.</span>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '0.65rem' }}>
-              <div style={{ position: 'relative', flex: 1 }}>
-                <input
-                  type="text"
-                  placeholder="Enter Student ID / Roll No, Parent Email, or Mobile Phone..."
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') handleLookup();
-                  }}
-                  style={{
-                    paddingLeft: '2.4rem'
-                  }}
-                />
-                <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
-              </div>
-
-              <button
-                className="sky-btn-primary"
-                onClick={() => handleLookup()}
-                disabled={isLoading || !query.trim()}
-              >
-                {isLoading ? 'Searching...' : 'Find Dues'}
-                <ChevronRight size={15} />
-              </button>
-            </div>
-
-            {/* Quick Helper Sample Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.45rem', marginTop: '0.85rem' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Try quick sample:</span>
-              {sampleLookups.map(s => (
+                {/* Sponsor Mode Toggle */}
                 <button
-                  key={s.val}
-                  onClick={() => {
-                    setQuery(s.val);
-                    handleLookup(s.val);
+                  type="button"
+                  onClick={() => setIsThirdPartyPayer(!isThirdPartyPayer)}
+                  style={{
+                    fontSize: '0.75rem',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: isThirdPartyPayer ? '1px solid var(--sky-color-primary)' : '1px solid var(--border-subtle)',
+                    background: isThirdPartyPayer ? 'var(--sky-color-primary-light)' : 'transparent',
+                    color: isThirdPartyPayer ? 'var(--sky-color-primary)' : 'var(--text-muted)',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    cursor: 'pointer'
                   }}
-                  className="sky-btn-default"
-                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem' }}
                 >
-                  {s.label}
+                  <HeartHandshake size={13} />
+                  <span>{isThirdPartyPayer ? 'Third-Party / Sponsor Mode ON' : 'Paying as Sponsor / Relative?'}</span>
                 </button>
-              ))}
-            </div>
-
-            {errorMessage && (
-              <div className="sky-alert sky-alert-danger" style={{ marginTop: '1rem' }}>
-                <AlertCircle size={16} />
-                <div>{errorMessage}</div>
               </div>
-            )}
-          </div>
+
+              {isThirdPartyPayer && (
+                <div style={{ padding: '0.65rem 0.85rem', background: 'var(--sky-color-primary-light)', border: '1px solid var(--sky-color-primary)', borderRadius: 'var(--radius-sm)', fontSize: '0.775rem', color: 'var(--sky-color-primary)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <Sparkles size={14} />
+                  <span><strong>Third-Party Sponsor Mode:</strong> You can pay directly on behalf of any student without logging into a parent account. Payment will be credited directly to their student subledger.</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.65rem' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <input
+                    type="text"
+                    placeholder="Enter Student ID / Roll No, Parent Email, or Mobile Phone..."
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleLookup();
+                    }}
+                    style={{
+                      paddingLeft: '2.4rem'
+                    }}
+                  />
+                  <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
+
+                <button
+                  className="sky-btn-primary"
+                  onClick={() => handleLookup()}
+                  disabled={isLoading || !query.trim()}
+                >
+                  {isLoading ? 'Searching...' : 'Find Dues'}
+                  <ChevronRight size={15} />
+                </button>
+              </div>
+
+              {/* Quick Helper Sample Buttons */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.45rem', marginTop: '0.85rem' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Try quick sample:</span>
+                {sampleLookups.map(s => (
+                  <button
+                    key={s.val}
+                    onClick={() => {
+                      setQuery(s.val);
+                      handleLookup(s.val);
+                    }}
+                    className="sky-btn-default"
+                    style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem' }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+
+              {errorMessage && (
+                <div className="sky-alert sky-alert-danger" style={{ marginTop: '1rem' }}>
+                  <AlertCircle size={16} />
+                  <div>{errorMessage}</div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '-0.25rem' }}>
+              <button
+                className="sky-btn-default"
+                onClick={() => {
+                  setLookupResult(null);
+                  setQuery('');
+                }}
+                style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
+              >
+                <ArrowLeft size={14} />
+                <span>Search Another Student / Family</span>
+              </button>
+            </div>
+          )}
 
           {/* Lookup Results */}
           {lookupResult && currentStudent && (
