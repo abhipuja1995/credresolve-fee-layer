@@ -164,14 +164,13 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
                 <th>Due Date</th>
                 <th style={{ textAlign: 'right' }}>Amount / Balance</th>
                 <th>Payment Status</th>
-                <th>Blackbaud Sync</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredCharges.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <td colSpan={6} style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                     No student charges match the applied search and filter criteria.
                   </td>
                 </tr>
@@ -215,18 +214,6 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
                         {c.paymentStatus === 'PAID' && <span className="badge badge-success">Paid</span>}
                         {c.paymentStatus === 'PARTIALLY_PAID' && <span className="badge badge-warning">Partial</span>}
                         {c.paymentStatus === 'UNPAID' && <span className="badge badge-neutral">Unpaid</span>}
-                      </td>
-
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        {c.bbSyncStatus === 'SYNCED' ? (
-                          <span className="badge badge-success">
-                            <CheckCircle size={11} /> Synced
-                          </span>
-                        ) : (
-                          <span className="badge badge-warning">
-                            <Clock size={11} /> {c.bbSyncStatus}
-                          </span>
-                        )}
                       </td>
 
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
