@@ -17,9 +17,16 @@ import {
   Sparkles,
   ArrowLeft,
   Search,
-  Globe
+  Globe,
+  User,
+  LogOut,
+  ChevronRight,
+  AlertCircle,
+  FileCheck,
+  Share2
 } from 'lucide-react';
-import { SchoolBranding } from '../types/index.js';
+import { SchoolBranding, StudentLookupResult } from '../types/index.js';
+import { api } from '../services/api.js';
 
 interface DummySchoolWebsiteProps {
   branding?: SchoolBranding;
@@ -34,14 +41,47 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
 }) => {
   const [activeModalWidget, setActiveModalWidget] = useState<string | null>(null);
   const [quickStudentLookup, setQuickStudentLookup] = useState('');
+  
+  // Parent Login Portal State
+  const [isParentLoginModalOpen, setIsParentLoginModalOpen] = useState(false);
+  const [parentLoginQuery, setParentLoginQuery] = useState('');
+  const [isParentLoading, setIsParentLoading] = useState(false);
+  const [parentLoginError, setParentLoginError] = useState<string | null>(null);
+  const [loggedInParentResult, setLoggedInParentResult] = useState<StudentLookupResult | null>(null);
 
   const schoolName = branding?.schoolName || 'Oakridge International Prep';
-  const primaryColor = branding?.primaryColor || '#007ea8';
   const logoUrl = branding?.logoUrl;
 
   const handleQuickPaySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onNavigateToQuickPay(quickStudentLookup.trim() || undefined);
+  };
+
+  const handleParentLogin = async (searchQuery?: string) => {
+    const q = (searchQuery !== undefined ? searchQuery : parentLoginQuery).trim();
+    if (!q) {
+      setParentLoginError('Please enter your registered Parent Email ID or Mobile Phone Number.');
+      return;
+    }
+
+    setIsParentLoading(true);
+    setParentLoginError(null);
+
+    try {
+      const result = await api.lookupStudent(q);
+      setLoggedInParentResult(result);
+      setIsParentLoginModalOpen(false);
+    } catch (err: any) {
+      setLoggedInParentResult(null);
+      setParentLoginError(err.message || 'No parent or student account found matching this email.');
+    } finally {
+      setIsParentLoading(false);
+    }
+  };
+
+  const handleParentLogout = () => {
+    setLoggedInParentResult(null);
+    setParentLoginQuery('');
   };
 
   return (
@@ -96,7 +136,7 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
         <div style={{
           maxWidth: '1280px',
           margin: '0 auto',
-          padding: '1rem 1.5rem',
+          padding: '0.9rem 1.5rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -139,13 +179,40 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
           </div>
 
           {/* Nav Links & Action CTA */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <nav style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', fontWeight: 600, color: '#475569' }}>
               <span style={{ cursor: 'pointer', color: '#002238' }}>Academics</span>
               <span style={{ cursor: 'pointer' }}>Admissions</span>
               <span style={{ cursor: 'pointer' }}>Athletics</span>
               <span style={{ cursor: 'pointer' }}>Student Life</span>
             </nav>
+
+            {/* Parent Login Button / Status */}
+            {loggedInParentResult ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-surface-subtle)', padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-strong)', fontSize: '0.8rem' }}>
+                  <User size={14} color="var(--sky-color-primary)" />
+                  <span style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{loggedInParentResult.student.parentName}</span>
+                </div>
+                <button
+                  onClick={handleParentLogout}
+                  title="Sign out of parent session"
+                  style={{ background: 'transparent', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.4rem 0.6rem', color: '#64748b', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                >
+                  <LogOut size={13} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsParentLoginModalOpen(true)}
+                className="sky-btn-default"
+                style={{ fontSize: '0.85rem', padding: '0.55rem 0.95rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <User size={15} color="var(--sky-color-primary)" />
+                <span>Parent Login</span>
+              </button>
+            )}
 
             <button
               onClick={() => onNavigateToQuickPay()}
@@ -170,6 +237,112 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
           </div>
         </div>
       </header>
+
+      {/* LOGGED IN PARENT FAMILY FEE OVERVIEW BANNER */}
+      {loggedInParentResult && (
+        <section style={{
+          background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+          borderBottom: '1px solid #bae6fd',
+          padding: '2rem 1.5rem'
+        }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+            <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0369a1', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <ShieldCheck size={16} />
+                  <span>Authenticated Parent Portal Session</span>
+                </div>
+                <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0c4a6e', marginTop: '0.2rem' }}>
+                  Welcome back, {loggedInParentResult.student.parentName}
+                </h2>
+                <p style={{ fontSize: '0.875rem', color: '#0369a1', marginTop: '0.15rem' }}>
+                  Viewing registered children, fee schedules, and outstanding balances from Blackbaud Education Management.
+                </p>
+              </div>
+
+              <div style={{ textAlign: 'right', background: '#ffffff', padding: '0.85rem 1.25rem', borderRadius: '8px', border: '1px solid #bae6fd', boxShadow: '0 2px 8px rgba(3, 105, 161, 0.08)' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Total Family Balance
+                </span>
+                <div style={{ fontSize: '1.85rem', fontWeight: 800, color: loggedInParentResult.totalFamilyBalance > 0 ? '#b45309' : '#16a34a' }}>
+                  ${loggedInParentResult.totalFamilyBalance.toFixed(2)}
+                </div>
+              </div>
+            </div>
+
+            {/* Children Cards Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.25rem' }}>
+              {[loggedInParentResult.student, ...loggedInParentResult.siblings].map(child => {
+                const childCharges = loggedInParentResult.charges.filter(c => c.studentId === child.studentId);
+                const childDue = childCharges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
+
+                return (
+                  <div key={child.studentId} style={{ background: '#ffffff', borderRadius: '10px', border: '1px solid #cbd5e1', padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                    <div>
+                      <div className="flex-between" style={{ alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                          <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#e0f2fe', border: '2px solid #0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0284c7', fontWeight: 800 }}>
+                            {child.studentName.charAt(0)}
+                          </div>
+                          <div>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#002238', margin: 0 }}>
+                              {child.studentName}
+                            </h3>
+                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                              Roll: <strong>{child.studentId}</strong> • {child.grade} ({child.school || 'Oakridge Prep'})
+                            </span>
+                          </div>
+                        </div>
+
+                        <span className={`badge ${childDue > 0 ? 'badge-warning' : 'badge-success'}`} style={{ fontSize: '0.7rem' }}>
+                          {childDue > 0 ? `$${childDue.toFixed(2)} Due` : 'Paid in Full'}
+                        </span>
+                      </div>
+
+                      {/* Fee Obligations list for this child */}
+                      <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {childCharges.map(charge => (
+                          <div key={charge.id} style={{ padding: '0.5rem 0.75rem', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                            <div>
+                              <strong style={{ color: '#1e293b' }}>{charge.feeTitle}</strong>
+                              <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Due: {charge.dueDate}</div>
+                            </div>
+                            <div style={{ fontWeight: 700, color: charge.paymentStatus === 'PAID' ? '#16a34a' : '#002238' }}>
+                              ${charge.amount.toFixed(2)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '1.25rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => onNavigateToQuickPay(child.studentId)}
+                        style={{
+                          background: 'var(--sky-color-primary)',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '0.5rem 1rem',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
+                        }}
+                      >
+                        <CreditCard size={14} />
+                        <span>Pay {child.studentName.split(' ')[0]}'s Fees</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Hero Banner Section */}
       <section style={{
@@ -210,7 +383,7 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
 
             <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
               <button
-                onClick={() => onNavigateToQuickPay()}
+                onClick={() => setIsParentLoginModalOpen(true)}
                 style={{
                   background: '#ffffff',
                   color: '#002238',
@@ -226,13 +399,13 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                 }}
               >
-                <CreditCard size={17} color="var(--sky-color-primary)" />
-                <span>Parent Quick-Pay Portal</span>
+                <User size={17} color="var(--sky-color-primary)" />
+                <span>Parent Login (View All Kids)</span>
                 <ArrowRight size={15} />
               </button>
 
               <button
-                onClick={() => setActiveModalWidget('INLINE')}
+                onClick={() => onNavigateToQuickPay()}
                 style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   color: '#ffffff',
@@ -247,8 +420,8 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                   gap: '0.45rem'
                 }}
               >
-                <Globe size={16} />
-                <span>Launch Embedded Widget Preview</span>
+                <CreditCard size={16} />
+                <span>Guest Quick-Pay</span>
               </button>
             </div>
           </div>
@@ -427,8 +600,8 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
         </div>
       </section>
 
-      {/* Embedded Widget Simulator Modal */}
-      {activeModalWidget && (
+      {/* PARENT LOGIN MODAL */}
+      {isParentLoginModalOpen && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -445,40 +618,139 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
         }}>
           <div style={{
             background: '#ffffff',
-            borderRadius: '10px',
+            borderRadius: '12px',
             width: '100%',
-            maxWidth: '840px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: '1.5rem',
+            maxWidth: '520px',
+            padding: '2rem',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
           }}>
-            <div className="flex-between" style={{ marginBottom: '1rem' }}>
+            <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Globe size={18} color="var(--sky-color-primary)" />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#002238', margin: 0 }}>
-                  Embedded CredResolve Fee Widget Simulation
+                <User size={20} color="var(--sky-color-primary)" />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#002238', margin: 0 }}>
+                  Parent Portal Sign In
                 </h3>
               </div>
               <button
-                onClick={() => setActiveModalWidget(null)}
+                onClick={() => setIsParentLoginModalOpen(false)}
                 style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}
               >
                 ✕
               </button>
             </div>
 
-            <p style={{ fontSize: '0.825rem', color: '#64748b', marginBottom: '1.25rem' }}>
-              This simulates the parent experience when the CredResolve widget is embedded directly within WordPress, Squarespace, Wix, or the school's LMS.
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              Enter your registered parent email address or mobile phone to fetch and view fees for all your enrolled children.
             </p>
 
-            <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '1rem', background: '#f8fafc' }}>
-              <iframe
-                src={`${window.location.origin}/?view=quickpay`}
-                style={{ width: '100%', height: '520px', border: 'none', borderRadius: '6px' }}
-                title="School Payment Widget"
-              />
-            </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleParentLogin(); }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                  Parent Email ID or Phone Number
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    placeholder="e.g. michael.hayes@example.com or 555-0101"
+                    value={parentLoginQuery}
+                    onChange={e => setParentLoginQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.7rem 0.75rem 0.7rem 2.2rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      fontSize: '0.9rem'
+                    }}
+                  />
+                  <Mail size={16} color="#94a3b8" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
+              </div>
+
+              {parentLoginError && (
+                <div className="sky-alert sky-alert-danger" style={{ fontSize: '0.8rem', padding: '0.65rem 0.85rem' }}>
+                  <AlertCircle size={15} />
+                  <div>{parentLoginError}</div>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isParentLoading || !parentLoginQuery.trim()}
+                style={{
+                  background: 'var(--sky-color-primary)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '0.75rem',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.45rem'
+                }}
+              >
+                <span>{isParentLoading ? 'Verifying...' : 'Sign In & Fetch Children'}</span>
+                <ArrowRight size={15} />
+              </button>
+
+              {/* Demo 1-Click Parent Profiles */}
+              <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+                <span style={{ fontSize: '0.725rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Quick Demo Parent Profiles:
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.4rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setParentLoginQuery('michael.hayes@example.com');
+                      handleParentLogin('michael.hayes@example.com');
+                    }}
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontSize: '0.775rem',
+                      color: '#334155',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <span><strong>Michael Hayes</strong> (Alexander &amp; Maya)</span>
+                    <span style={{ color: 'var(--sky-color-primary)', fontWeight: 600 }}>Login →</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setParentLoginQuery('priya.patel@example.com');
+                      handleParentLogin('priya.patel@example.com');
+                    }}
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontSize: '0.775rem',
+                      color: '#334155',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <span><strong>Priya Patel</strong> (Sophia &amp; Aarav)</span>
+                    <span style={{ color: 'var(--sky-color-primary)', fontWeight: 600 }}>Login →</span>
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -502,8 +774,8 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
               Online Services
             </h5>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.825rem', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <li style={{ cursor: 'pointer' }} onClick={() => onNavigateToQuickPay()}>Parent Quick-Pay Portal</li>
-              <li style={{ cursor: 'pointer' }} onClick={() => onNavigateToQuickPay()}>Sponsor / Relative Payments</li>
+              <li style={{ cursor: 'pointer' }} onClick={() => setIsParentLoginModalOpen(true)}>Parent Portal Sign In</li>
+              <li style={{ cursor: 'pointer' }} onClick={() => onNavigateToQuickPay()}>Guest Quick-Pay Portal</li>
               <li style={{ cursor: 'pointer' }}>Excursion Waivers</li>
               <li style={{ cursor: 'pointer' }}>Student Accounts Office</li>
             </ul>

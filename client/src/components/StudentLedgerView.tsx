@@ -11,7 +11,8 @@ import {
   Filter,
   DollarSign,
   Receipt,
-  Users
+  Users,
+  Share2
 } from 'lucide-react';
 import { StudentCharge, UniversalFeeDefinition, SchoolBranding } from '../types/index.js';
 import { PayerCheckout } from './PayerCheckout.js';
@@ -221,14 +222,17 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
                           <button
                             className="sky-btn-default"
                             onClick={(e) => handleCopyLink(c.id, e)}
-                            title="Copy direct payment link"
+                            title="Share direct payment link"
                             style={{
-                              padding: '0.4rem 0.65rem',
-                              fontSize: '0.75rem'
+                              padding: '0.4rem 0.75rem',
+                              fontSize: '0.75rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.4rem'
                             }}
                           >
-                            {isCopied ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
-                            <span>{isCopied ? 'Copied!' : 'Copy Link'}</span>
+                            {isCopied ? <Check size={14} color="var(--success)" /> : <Share2 size={14} />}
+                            <span>{isCopied ? 'Link Copied!' : 'Share Link'}</span>
                           </button>
 
                           {c.paymentStatus !== 'PAID' ? (
