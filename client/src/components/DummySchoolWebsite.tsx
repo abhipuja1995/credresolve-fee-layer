@@ -1198,62 +1198,48 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
               {/* Demo 1-Click Parent Profiles */}
               <div style={{ marginTop: '0.75rem', paddingTop: '1.25rem', borderTop: '1px solid #f1f5f9' }}>
                 <span style={{ fontSize: '0.725rem', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Quick Demo Parent Profiles:
+                  Quick Demo Parent Profiles (Multi-Child &amp; Multiple Fees):
                 </span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setParentLoginQuery('michael.hayes@example.com');
-                      handleParentLogin('michael.hayes@example.com');
-                    }}
-                    style={{
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '0.65rem 0.85rem',
-                      textAlign: 'left',
-                      fontSize: '0.8rem',
-                      color: '#334155',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <div>
-                      <strong style={{ color: '#002238' }}>Michael Hayes</strong>
-                      <div style={{ fontSize: '0.725rem', color: '#64748b' }}>Alexander (Gr 8) &amp; Maya (Gr 5)</div>
-                    </div>
-                    <span style={{ color: 'var(--sky-color-primary)', fontWeight: 700 }}>Login →</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setParentLoginQuery('priya.patel@example.com');
-                      handleParentLogin('priya.patel@example.com');
-                    }}
-                    style={{
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '0.65rem 0.85rem',
-                      textAlign: 'left',
-                      fontSize: '0.8rem',
-                      color: '#334155',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <div>
-                      <strong style={{ color: '#002238' }}>Priya Patel</strong>
-                      <div style={{ fontSize: '0.725rem', color: '#64748b' }}>Sophia (Gr 8) &amp; Aarav (Gr 3)</div>
-                    </div>
-                    <span style={{ color: 'var(--sky-color-primary)', fontWeight: 700 }}>Login →</span>
-                  </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginTop: '0.5rem', maxHeight: '240px', overflowY: 'auto' }}>
+                  {[
+                    { name: 'Michael Hayes', email: 'michael.hayes@example.com', kids: 'Alexander (Gr 8) & Maya (Gr 5)', due: '$565.00' },
+                    { name: 'Priya Patel', email: 'priya.patel@example.com', kids: 'Sophia (Gr 8) & Aarav (Gr 3)', due: '$380.00' },
+                    { name: 'David Vance', email: 'david.vance@example.com', kids: 'Lucas (Gr 8) & Chloe (Gr 6)', due: '$710.00' },
+                    { name: 'Carlos Martinez', email: 'carlos.m@example.com', kids: 'Olivia (Gr 7) & Mateo (Gr 4)', due: '$545.00' },
+                    { name: 'Jessica Bennett', email: 'jessica.b@example.com', kids: 'Noah (Gr 9), Liam (Gr 7) & Emma (Gr 3)', due: '$690.00' },
+                    { name: 'Marcus Brooks', email: 'marcus.b@example.com', kids: 'Jackson (Gr 8) & Harper (Gr 6)', due: '$535.00' }
+                  ].map((parent, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setParentLoginQuery(parent.email);
+                        handleParentLogin(parent.email);
+                      }}
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '0.55rem 0.75rem',
+                        textAlign: 'left',
+                        fontSize: '0.775rem',
+                        color: '#334155',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <strong style={{ color: '#002238' }}>{parent.name}</strong>
+                          <span style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 700 }}>({parent.due} due)</span>
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{parent.kids}</div>
+                      </div>
+                      <span style={{ color: 'var(--sky-color-primary)', fontWeight: 700, fontSize: '0.75rem' }}>Login →</span>
+                    </button>
+                  ))}
                 </div>
               </div>
             </form>

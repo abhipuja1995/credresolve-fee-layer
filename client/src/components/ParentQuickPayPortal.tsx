@@ -87,10 +87,12 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
   }, [initialQuery]);
 
   const sampleLookups = [
-    { label: 'Michael Hayes (Parent Multi-Child: Alex & Maya)', val: 'michael.hayes@example.com' },
-    { label: 'Priya Patel (Parent Multi-Child: Sophia & Aarav)', val: 'priya.patel@example.com' },
-    { label: 'Lucas Vance (Roll: BB-STU-103)', val: 'BB-STU-103' },
-    { label: 'Noah Bennett (Roll: BB-STU-109)', val: 'BB-STU-109' }
+    { label: 'Michael Hayes (Alex & Maya • $565 Due)', val: 'michael.hayes@example.com' },
+    { label: 'Priya Patel (Sophia & Aarav • $380 Due)', val: 'priya.patel@example.com' },
+    { label: 'David Vance (Lucas & Chloe • $710 Due)', val: 'david.vance@example.com' },
+    { label: 'Carlos Martinez (Olivia & Mateo • $545 Due)', val: 'carlos.m@example.com' },
+    { label: 'Jessica Bennett (Noah, Liam & Emma • $690 Due)', val: 'jessica.b@example.com' },
+    { label: 'Marcus Brooks (Jackson & Harper • $535 Due)', val: 'marcus.b@example.com' }
   ];
 
   // Active student in view (either primary student or selected sibling)
