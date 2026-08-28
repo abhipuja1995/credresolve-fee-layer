@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { SchoolBranding, StudentLookupResult } from '../types/index.js';
 import { api } from '../services/api.js';
+import { PayerCheckout } from './PayerCheckout.js';
 
 interface DummySchoolWebsiteProps {
   branding?: SchoolBranding;
@@ -59,6 +60,8 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
   const [isParentLoading, setIsParentLoading] = useState(false);
   const [parentLoginError, setParentLoginError] = useState<string | null>(null);
   const [loggedInParentResult, setLoggedInParentResult] = useState<StudentLookupResult | null>(null);
+  const [selectedParentFeeIds, setSelectedParentFeeIds] = useState<string[]>([]);
+  const [activePayingChargeId, setActivePayingChargeId] = useState<string | null>(null);
   const [viewingReceiptForChild, setViewingReceiptForChild] = useState<any | null>(null);
 
   const schoolName = branding?.schoolName || 'Oakridge International Preparatory Academy';
@@ -83,8 +86,13 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
       const result = await api.lookupStudent(q);
       setLoggedInParentResult(result);
       setIsParentLoginModalOpen(false);
+
+      // Default select all unpaid/partially paid charges across family
+      const unpaid = result.charges.filter(c => c.paymentStatus !== 'PAID').map(c => c.id);
+      setSelectedParentFeeIds(unpaid);
     } catch (err: any) {
       setLoggedInParentResult(null);
+      setSelectedParentFeeIds([]);
       setParentLoginError(err.message || 'No parent account found matching this email.');
     } finally {
       setIsParentLoading(false);
@@ -94,6 +102,29 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
   const handleParentLogout = () => {
     setLoggedInParentResult(null);
     setParentLoginQuery('');
+    setSelectedParentFeeIds([]);
+    setActivePayingChargeId(null);
+  };
+
+  const toggleParentFeeSelection = (cId: string) => {
+    if (selectedParentFeeIds.includes(cId)) {
+      setSelectedParentFeeIds(selectedParentFeeIds.filter(id => id !== cId));
+    } else {
+      setSelectedParentFeeIds([...selectedParentFeeIds, cId]);
+    }
+  };
+
+  const allDueParentCharges = loggedInParentResult ? loggedInParentResult.charges.filter(c => c.paymentStatus !== 'PAID') : [];
+  const selectedParentFeesDueAmount = (loggedInParentResult?.charges || [])
+    .filter(c => selectedParentFeeIds.includes(c.id))
+    .reduce((acc, c) => acc + Math.max(0, c.amount - c.amountPaid), 0);
+
+  const toggleSelectAllParentFees = () => {
+    if (selectedParentFeeIds.length === allDueParentCharges.length && allDueParentCharges.length > 0) {
+      setSelectedParentFeeIds([]);
+    } else {
+      setSelectedParentFeeIds(allDueParentCharges.map(c => c.id));
+    }
   };
 
   const campusFeePrograms = [
@@ -384,7 +415,7 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
           padding: '2.5rem 1.5rem'
         }}>
           <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
-            <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1.25rem', marginBottom: '1.75rem' }}>
+            <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1.25rem', marginBottom: '1.5rem' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#0369a1', fontSize: '0.775rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   <ShieldCheck size={16} />
@@ -405,11 +436,68 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
               </div>
             </div>
 
+            {/* Pay Together Consolidated Bar */}
+            {allDueParentCharges.length > 1 && (
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '10px',
+                border: '2px solid #0284c7',
+                padding: '1rem 1.5rem',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.12)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedParentFeeIds.length === allDueParentCharges.length && allDueParentCharges.length > 0}
+                    onChange={toggleSelectAllParentFees}
+                    id="parent-select-all"
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <label htmlFor="parent-select-all" style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      Pay Together ({selectedParentFeeIds.length} of {allDueParentCharges.length} fees selected)
+                    </label>
+                    <div style={{ fontSize: '0.775rem', color: '#64748b', marginTop: '0.1rem' }}>
+                      Select fees across your children to pay together in a single consolidated transaction.
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  disabled={selectedParentFeeIds.length === 0}
+                  onClick={() => setActivePayingChargeId(selectedParentFeeIds.join(','))}
+                  style={{
+                    background: selectedParentFeeIds.length > 0 ? 'var(--sky-color-primary)' : '#94a3b8',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '0.65rem 1.35rem',
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    cursor: selectedParentFeeIds.length > 0 ? 'pointer' : 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    boxShadow: selectedParentFeeIds.length > 0 ? '0 4px 10px rgba(0, 126, 168, 0.3)' : 'none'
+                  }}
+                >
+                  <CreditCard size={16} />
+                  <span>Pay Selected (${selectedParentFeesDueAmount.toFixed(2)})</span>
+                </button>
+              </div>
+            )}
+
             {/* Sibling Student Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem' }}>
               {[loggedInParentResult.student, ...loggedInParentResult.siblings].map(child => {
                 const childCharges = loggedInParentResult.charges.filter(c => c.studentId === child.studentId);
-                const childDue = childCharges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
+                const childDue = childCharges.reduce((acc, c) => acc + Math.max(0, c.amount - c.amountPaid), 0);
 
                 return (
                   <div key={child.studentId} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #cbd5e1', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.05)' }}>
@@ -434,29 +522,64 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                         </span>
                       </div>
 
-                      {/* Itemized Fee Breakdown */}
+                      {/* Itemized Fee Breakdown with Checkboxes */}
                       <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                        <div style={{ fontSize: '0.725rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          Active Fee Obligations ({childCharges.length})
+                        <div className="flex-between" style={{ alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.725rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Fee Obligations ({childCharges.length})
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                            Select checkbox to pay together
+                          </span>
                         </div>
+
                         {childCharges.map(charge => {
                           const remaining = Math.max(0, Math.round((charge.amount - charge.amountPaid) * 100) / 100);
+                          const isPaid = charge.paymentStatus === 'PAID';
+                          const isChecked = selectedParentFeeIds.includes(charge.id);
+
                           return (
-                            <div key={charge.id} style={{ padding: '0.65rem 0.85rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.825rem' }}>
-                              <div>
-                                <strong style={{ color: '#0f172a' }}>{charge.feeTitle}</strong>
-                                <div style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '0.1rem' }}>Due Date: {charge.dueDate}</div>
+                            <div
+                              key={charge.id}
+                              style={{
+                                padding: '0.75rem 0.85rem',
+                                background: isChecked ? '#f0fdf4' : (isPaid ? '#f8fafc' : '#ffffff'),
+                                borderRadius: '8px',
+                                border: isChecked ? '1.5px solid #16a34a' : '1px solid #e2e8f0',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                fontSize: '0.825rem',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                                {!isPaid ? (
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => toggleParentFeeSelection(charge.id)}
+                                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                  />
+                                ) : (
+                                  <CheckCircle size={16} color="#16a34a" />
+                                )}
+                                <div>
+                                  <strong style={{ color: '#0f172a' }}>{charge.feeTitle}</strong>
+                                  <div style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '0.1rem' }}>Due Date: {charge.dueDate}</div>
+                                </div>
                               </div>
+
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontWeight: 800, color: charge.paymentStatus === 'PAID' ? '#16a34a' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#002238') }}>
-                                  {charge.paymentStatus === 'PAID' 
+                                <div style={{ fontWeight: 800, color: isPaid ? '#16a34a' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#002238') }}>
+                                  {isPaid 
                                     ? `$${charge.amount.toFixed(2)}` 
                                     : (charge.paymentStatus === 'PARTIALLY_PAID' 
                                       ? `$${remaining.toFixed(2)} due` 
                                       : `$${charge.amount.toFixed(2)}`)}
                                 </div>
-                                <span style={{ fontSize: '0.65rem', color: charge.paymentStatus === 'PAID' ? '#16a34a' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#64748b'), fontWeight: 700 }}>
-                                  {charge.paymentStatus === 'PAID' 
+                                <span style={{ fontSize: '0.65rem', color: isPaid ? '#16a34a' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#64748b'), fontWeight: 700 }}>
+                                  {isPaid 
                                     ? '✓ Fully Paid' 
                                     : (charge.paymentStatus === 'PARTIALLY_PAID' 
                                       ? `Partially Paid ($${charge.amountPaid.toFixed(2)} paid)` 
@@ -472,7 +595,10 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                     <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: '0.65rem' }}>
                       {childDue > 0 ? (
                         <button
-                          onClick={() => onNavigateToQuickPay(child.studentId)}
+                          onClick={() => {
+                            const childUnpaidIds = childCharges.filter(c => c.paymentStatus !== 'PAID').map(c => c.id);
+                            setActivePayingChargeId(childUnpaidIds.join(','));
+                          }}
                           style={{
                             background: 'var(--sky-color-primary)',
                             color: '#ffffff',
@@ -525,6 +651,40 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
             </div>
           </div>
         </section>
+      )}
+
+      {/* Embedded Payer Checkout Modal if activePayingChargeId is set */}
+      {activePayingChargeId && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1.5rem',
+          overflowY: 'auto'
+        }}>
+          <div style={{ width: '100%', maxWidth: '720px', maxHeight: '92vh', overflowY: 'auto', borderRadius: '12px', background: 'transparent' }}>
+            <PayerCheckout
+              chargeId={activePayingChargeId}
+              onBackToLedger={() => {
+                setActivePayingChargeId(null);
+                if (loggedInParentResult) {
+                  handleParentLogin(loggedInParentResult.student.studentId);
+                }
+              }}
+              onPaymentCompleted={() => {
+                if (loggedInParentResult) {
+                  handleParentLogin(loggedInParentResult.student.studentId);
+                }
+              }}
+              branding={branding}
+            />
+          </div>
+        </div>
       )}
 
       {/* PUBLIC ACADEMY HOMEPAGE SECTIONS - Hidden when Parent is Logged In */}

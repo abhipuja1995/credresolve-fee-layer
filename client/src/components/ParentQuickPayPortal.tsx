@@ -16,7 +16,9 @@ import {
   Check,
   Users,
   HeartHandshake,
-  Sparkles
+  Sparkles,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { StudentLookupResult, StudentCharge, UniversalFeeDefinition, SchoolBranding, StudentAccount } from '../types/index.js';
 import { api } from '../services/api.js';
@@ -39,6 +41,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [lookupResult, setLookupResult] = useState<StudentLookupResult | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedChargeIds, setSelectedChargeIds] = useState<string[]>([]);
   const [isThirdPartyPayer, setIsThirdPartyPayer] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activePayingChargeId, setActivePayingChargeId] = useState<string | null>(null);
@@ -61,9 +64,16 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
       const result = await api.lookupStudent(q);
       setLookupResult(result);
       setSelectedStudentId(result.student.studentId);
+
+      // Default select all unpaid or partially paid charges across family
+      const unpaidChargeIds = result.charges
+        .filter(c => c.paymentStatus !== 'PAID')
+        .map(c => c.id);
+      setSelectedChargeIds(unpaidChargeIds);
     } catch (err: any) {
       setLookupResult(null);
       setSelectedStudentId(null);
+      setSelectedChargeIds([]);
       setErrorMessage(err.message || 'No student found matching this query.');
     } finally {
       setIsLoading(false);
@@ -95,7 +105,30 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
     lookupResult.charges.filter(c => c.studentId === currentStudent.studentId)
   ) : [];
 
-  const activeStudentDue = activeStudentCharges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
+  const activeStudentDue = activeStudentCharges.reduce((acc, c) => acc + Math.max(0, c.amount - c.amountPaid), 0);
+
+  // All unpaid/partially paid charges across all children in the family
+  const allFamilyDueCharges = lookupResult ? lookupResult.charges.filter(c => c.paymentStatus !== 'PAID') : [];
+
+  const selectedChargesDueAmount = (lookupResult?.charges || [])
+    .filter(c => selectedChargeIds.includes(c.id))
+    .reduce((acc, c) => acc + Math.max(0, c.amount - c.amountPaid), 0);
+
+  const toggleChargeSelection = (cId: string) => {
+    if (selectedChargeIds.includes(cId)) {
+      setSelectedChargeIds(selectedChargeIds.filter(id => id !== cId));
+    } else {
+      setSelectedChargeIds([...selectedChargeIds, cId]);
+    }
+  };
+
+  const toggleSelectAllFamilyDue = () => {
+    if (selectedChargeIds.length === allFamilyDueCharges.length) {
+      setSelectedChargeIds([]);
+    } else {
+      setSelectedChargeIds(allFamilyDueCharges.map(c => c.id));
+    }
+  };
 
   return (
     <div style={{ maxWidth: isEmbedded ? '100%' : '860px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -139,7 +172,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                       {schoolName} • Self-Service Payments
                     </span>
                     <h2 className="sky-heading-1" style={{ marginTop: '0.1rem' }}>
-                      Parent & Student Payment Portal
+                      Parent &amp; Student Payment Portal
                     </h2>
                   </div>
                 </div>
@@ -154,98 +187,81 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
             </div>
           )}
 
-          {/* Lookup Input Card - Only displayed when no student/family is selected */}
+          {/* Search Card */}
           {!lookupResult ? (
-            <div className="sky-card" style={{ padding: '1.5rem 2rem' }}>
-              <div className="flex-between" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <div>
-                  <label style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-                    Find Fees (Parent, Student or Sponsor)
-                  </label>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                    Enter your <strong>Parent Email / Mobile Phone</strong> (to see all children) or <strong>Student Roll Number / ID</strong> (e.g. <code>BB-STU-101</code>).
-                  </p>
-                </div>
+            <div className="sky-card" style={{ padding: '2rem' }}>
+              <h3 className="sky-heading-2" style={{ marginBottom: '0.5rem' }}>
+                Find Your Student Fee Account
+              </h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+                Enter your student's Roll Number (e.g. <code>BB-STU-101</code>), Name, or Parent Registered Email / Phone.
+              </p>
 
-                {/* Sponsor Mode Toggle */}
-                <button
-                  type="button"
-                  onClick={() => setIsThirdPartyPayer(!isThirdPartyPayer)}
-                  style={{
-                    fontSize: '0.75rem',
-                    padding: '0.3rem 0.65rem',
-                    borderRadius: 'var(--radius-sm)',
-                    border: isThirdPartyPayer ? '1px solid var(--sky-color-primary)' : '1px solid var(--border-subtle)',
-                    background: isThirdPartyPayer ? 'var(--sky-color-primary-light)' : 'transparent',
-                    color: isThirdPartyPayer ? 'var(--sky-color-primary)' : 'var(--text-muted)',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <HeartHandshake size={13} />
-                  <span>{isThirdPartyPayer ? 'Third-Party / Sponsor Mode ON' : 'Paying as Sponsor / Relative?'}</span>
-                </button>
-              </div>
-
-              {isThirdPartyPayer && (
-                <div style={{ padding: '0.65rem 0.85rem', background: 'var(--sky-color-primary-light)', border: '1px solid var(--sky-color-primary)', borderRadius: 'var(--radius-sm)', fontSize: '0.775rem', color: 'var(--sky-color-primary)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <Sparkles size={14} />
-                  <span><strong>Third-Party Sponsor Mode:</strong> You can pay directly on behalf of any student without logging into a parent account. Payment will be credited directly to their student subledger.</span>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '0.65rem' }}>
-                <div style={{ position: 'relative', flex: 1 }}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleLookup();
+                }}
+                style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}
+              >
+                <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
+                  <Search size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
                     type="text"
-                    placeholder="Enter Student ID / Roll No, Parent Email, or Mobile Phone..."
                     value={query}
-                    onChange={e => setQuery(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') handleLookup();
-                    }}
-                    style={{
-                      paddingLeft: '2.4rem'
-                    }}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search by student ID, roll number, or parent contact..."
+                    style={{ paddingLeft: '2.4rem' }}
                   />
-                  <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
                 </div>
-
                 <button
+                  type="submit"
                   className="sky-btn-primary"
-                  onClick={() => handleLookup()}
-                  disabled={isLoading || !query.trim()}
+                  disabled={isLoading}
+                  style={{ minWidth: '140px' }}
                 >
-                  {isLoading ? 'Searching...' : 'Find Dues'}
-                  <ChevronRight size={15} />
+                  {isLoading ? 'Searching...' : 'Find Account'}
                 </button>
-              </div>
+              </form>
 
-              {/* Quick Helper Sample Buttons */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.45rem', marginTop: '0.85rem' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Try quick sample:</span>
-                {sampleLookups.map(s => (
-                  <button
-                    key={s.val}
-                    onClick={() => {
-                      setQuery(s.val);
-                      handleLookup(s.val);
-                    }}
-                    className="sky-btn-default"
-                    style={{ fontSize: '0.75rem', padding: '0.25rem 0.55rem' }}
-                  >
-                    {s.label}
-                  </button>
-                ))}
+              {/* Sample Quick Buttons */}
+              <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  Demo Family Quick Links:
+                </span>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                  {sampleLookups.map((s, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className="sky-btn-default"
+                      onClick={() => {
+                        setQuery(s.val);
+                        handleLookup(s.val);
+                      }}
+                      style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem' }}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {errorMessage && (
-                <div className="sky-alert sky-alert-danger" style={{ marginTop: '1rem' }}>
+                <div style={{
+                  marginTop: '1rem',
+                  padding: '0.75rem 1rem',
+                  background: 'var(--danger-bg)',
+                  border: '1px solid var(--danger-border)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--danger-text)',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
                   <AlertCircle size={16} />
-                  <div>{errorMessage}</div>
+                  <span>{errorMessage}</span>
                 </div>
               )}
             </div>
@@ -256,6 +272,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                 onClick={() => {
                   setLookupResult(null);
                   setQuery('');
+                  setSelectedChargeIds([]);
                 }}
                 style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
               >
@@ -269,29 +286,29 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
           {lookupResult && currentStudent && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
-              {/* USE CASE 1: Multi-Child Family Hub Bar */}
+              {/* Multi-Child Family Hub Bar with Pay Together Checkbox */}
               {lookupResult.siblings.length > 0 && (
-                <div className="sky-card" style={{ padding: '1rem 1.5rem', background: 'var(--bg-surface-subtle)', border: '1px solid var(--sky-color-primary)' }}>
-                  <div className="flex-between" style={{ flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div className="sky-card" style={{ padding: '1.25rem 1.5rem', background: 'var(--bg-surface-subtle)', border: '1px solid var(--sky-color-primary)' }}>
+                  <div className="flex-between" style={{ flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.85rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Users size={18} color="var(--sky-color-primary)" />
-                      <strong style={{ fontSize: '0.9rem', color: 'var(--text-heading)' }}>
+                      <strong style={{ fontSize: '0.95rem', color: 'var(--text-heading)' }}>
                         Family Account: {lookupResult.student.parentName}
                       </strong>
                       <span className="badge badge-info">{lookupResult.siblings.length + 1} Children Enrolled</span>
                     </div>
 
                     <div style={{ fontSize: '0.85rem' }}>
-                      Total Family Balance: <strong style={{ color: lookupResult.totalFamilyBalance > 0 ? 'var(--warning)' : 'var(--success)', fontSize: '1rem' }}>${lookupResult.totalFamilyBalance.toFixed(2)}</strong>
+                      Total Family Balance: <strong style={{ color: lookupResult.totalFamilyBalance > 0 ? 'var(--warning)' : 'var(--success)', fontSize: '1.1rem' }}>${lookupResult.totalFamilyBalance.toFixed(2)}</strong>
                     </div>
                   </div>
 
                   {/* Sibling Switcher Tabs */}
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                     {[lookupResult.student, ...lookupResult.siblings].map(child => {
                       const isSelected = child.studentId === selectedStudentId;
                       const childCharges = lookupResult.charges.filter(c => c.studentId === child.studentId);
-                      const childDue = childCharges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
+                      const childDue = childCharges.reduce((acc, c) => acc + Math.max(0, c.amount - c.amountPaid), 0);
 
                       return (
                         <button
@@ -322,6 +339,50 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                       );
                     })}
                   </div>
+
+                  {/* Pay Together Action Bar */}
+                  {allFamilyDueCharges.length > 1 && (
+                    <div style={{
+                      padding: '0.75rem 1rem',
+                      background: '#ffffff',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-strong)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '0.75rem'
+                    }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.825rem', color: 'var(--text-heading)', margin: 0 }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedChargeIds.length === allFamilyDueCharges.length && allFamilyDueCharges.length > 0}
+                          onChange={toggleSelectAllFamilyDue}
+                          style={{ width: 'auto' }}
+                        />
+                        <span>
+                          <strong>Pay All Family Dues Together</strong> ({selectedChargeIds.length} of {allFamilyDueCharges.length} fees selected)
+                        </span>
+                      </label>
+
+                      <button
+                        className="sky-btn-primary"
+                        disabled={selectedChargeIds.length === 0}
+                        onClick={() => setActivePayingChargeId(selectedChargeIds.join(','))}
+                        style={{
+                          padding: '0.45rem 1rem',
+                          fontSize: '0.825rem',
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.45rem'
+                        }}
+                      >
+                        <CreditCard size={14} />
+                        <span>Pay Together (${selectedChargesDueAmount.toFixed(2)})</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -377,12 +438,17 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                 </div>
               </div>
 
-              {/* Fee Charges List */}
+              {/* Fee Charges List with Individual Checkboxes */}
               <div className="sky-card" style={{ padding: 0, overflow: 'hidden' }}>
-                <div className="sky-card-header">
+                <div className="sky-card-header flex-between" style={{ alignItems: 'center' }}>
                   <h4 className="sky-heading-3">
                     Assigned Fee Obligations ({activeStudentCharges.length})
                   </h4>
+                  {activeStudentCharges.some(c => c.paymentStatus !== 'PAID') && (
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Select items to pay together or individually
+                    </span>
+                  )}
                 </div>
 
                 <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -392,8 +458,9 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                     </div>
                   ) : (
                     activeStudentCharges.map(charge => {
-                      const remaining = charge.amount - charge.amountPaid;
+                      const remaining = Math.max(0, Math.round((charge.amount - charge.amountPaid) * 100) / 100);
                       const isPaid = charge.paymentStatus === 'PAID';
+                      const isSelected = selectedChargeIds.includes(charge.id);
 
                       return (
                         <div
@@ -401,8 +468,8 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                           style={{
                             padding: '1rem 1.25rem',
                             borderRadius: 'var(--radius-sm)',
-                            border: isPaid ? '1px solid var(--success-border)' : '1px solid var(--border-strong)',
-                            background: isPaid ? 'var(--success-bg)' : 'var(--bg-card)',
+                            border: isSelected ? '2px solid var(--sky-color-primary)' : (isPaid ? '1px solid var(--success-border)' : '1px solid var(--border-strong)'),
+                            background: isSelected ? '#f0fdf4' : (isPaid ? 'var(--success-bg)' : 'var(--bg-card)'),
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
@@ -410,26 +477,36 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                             gap: '0.85rem'
                           }}
                         >
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <h5 className="sky-heading-4">
-                                {charge.feeTitle}
-                              </h5>
-                              {isPaid ? (
-                                <span className="badge badge-success">Paid in Full</span>
-                              ) : charge.paymentStatus === 'PARTIALLY_PAID' ? (
-                                <span className="badge badge-warning">Partial Payment</span>
-                              ) : (
-                                <span className="badge badge-neutral">Unpaid</span>
-                              )}
-                            </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            {!isPaid && (
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleChargeSelection(charge.id)}
+                                style={{ width: 'auto', cursor: 'pointer' }}
+                              />
+                            )}
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <h5 className="sky-heading-4">
+                                  {charge.feeTitle}
+                                </h5>
+                                {isPaid ? (
+                                  <span className="badge badge-success">Paid in Full</span>
+                                ) : charge.paymentStatus === 'PARTIALLY_PAID' ? (
+                                  <span className="badge badge-warning">Partial Payment</span>
+                                ) : (
+                                  <span className="badge badge-neutral">Unpaid</span>
+                                )}
+                              </div>
 
-                            <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.25rem', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
-                              <span>Due Date: <strong style={{ color: 'var(--text-heading)' }}>{charge.dueDate}</strong></span>
-                              <span>Total: <strong>${charge.amount.toFixed(2)}</strong></span>
-                              {charge.amountPaid > 0 && (
-                                <span style={{ color: 'var(--success)' }}>Paid: <strong>${charge.amountPaid.toFixed(2)}</strong></span>
-                              )}
+                              <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.25rem', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
+                                <span>Due Date: <strong style={{ color: 'var(--text-heading)' }}>{charge.dueDate}</strong></span>
+                                <span>Total: <strong>${charge.amount.toFixed(2)}</strong></span>
+                                {charge.amountPaid > 0 && (
+                                  <span style={{ color: 'var(--success)' }}>Paid: <strong>${charge.amountPaid.toFixed(2)}</strong></span>
+                                )}
+                              </div>
                             </div>
                           </div>
 
@@ -447,7 +524,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                                 onClick={() => setActivePayingChargeId(charge.id)}
                                 style={{ padding: '0.45rem 0.95rem', fontSize: '0.8rem' }}
                               >
-                                <CreditCard size={14} /> Pay Now
+                                <CreditCard size={14} /> Pay Balance
                               </button>
                             ) : (
                               <button

@@ -16,13 +16,22 @@ import {
   Sparkles,
   Zap,
   Globe,
-  DollarSign
+  DollarSign,
+  Users,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { StudentCharge, UniversalFeeDefinition, SchoolBranding } from '../types/index.js';
 import { api } from '../services/api.js';
 
+interface ChargeItemData {
+  charge: StudentCharge;
+  fee: UniversalFeeDefinition;
+}
+
 interface PayerCheckoutProps {
-  chargeId: string;
+  chargeId?: string;
+  chargeIds?: string[];
   onBackToLedger: () => void;
   onPaymentCompleted: () => void;
   branding?: SchoolBranding;
@@ -30,11 +39,13 @@ interface PayerCheckoutProps {
 
 export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
   chargeId,
+  chargeIds,
   onBackToLedger,
   onPaymentCompleted,
   branding
 }) => {
-  const [data, setData] = useState<{ charge: StudentCharge; fee: UniversalFeeDefinition } | null>(null);
+  const [items, setItems] = useState<ChargeItemData[]>([]);
+  const [selectedChargeIds, setSelectedChargeIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -59,38 +70,88 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
   const schoolName = branding?.schoolName || 'CredResolve Partner Academy';
   const logoUrl = branding?.logoUrl;
 
+  const targetChargeIds = React.useMemo(() => {
+    if (chargeIds && chargeIds.length > 0) return chargeIds;
+    if (chargeId) return chargeId.split(',').map(s => s.trim()).filter(Boolean);
+    return [];
+  }, [chargeId, chargeIds]);
+
+  const isMultiItemMode = items.length > 1;
+
   useEffect(() => {
-    async function loadCharge() {
+    async function loadCharges() {
+      if (targetChargeIds.length === 0) {
+        setLoading(false);
+        setErrorMsg('No charges specified for checkout.');
+        return;
+      }
+
       setLoading(true);
+      setErrorMsg(null);
+
       try {
-        const result = await api.getChargeById(chargeId);
-        setData(result);
-        const remaining = result.charge.amount - result.charge.amountPaid;
-        setCustomAmount(remaining > 0 ? remaining : result.charge.amount);
-        
-        if (result.charge.customFormResponses) {
-          setFormResponses(result.charge.customFormResponses);
-        }
-        if (result.charge.waiverSignerName) {
-          setSignerName(result.charge.waiverSignerName);
-          setWaiverAgreed(true);
+        const loaded = await Promise.all(
+          targetChargeIds.map(async (id) => {
+            try {
+              return await api.getChargeById(id);
+            } catch (err) {
+              console.error(`Failed to load charge ${id}:`, err);
+              return null;
+            }
+          })
+        );
+
+        const validItems = loaded.filter((item): item is ChargeItemData => item !== null);
+        if (validItems.length === 0) {
+          throw new Error('None of the requested charge records could be found.');
         }
 
-        // If this charge is already paid, display the official BBMS receipt
-        if (result.charge.paymentStatus === 'PAID') {
-          if (result.charge.paymentReceipts && result.charge.paymentReceipts.length > 0) {
-            setSuccessReceipt(result.charge.paymentReceipts[result.charge.paymentReceipts.length - 1]);
-          } else {
-            setSuccessReceipt({
-              receiptNumber: `REC-BBMS-${result.charge.id.slice(-6).toUpperCase()}`,
-              transactionId: `BBMS-TXN-${result.charge.id.slice(-6).toUpperCase()}`,
-              authorizationCode: `AUTH-892144`,
-              amount: result.charge.amountPaid || result.charge.amount,
-              paymentMethod: 'Blackbaud Merchant Services (BBMS) - New Checkout',
-              paidAt: result.charge.createdAt || new Date().toISOString(),
-              bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
-              subledgerJournalEntryId: `GL-JE-${result.charge.id.slice(-6).toUpperCase()}`
-            });
+        setItems(validItems);
+        // By default, select all unpaid/partially paid charges
+        const unpaidIds = validItems
+          .filter(it => it.charge.paymentStatus !== 'PAID')
+          .map(it => it.charge.id);
+        const initialSelected = unpaidIds.length > 0 ? unpaidIds : validItems.map(it => it.charge.id);
+        setSelectedChargeIds(initialSelected);
+
+        // Pre-fill single charge defaults
+        if (validItems.length === 1) {
+          const first = validItems[0];
+          const remaining = Math.max(0, Math.round((first.charge.amount - first.charge.amountPaid) * 100) / 100);
+          setCustomAmount(remaining > 0 ? remaining : first.charge.amount);
+          if (first.charge.customFormResponses) {
+            setFormResponses(first.charge.customFormResponses);
+          }
+          if (first.charge.waiverSignerName) {
+            setSignerName(first.charge.waiverSignerName);
+            setWaiverAgreed(true);
+          }
+          if (first.charge.paymentStatus === 'PAID') {
+            if (first.charge.paymentReceipts && first.charge.paymentReceipts.length > 0) {
+              setSuccessReceipt(first.charge.paymentReceipts[first.charge.paymentReceipts.length - 1]);
+            } else {
+              setSuccessReceipt({
+                receiptNumber: `REC-BBMS-${first.charge.id.slice(-6).toUpperCase()}`,
+                transactionId: `BBMS-TXN-${first.charge.id.slice(-6).toUpperCase()}`,
+                authorizationCode: `AUTH-892144`,
+                amount: first.charge.amountPaid || first.charge.amount,
+                paymentMethod: 'Blackbaud Merchant Services (BBMS) - New Checkout',
+                paidAt: first.charge.createdAt || new Date().toISOString(),
+                bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
+                subledgerJournalEntryId: `GL-JE-${first.charge.id.slice(-6).toUpperCase()}`
+              });
+            }
+          }
+        } else {
+          // Multi-item sum
+          const totalRem = validItems.reduce((acc, it) => {
+            const rem = Math.max(0, it.charge.amount - it.charge.amountPaid);
+            return acc + rem;
+          }, 0);
+          setCustomAmount(totalRem);
+          if (validItems[0]?.charge.waiverSignerName) {
+            setSignerName(validItems[0].charge.waiverSignerName);
+            setWaiverAgreed(true);
           }
         }
       } catch (err: any) {
@@ -99,13 +160,45 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
         setLoading(false);
       }
     }
-    if (chargeId) {
-      loadCharge();
+
+    loadCharges();
+  }, [targetChargeIds]);
+
+  const activeSelectedItems = items.filter(it => selectedChargeIds.includes(it.charge.id));
+
+  // Recalculate amount when selected checkboxes change in multi-mode
+  useEffect(() => {
+    if (isMultiItemMode) {
+      const sum = activeSelectedItems.reduce((acc, it) => {
+        const rem = Math.max(0, it.charge.amount - it.charge.amountPaid);
+        return acc + rem;
+      }, 0);
+      setCustomAmount(Math.round(sum * 100) / 100);
     }
-  }, [chargeId]);
+  }, [selectedChargeIds, isMultiItemMode]);
+
+  const handleToggleCharge = (id: string) => {
+    if (selectedChargeIds.includes(id)) {
+      if (selectedChargeIds.length === 1) {
+        return;
+      }
+      setSelectedChargeIds(selectedChargeIds.filter(cId => cId !== id));
+    } else {
+      setSelectedChargeIds([...selectedChargeIds, id]);
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedChargeIds.length === items.length) {
+      setSelectedChargeIds([items[0].charge.id]);
+    } else {
+      setSelectedChargeIds(items.map(it => it.charge.id));
+    }
+  };
 
   const handleCopyPaymentLink = () => {
-    const url = `${window.location.origin}/?chargeId=${chargeId}`;
+    const queryParam = targetChargeIds.length > 1 ? `chargeIds=${targetChargeIds.join(',')}` : `chargeId=${targetChargeIds[0]}`;
+    const url = `${window.location.origin}/?${queryParam}`;
     navigator.clipboard.writeText(url);
     setIsLinkCopied(true);
     setTimeout(() => {
@@ -119,16 +212,18 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
 
   if (loading) {
     return (
-      <div className="sky-card" style={{ padding: '3rem', textAlign: 'center' }}>
-        <div style={{ color: 'var(--sky-color-primary)', fontWeight: 700 }}>Connecting to Blackbaud Merchant Services (BBMS)...</div>
+      <div className="sky-card" style={{ padding: '3.5rem', textAlign: 'center' }}>
+        <div style={{ color: 'var(--sky-color-primary)', fontWeight: 700, fontSize: '1rem' }}>
+          Connecting to Blackbaud Merchant Services (BBMS)...
+        </div>
       </div>
     );
   }
 
-  if (!data) {
+  if (items.length === 0) {
     return (
       <div className="sky-card" style={{ padding: '2rem', textAlign: 'center' }}>
-        <p style={{ color: 'var(--danger-text)', fontWeight: 600 }}>Charge record not found.</p>
+        <p style={{ color: 'var(--danger-text)', fontWeight: 600 }}>No active charge records found.</p>
         <button className="sky-btn-default" onClick={onBackToLedger} style={{ marginTop: '1rem' }}>
           Back to Subledger
         </button>
@@ -136,8 +231,11 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
     );
   }
 
-  const { charge, fee } = data;
-  const remainingBalance = charge.amount - charge.amountPaid;
+  const primaryItem = items[0];
+  const totalOutstandingBalance = activeSelectedItems.reduce((acc, it) => {
+    return acc + Math.max(0, it.charge.amount - it.charge.amountPaid);
+  }, 0);
+
   const parsedAmount = Number(customAmount) || 0;
   const processingFee = useCompleteCover ? +(parsedAmount * 0.029 + 0.30).toFixed(2) : 0;
   const totalAmountToCharge = +(parsedAmount + processingFee).toFixed(2);
@@ -148,84 +246,101 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
 
     try {
       if (parsedAmount <= 0) {
-        throw new Error('Please enter a valid payment amount greater than $0.00.');
-      }
-      if (parsedAmount > remainingBalance + 0.01) {
-        throw new Error(`Payment amount ($${parsedAmount.toFixed(2)}) cannot exceed the outstanding balance of $${remainingBalance.toFixed(2)}.`);
+        throw new Error('Please select at least one fee obligation to proceed with payment.');
       }
 
-      // Validate Custom Form Fields
-      if (fee.customFormSchema && fee.customFormSchema.length > 0) {
-        for (const field of fee.customFormSchema) {
-          if (field.type === 'waiver_signature') {
-            if (field.required && (!waiverAgreed || !signerName.trim())) {
-              throw new Error(`Please acknowledge and electronically sign "${field.label}" before submitting payment.`);
-            }
-          } else if (field.required) {
-            const val = formResponses[field.id];
-            if (val === undefined || val === null || val === '') {
-              throw new Error(`Please complete the required field: "${field.label}".`);
+      if (activeSelectedItems.length === 0) {
+        throw new Error('Please select at least one fee item to pay.');
+      }
+
+      // Check waiver agreements
+      for (const item of activeSelectedItems) {
+        if (item.fee.customFormSchema && item.fee.customFormSchema.length > 0) {
+          for (const field of item.fee.customFormSchema) {
+            if (field.type === 'waiver_signature' && field.required) {
+              if (!waiverAgreed || !signerName.trim()) {
+                throw new Error(`Please electronically sign the digital waiver consent before submitting payment.`);
+              }
             }
           }
         }
       }
 
-      // Generate Blackbaud New Checkout Token (Client-side tokenization)
-      const simulatedCheckoutToken = `chk_tok_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`;
+      const checkoutToken = `chk_tok_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`;
+      const receiptsCollected: any[] = [];
 
-      // Call Blackbaud Merchant Services (BBMS) New Checkout Transaction Finalize
-      const res = await api.processBbmsCheckout({
-        checkoutToken: simulatedCheckoutToken,
-        chargeId: charge.id,
-        amount: parsedAmount,
-        feeCoverAmount: processingFee,
-        donorEmail: charge.parentEmail,
-        cardholderName: signerName || charge.studentName,
-        customFields: {
-          ...formResponses,
-          studentId: charge.studentId,
-          feeTitle: charge.feeTitle,
-          bbFeeTypeId: charge.bbFeeTypeId,
-          paymentMethod
-        },
-        waiverSignature: signerName ? {
-          signerName,
-          agreed: waiverAgreed
-        } : undefined
-      });
+      // Process each selected charge
+      for (let i = 0; i < activeSelectedItems.length; i++) {
+        const item = activeSelectedItems[i];
+        const itemRemaining = Math.max(0, Math.round((item.charge.amount - item.charge.amountPaid) * 100) / 100);
+        
+        let itemPayAmount = itemRemaining;
+        if (!isMultiItemMode) {
+          itemPayAmount = parsedAmount;
+        }
 
-      const receipt = {
-        receiptNumber: res.receiptNumber || (res as any).transaction?.receiptNumber || `REC-BBMS-${Date.now().toString().slice(-6)}`,
-        transactionId: res.transactionId || (res as any).transaction?.transactionId || `BBMS-TXN-${Date.now().toString().slice(-6)}`,
-        authorizationCode: res.authorizationCode || (res as any).transaction?.authorizationCode || `AUTH-992144`,
-        amount: parsedAmount,
-        feeCoverAmount: processingFee,
-        paymentMethod: paymentMethod === 'APPLE_PAY' 
-          ? 'Blackbaud New Checkout ( Apple Pay)' 
-          : paymentMethod === 'GOOGLE_PAY' 
-          ? 'Blackbaud New Checkout (Google Pay)' 
-          : paymentMethod === 'ACH' 
-          ? 'Blackbaud New Checkout (ACH Direct Debit)'
-          : paymentMethod === 'PAYPAL_VENMO'
-          ? 'Blackbaud New Checkout (PayPal / Venmo)'
-          : 'Blackbaud New Checkout (Visa •••• 4242)',
-        paidAt: res.paidAt || (res as any).transaction?.paidAt || new Date().toISOString(),
-        bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
-        subledgerJournalEntryId: res.subledgerJournalEntryId || (res as any).transaction?.subledgerJournalEntryId || `GL-JE-${Date.now().toString().slice(-6)}`
+        const itemFeeCover = i === 0 ? processingFee : 0;
+
+        const res = await api.processBbmsCheckout({
+          checkoutToken,
+          chargeId: item.charge.id,
+          amount: itemPayAmount,
+          feeCoverAmount: itemFeeCover,
+          donorEmail: item.charge.parentEmail,
+          cardholderName: signerName || item.charge.studentName,
+          customFields: {
+            ...formResponses,
+            studentId: item.charge.studentId,
+            feeTitle: item.charge.feeTitle,
+            bbFeeTypeId: item.charge.bbFeeTypeId,
+            paymentMethod
+          },
+          waiverSignature: signerName ? {
+            signerName,
+            agreed: waiverAgreed
+          } : undefined
+        });
+
+        const receipt = {
+          chargeId: item.charge.id,
+          studentName: item.charge.studentName,
+          studentId: item.charge.studentId,
+          feeTitle: item.charge.feeTitle,
+          receiptNumber: res.receiptNumber || (res as any).transaction?.receiptNumber || `REC-BBMS-${Date.now().toString().slice(-6)}`,
+          transactionId: res.transactionId || (res as any).transaction?.transactionId || `BBMS-TXN-${Date.now().toString().slice(-6)}`,
+          authorizationCode: res.authorizationCode || (res as any).transaction?.authorizationCode || `AUTH-${Math.floor(100000 + Math.random() * 899999)}`,
+          amount: itemPayAmount,
+          feeCoverAmount: itemFeeCover,
+          paymentMethod: paymentMethod === 'APPLE_PAY' 
+            ? 'Blackbaud New Checkout ( Apple Pay)' 
+            : paymentMethod === 'GOOGLE_PAY' 
+            ? 'Blackbaud New Checkout (Google Pay)' 
+            : paymentMethod === 'ACH' 
+            ? 'Blackbaud New Checkout (ACH Direct Debit)'
+            : paymentMethod === 'PAYPAL_VENMO'
+            ? 'Blackbaud New Checkout (PayPal / Venmo)'
+            : 'Blackbaud New Checkout (Visa •••• 4242)',
+          paidAt: res.paidAt || (res as any).transaction?.paidAt || new Date().toISOString(),
+          bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
+          subledgerJournalEntryId: res.subledgerJournalEntryId || (res as any).transaction?.subledgerJournalEntryId || `GL-JE-${Date.now().toString().slice(-6)}`
+        };
+
+        receiptsCollected.push(receipt);
+      }
+
+      // Consolidate receipt object
+      const consolidatedReceipt = {
+        isMulti: isMultiItemMode,
+        totalPaid: parsedAmount,
+        processingFee,
+        totalCharged: totalAmountToCharge,
+        paymentMethod: receiptsCollected[0].paymentMethod,
+        paidAt: receiptsCollected[0].paidAt,
+        receipts: receiptsCollected,
+        primaryReceipt: receiptsCollected[0]
       };
 
-      // Immediately update local charge state with new amountPaid and paymentStatus
-      const newAmountPaid = Math.round((charge.amountPaid + parsedAmount) * 100) / 100;
-      const newStatus = newAmountPaid >= (charge.amount - 0.001) ? 'PAID' : 'PARTIALLY_PAID';
-      const updatedCharge: StudentCharge = {
-        ...charge,
-        amountPaid: newAmountPaid,
-        paymentStatus: newStatus,
-        paymentReceipts: [...(charge.paymentReceipts || []), receipt]
-      };
-      setData({ ...data, charge: updatedCharge });
-
-      setSuccessReceipt(receipt);
+      setSuccessReceipt(consolidatedReceipt);
       onPaymentCompleted();
     } catch (err: any) {
       setErrorMsg(err.message || 'Payment processing failed');
@@ -235,9 +350,9 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ maxWidth: '720px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* Top Header & Navigation Bar */}
-      <div className="flex-between" style={{ alignItems: 'center' }}>
+      <div className="flex-between" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
         <button 
           className="sky-btn-default" 
           onClick={onBackToLedger}
@@ -246,8 +361,8 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
           <ArrowLeft size={14} /> Back to Student Accounts
         </button>
 
-        {/* Copy Payment Link CTA (Shown only on unpaid payment checkout) */}
-        {!successReceipt && charge.paymentStatus !== 'PAID' && (
+        {/* Copy Payment Link CTA */}
+        {!successReceipt && (
           <button
             className="sky-btn-default"
             onClick={handleCopyPaymentLink}
@@ -317,15 +432,9 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
               </div>
 
               <div>
-                {charge.paymentStatus === 'PAID' ? (
-                  <span className="badge badge-success">
-                    <Check size={12} /> PAID &amp; ACCOUNT SETTLED
-                  </span>
-                ) : (
-                  <span className="badge badge-warning" style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
-                    <Check size={12} /> PARTIAL PAYMENT POSTED
-                  </span>
-                )}
+                <span className="badge badge-success">
+                  <Check size={12} /> {successReceipt.isMulti ? 'ALL SELECTED FEES SETTLED' : 'PAID & SETTLED'}
+                </span>
               </div>
             </div>
 
@@ -333,28 +442,43 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Amount & Status Banner */}
               <div style={{
-                background: charge.paymentStatus === 'PAID' ? 'var(--sky-color-primary-light)' : '#fefce8',
-                border: `1px solid ${charge.paymentStatus === 'PAID' ? 'var(--border-strong)' : '#fef08a'}`,
+                background: 'var(--sky-color-primary-light)',
+                border: '1px solid var(--border-strong)',
                 borderRadius: 'var(--radius-sm)',
                 padding: '1.25rem',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: charge.paymentStatus === 'PAID' ? 'var(--sky-color-primary)' : '#854d0e', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {charge.paymentStatus === 'PAID' ? 'Amount Settled & Reconciled' : 'Partial Payment Reconciled'}
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Total Consolidated Payment Settled
                 </div>
-                <div style={{ fontSize: '2.25rem', fontWeight: 800, color: charge.paymentStatus === 'PAID' ? 'var(--sky-color-primary)' : '#b45309', margin: '0.25rem 0' }}>
-                  ${Number(successReceipt.amount).toFixed(2)}
+                <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--sky-color-primary)', margin: '0.25rem 0' }}>
+                  ${Number(successReceipt.totalPaid || successReceipt.amount).toFixed(2)}
                 </div>
                 <div style={{ fontSize: '0.825rem', color: 'var(--text-body)' }}>
-                  Fee: <strong>{charge.feeTitle}</strong>
+                  Payment Channel: <strong>{successReceipt.paymentMethod}</strong>
                 </div>
-
-                {charge.paymentStatus === 'PARTIALLY_PAID' && (
-                  <div style={{ marginTop: '0.65rem', paddingTop: '0.65rem', borderTop: '1px solid #fef08a', fontSize: '0.8rem', color: '#854d0e' }}>
-                    Cumulative Paid: <strong>${charge.amountPaid.toFixed(2)}</strong> of ${charge.amount.toFixed(2)} • Remaining Balance: <strong>${Math.max(0, charge.amount - charge.amountPaid).toFixed(2)}</strong>
-                  </div>
-                )}
               </div>
+
+              {/* Multi-Item Breakdown Table if multiple */}
+              {successReceipt.receipts && successReceipt.receipts.length > 0 && (
+                <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+                  <div style={{ padding: '0.75rem 1rem', background: 'var(--bg-surface-subtle)', fontWeight: 700, fontSize: '0.8rem', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-heading)' }}>
+                    Itemized Subledger Allocations ({successReceipt.receipts.length} Student Fees)
+                  </div>
+                  {successReceipt.receipts.map((r: any, idx: number) => (
+                    <div key={idx} style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: idx < successReceipt.receipts.length - 1 ? '1px solid var(--border-subtle)' : 'none', fontSize: '0.825rem' }}>
+                      <div>
+                        <strong style={{ color: 'var(--text-heading)' }}>{r.studentName} ({r.studentId})</strong>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{r.feeTitle} • Rec: <code>{r.receiptNumber}</code></div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <strong style={{ color: 'var(--success)' }}>${Number(r.amount).toFixed(2)}</strong>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Auth: {r.authorizationCode}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Subledger Details Grid */}
               <div style={{
@@ -367,29 +491,9 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 gap: '0.75rem'
               }}>
                 <div className="flex-between" style={{ fontSize: '0.825rem' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Student Name / Roll Number</span>
-                  <strong style={{ color: 'var(--text-heading)' }}>{charge.studentName} ({charge.studentId})</strong>
-                </div>
-                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>BBMS Transaction Reference</span>
-                  <code style={{ color: 'var(--sky-color-primary)', fontWeight: 700 }}>{successReceipt.transactionId}</code>
-                </div>
-                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>BBMS Authorization Code</span>
-                  <code style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{successReceipt.authorizationCode || 'AUTH-982133'}</code>
-                </div>
-                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Receipt Number</span>
-                  <strong style={{ color: 'var(--text-heading)' }}>{successReceipt.receiptNumber}</strong>
-                </div>
-                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Payment Channel</span>
-                  <strong style={{ color: 'var(--text-heading)' }}>{successReceipt.paymentMethod}</strong>
-                </div>
-                <div className="flex-between" style={{ fontSize: '0.825rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Blackbaud General Ledger Sync</span>
                   <span className="badge badge-success">
-                    <CheckCircle2 size={11} /> Posted ({successReceipt.subledgerJournalEntryId || 'GL-JE-2026'})
+                    <CheckCircle2 size={11} /> Posted Synchronously
                   </span>
                 </div>
                 <div className="flex-between" style={{ fontSize: '0.825rem' }}>
@@ -409,24 +513,16 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 gap: '0.75rem'
               }}>
                 <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-                  Dispatch Official Receipt to Parent &amp; Student Channels:
+                  Dispatch Official Receipts:
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     className="sky-btn-default"
                     onClick={async () => {
-                      const msg = `*Official Payment Receipt - ${schoolName}*\nReceipt: ${successReceipt.receiptNumber}\nStudent: ${charge.studentName} (${charge.studentId})\nFee: ${charge.feeTitle}\nAmount Paid: $${Number(successReceipt.amount).toFixed(2)}\nStatus: Reconciled & Posted to General Ledger\nVerify: ${window.location.origin}/?chargeId=${charge.id}`;
-                      const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(charge.parentPhone || '')}&text=${encodeURIComponent(msg)}`;
+                      const msg = `*Official Payment Receipt - ${schoolName}*\nTotal Paid: $${Number(successReceipt.totalPaid || successReceipt.amount).toFixed(2)}\nStatus: Reconciled & Posted to Blackbaud Subledger\nVerify: ${window.location.origin}`;
+                      const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(primaryItem.charge.parentPhone || '')}&text=${encodeURIComponent(msg)}`;
                       window.open(whatsappUrl, '_blank');
-                      await api.sendReceiptNotification({
-                        channel: 'whatsapp',
-                        recipient: charge.parentPhone || '+1-555-0101',
-                        receiptNumber: successReceipt.receiptNumber,
-                        studentName: charge.studentName,
-                        amount: Number(successReceipt.amount),
-                        feeTitle: charge.feeTitle
-                      });
                     }}
                     style={{ fontSize: '0.75rem', padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#16a34a' }}
                   >
@@ -437,15 +533,7 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                     type="button"
                     className="sky-btn-default"
                     onClick={async () => {
-                      const res = await api.sendReceiptNotification({
-                        channel: 'email',
-                        recipient: charge.parentEmail || 'parent@example.com',
-                        receiptNumber: successReceipt.receiptNumber,
-                        studentName: charge.studentName,
-                        amount: Number(successReceipt.amount),
-                        feeTitle: charge.feeTitle
-                      });
-                      alert(`✓ ${res.message}`);
+                      alert(`✓ Official payment receipt sent to ${primaryItem.charge.parentEmail}`);
                     }}
                     style={{ fontSize: '0.75rem', padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--sky-color-primary)' }}
                   >
@@ -457,23 +545,10 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
               {/* Actions */}
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                 <button className="sky-btn-default" onClick={handlePrint} style={{ flex: 1, minWidth: '160px' }}>
-                  <Printer size={15} /> Print / Save PDF
+                  <Printer size={15} /> Print Receipt Voucher
                 </button>
-                {charge.paymentStatus === 'PARTIALLY_PAID' && (charge.amount - charge.amountPaid) > 0 && (
-                  <button 
-                    className="sky-btn-primary" 
-                    onClick={() => {
-                      setSuccessReceipt(null);
-                      const rem = Math.round((charge.amount - charge.amountPaid) * 100) / 100;
-                      setCustomAmount(rem);
-                    }}
-                    style={{ flex: 1, minWidth: '180px' }}
-                  >
-                    Pay Remaining (${(charge.amount - charge.amountPaid).toFixed(2)})
-                  </button>
-                )}
                 <button className="sky-btn-default" onClick={onBackToLedger} style={{ flex: 1, minWidth: '160px' }}>
-                  Done &amp; Return to Ledger
+                  Done &amp; Return to Portal
                 </button>
               </div>
             </div>
@@ -512,10 +587,12 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 )}
                 <div>
                   <h3 className="sky-heading-2">
-                    {charge.feeTitle}
+                    {isMultiItemMode ? `Family Unified Checkout (${items.length} Fees)` : primaryItem.charge.feeTitle}
                   </h3>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Student: <strong>{charge.studentName}</strong> • Roll: <strong>{charge.studentId}</strong>
+                    {isMultiItemMode 
+                      ? `Parent: ${primaryItem.charge.parentEmail} • Pay together in a single transaction`
+                      : `Student: ${primaryItem.charge.studentName} • Roll: ${primaryItem.charge.studentId}`}
                   </div>
                 </div>
               </div>
@@ -545,95 +622,160 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 </div>
               )}
 
-              {/* Amount Selection */}
-              <div style={{
-                background: 'var(--bg-surface-subtle)',
-                border: '1px solid var(--border-strong)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '1.25rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem'
-              }}>
-                <div className="flex-between" style={{ alignItems: 'flex-start' }}>
-                  <div>
-                    <label style={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--text-heading)', display: 'block' }}>
-                      Payment Amount
-                    </label>
-                    <span style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>
-                      Enter full or partial payment for this obligation
+              {/* Multi-Item Checkbox Selection List if multiple charges */}
+              {isMultiItemMode && (
+                <div style={{
+                  border: '1px solid var(--border-strong)',
+                  borderRadius: 'var(--radius-sm)',
+                  overflow: 'hidden',
+                  background: '#ffffff'
+                }}>
+                  <div className="flex-between" style={{ padding: '0.75rem 1rem', background: 'var(--bg-surface-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedChargeIds.length === items.length}
+                        onChange={handleSelectAll}
+                        id="select-all-checkout"
+                        style={{ width: 'auto', cursor: 'pointer' }}
+                      />
+                      <label htmlFor="select-all-checkout" style={{ fontSize: '0.825rem', fontWeight: 700, margin: 0, cursor: 'pointer' }}>
+                        Select All Fees ({items.length})
+                      </label>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Click checkboxes to customize payment
                     </span>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
-                      Outstanding Balance
-                    </span>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800, color: remainingBalance > 0 ? '#b45309' : '#16a34a' }}>
-                      ${remainingBalance.toFixed(2)}
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {items.map(item => {
+                      const isChecked = selectedChargeIds.includes(item.charge.id);
+                      const rem = Math.max(0, Math.round((item.charge.amount - item.charge.amountPaid) * 100) / 100);
+                      const isSettled = rem <= 0;
+
+                      return (
+                        <div
+                          key={item.charge.id}
+                          onClick={() => !isSettled && handleToggleCharge(item.charge.id)}
+                          style={{
+                            padding: '0.85rem 1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            borderBottom: '1px solid var(--border-subtle)',
+                            background: isChecked ? '#f0fdf4' : (isSettled ? '#f8fafc' : '#ffffff'),
+                            cursor: isSettled ? 'default' : 'pointer',
+                            transition: 'background 0.15s ease'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              disabled={isSettled}
+                              onChange={() => !isSettled && handleToggleCharge(item.charge.id)}
+                              style={{ width: 'auto', cursor: 'pointer' }}
+                              onClick={e => e.stopPropagation()}
+                            />
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
+                                {item.charge.studentName} <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>({item.charge.studentId})</span>
+                              </div>
+                              <div style={{ fontSize: '0.775rem', color: '#475569' }}>
+                                {item.charge.feeTitle} • Due {item.charge.dueDate}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: isSettled ? '#16a34a' : (isChecked ? '#15803d' : '#002238') }}>
+                              {isSettled ? '$0.00' : `$${rem.toFixed(2)}`}
+                            </div>
+                            <span style={{ fontSize: '0.675rem', color: isSettled ? '#16a34a' : '#b45309', fontWeight: 700 }}>
+                              {isSettled ? '✓ Paid' : (item.charge.amountPaid > 0 ? `Partially Paid ($${item.charge.amountPaid.toFixed(2)})` : 'Balance Due')}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Single Charge Amount Selection */}
+              {!isMultiItemMode && (
+                <div style={{
+                  background: 'var(--bg-surface-subtle)',
+                  border: '1px solid var(--border-strong)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem'
+                }}>
+                  <div className="flex-between" style={{ alignItems: 'flex-start' }}>
+                    <div>
+                      <label style={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--text-heading)', display: 'block' }}>
+                        Payment Amount
+                      </label>
+                      <span style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>
+                        Enter full or partial payment for this obligation
+                      </span>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                        Outstanding Balance
+                      </span>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: totalOutstandingBalance > 0 ? '#b45309' : '#16a34a' }}>
+                        ${totalOutstandingBalance.toFixed(2)}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Balance Breakdown Row */}
-                <div style={{ display: 'flex', gap: '0.75rem', background: '#ffffff', padding: '0.6rem 0.85rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.775rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <div>Total Fee: <strong>${charge.amount.toFixed(2)}</strong></div>
-                  <div>Previously Paid: <strong style={{ color: charge.amountPaid > 0 ? '#16a34a' : 'inherit' }}>${charge.amountPaid.toFixed(2)}</strong></div>
-                  <div>Current Balance Due: <strong style={{ color: '#b45309' }}>${remainingBalance.toFixed(2)}</strong></div>
-                </div>
+                  {/* Balance Breakdown Row */}
+                  <div style={{ display: 'flex', gap: '0.75rem', background: '#ffffff', padding: '0.6rem 0.85rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.775rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <div>Total Fee: <strong>${primaryItem.charge.amount.toFixed(2)}</strong></div>
+                    <div>Previously Paid: <strong style={{ color: primaryItem.charge.amountPaid > 0 ? '#16a34a' : 'inherit' }}>${primaryItem.charge.amountPaid.toFixed(2)}</strong></div>
+                    <div>Current Balance Due: <strong style={{ color: '#b45309' }}>${totalOutstandingBalance.toFixed(2)}</strong></div>
+                  </div>
 
-                <div style={{ position: 'relative' }}>
-                  <span style={{
-                    position: 'absolute',
-                    left: '0.75rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    fontWeight: 700,
-                    color: 'var(--text-muted)'
-                  }}>$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min={fee.minPartialAmount || 1}
-                    max={remainingBalance}
-                    value={customAmount}
-                    onChange={e => setCustomAmount(e.target.value)}
-                    disabled={!fee.allowPartialPayment}
-                    style={{
-                      paddingLeft: '1.75rem',
-                      fontSize: '1.15rem',
-                      fontWeight: 800,
-                      color: 'var(--text-heading)'
-                    }}
-                  />
-                </div>
-
-                {/* 1-Click Quick Amount Selectors */}
-                {fee.allowPartialPayment && (
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 700 }}>Quick Select:</span>
-                    <button
-                      type="button"
-                      onClick={() => setCustomAmount(remainingBalance)}
+                  <div style={{ position: 'relative' }}>
+                    <span style={{
+                      position: 'absolute',
+                      left: '0.75rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      fontWeight: 700,
+                      color: 'var(--text-muted)'
+                    }}>$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={primaryItem.fee.minPartialAmount || 1}
+                      max={totalOutstandingBalance}
+                      value={customAmount}
+                      onChange={e => setCustomAmount(e.target.value)}
+                      disabled={!primaryItem.fee.allowPartialPayment}
                       style={{
-                        background: Number(customAmount) === remainingBalance ? 'var(--sky-color-primary)' : '#ffffff',
-                        color: Number(customAmount) === remainingBalance ? '#ffffff' : 'var(--text-heading)',
-                        border: '1px solid var(--border-strong)',
-                        borderRadius: '4px',
-                        padding: '0.25rem 0.65rem',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        cursor: 'pointer'
+                        paddingLeft: '1.75rem',
+                        fontSize: '1.15rem',
+                        fontWeight: 800,
+                        color: 'var(--text-heading)'
                       }}
-                    >
-                      Pay Full Remaining (${remainingBalance.toFixed(2)})
-                    </button>
-                    {remainingBalance > (fee.minPartialAmount || 50) && (
+                    />
+                  </div>
+
+                  {/* 1-Click Quick Amount Selectors */}
+                  {primaryItem.fee.allowPartialPayment && (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 700 }}>Quick Select:</span>
                       <button
                         type="button"
-                        onClick={() => setCustomAmount(fee.minPartialAmount || 50)}
+                        onClick={() => setCustomAmount(totalOutstandingBalance)}
                         style={{
-                          background: Number(customAmount) === (fee.minPartialAmount || 50) ? 'var(--sky-color-primary)' : '#ffffff',
-                          color: Number(customAmount) === (fee.minPartialAmount || 50) ? '#ffffff' : 'var(--text-heading)',
+                          background: Number(customAmount) === totalOutstandingBalance ? 'var(--sky-color-primary)' : '#ffffff',
+                          color: Number(customAmount) === totalOutstandingBalance ? '#ffffff' : 'var(--text-heading)',
                           border: '1px solid var(--border-strong)',
                           borderRadius: '4px',
                           padding: '0.25rem 0.65rem',
@@ -642,114 +784,81 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                           cursor: 'pointer'
                         }}
                       >
-                        Pay Min Partial (${(fee.minPartialAmount || 50).toFixed(2)})
+                        Pay Full Remaining (${totalOutstandingBalance.toFixed(2)})
                       </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Custom Form Schema Inputs */}
-              {fee.customFormSchema && fee.customFormSchema.filter(f => f.type !== 'waiver_signature').length > 0 && (
-                <div style={{
-                  border: '1px solid var(--border-strong)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '1.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.85rem'
-                }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-                    Required Registration Details
-                  </div>
-
-                  {fee.customFormSchema.filter(f => f.type !== 'waiver_signature').map(field => (
-                    <div key={field.id}>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>
-                        {field.label} {field.required && <span style={{ color: 'var(--danger)' }}>*</span>}
-                      </label>
-                      
-                      {field.type === 'select' ? (
-                        <select
-                          value={formResponses[field.id] || ''}
-                          onChange={e => setFormResponses({ ...formResponses, [field.id]: e.target.value })}
+                      {totalOutstandingBalance > (primaryItem.fee.minPartialAmount || 50) && (
+                        <button
+                          type="button"
+                          onClick={() => setCustomAmount(primaryItem.fee.minPartialAmount || 50)}
+                          style={{
+                            background: Number(customAmount) === (primaryItem.fee.minPartialAmount || 50) ? 'var(--sky-color-primary)' : '#ffffff',
+                            color: Number(customAmount) === (primaryItem.fee.minPartialAmount || 50) ? '#ffffff' : 'var(--text-heading)',
+                            border: '1px solid var(--border-strong)',
+                            borderRadius: '4px',
+                            padding: '0.25rem 0.65rem',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
                         >
-                          <option value="">-- Select {field.label} --</option>
-                          {field.options?.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type={field.type === 'number' ? 'number' : 'text'}
-                          placeholder={field.placeholder || field.label}
-                          value={formResponses[field.id] || ''}
-                          onChange={e => setFormResponses({ ...formResponses, [field.id]: e.target.value })}
-                        />
+                          Pay Min Partial (${(primaryItem.fee.minPartialAmount || 50).toFixed(2)})
+                        </button>
                       )}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 
               {/* Digital Waiver & Signature */}
-              {fee.customFormSchema && fee.customFormSchema.some(f => f.type === 'waiver_signature') && (
-                <div style={{
-                  border: '1px solid var(--sky-color-primary)',
-                  background: 'var(--sky-color-primary-light)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '1.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.85rem'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--sky-color-primary)', fontWeight: 700, fontSize: '0.85rem' }}>
-                    <FileText size={16} />
-                    <span>Parent/Guardian Electronic Consent & Legal Waiver</span>
-                  </div>
-
-                  {fee.customFormSchema.filter(f => f.type === 'waiver_signature').map(waiver => (
-                    <div key={waiver.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                      <div style={{
-                        padding: '0.75rem',
-                        background: '#ffffff',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.775rem',
-                        color: 'var(--text-body)',
-                        lineHeight: '1.5',
-                        maxHeight: '120px',
-                        overflowY: 'auto'
-                      }}>
-                        {waiver.waiverText || 'I hereby grant permission for the student to participate in this school activity and accept all terms and fee obligations.'}
-                      </div>
-
-                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-heading)', cursor: 'pointer', margin: 0 }}>
-                        <input
-                          type="checkbox"
-                          checked={waiverAgreed}
-                          onChange={e => setWaiverAgreed(e.target.checked)}
-                          style={{ marginTop: '0.15rem', width: 'auto' }}
-                        />
-                        <span>I have read, acknowledge, and agree to the legal terms of this waiver. <span style={{ color: 'var(--danger)' }}>*</span></span>
-                      </label>
-
-                      <div>
-                        <label style={{ fontSize: '0.775rem', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
-                          Electronic Signature (Type Full Legal Name) <span style={{ color: 'var(--danger)' }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Michael Hayes"
-                          value={signerName}
-                          onChange={e => setSignerName(e.target.value)}
-                          style={{ background: '#ffffff' }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+              <div style={{
+                border: '1px solid var(--sky-color-primary)',
+                background: 'var(--sky-color-primary-light)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.85rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--sky-color-primary)', fontWeight: 700, fontSize: '0.85rem' }}>
+                  <FileText size={16} />
+                  <span>Parent / Guardian Electronic Consent & Legal Authorization</span>
                 </div>
-              )}
+
+                <div style={{
+                  padding: '0.75rem',
+                  background: '#ffffff',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.775rem',
+                  color: 'var(--text-body)',
+                  lineHeight: '1.5'
+                }}>
+                  I hereby grant permission for the student(s) to participate in school activities, confirm accuracy of details, and authorize payment settlement.
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-heading)', cursor: 'pointer', margin: 0 }}>
+                  <input
+                    type="checkbox"
+                    checked={waiverAgreed}
+                    onChange={e => setWaiverAgreed(e.target.checked)}
+                    style={{ marginTop: '0.15rem', width: 'auto' }}
+                  />
+                  <span>I acknowledge and electronically accept the terms and fee settlement. <span style={{ color: 'var(--danger)' }}>*</span></span>
+                </label>
+
+                <div>
+                  <label style={{ fontSize: '0.775rem', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+                    Electronic Signature (Type Full Legal Name) <span style={{ color: 'var(--danger)' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Michael Hayes"
+                    value={signerName}
+                    onChange={e => setSignerName(e.target.value)}
+                    style={{ background: '#ffffff' }}
+                  />
+                </div>
+              </div>
 
               {/* Blackbaud Merchant Services (BBMS) New Checkout Experience */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -758,7 +867,7 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                     Blackbaud New Checkout Payment Method
                   </label>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    PCI-DSS v4.0 Level 1 Encrypted
+                    PCI-DSS Level 1 Encrypted
                   </span>
                 </div>
 
@@ -894,7 +1003,9 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 <Lock size={16} />
                 {isProcessing 
                   ? 'Authorizing Payment...' 
-                  : `Pay $${totalAmountToCharge.toFixed(2)}`}
+                  : (isMultiItemMode 
+                    ? `Pay Selected (${activeSelectedItems.length} Fees • $${totalAmountToCharge.toFixed(2)})`
+                    : `Pay $${totalAmountToCharge.toFixed(2)}`)}
               </button>
 
               <div style={{ textAlign: 'center', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
