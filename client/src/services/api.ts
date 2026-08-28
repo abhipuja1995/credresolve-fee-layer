@@ -505,44 +505,30 @@ export const api = {
       throw new Error(`No student account found matching "${query}". Try searching "BB-STU-101", "michael.hayes@example.com", or "555-0101".`);
     }
 
-    // Resolve siblings
-    const siblings = DEFAULT_STUDENTS.filter(s => s.familyId === student.familyId && s.studentId !== student.studentId);
+    // Resolve siblings by matching familyId or parentEmail
+    const siblings = DEFAULT_STUDENTS.filter(s => 
+      (s.familyId === student.familyId || (student.parentEmail && s.parentEmail.toLowerCase() === student.parentEmail.toLowerCase())) &&
+      s.studentId !== student.studentId
+    );
 
-    // Resolve charges for this student and siblings
+    // Resolve charges for this student and siblings (merge defaults + localStorage)
     let allCharges = [...DEFAULT_CHARGES];
     try {
       const saved = localStorage.getItem('credresolve_charges');
       if (saved) {
-        allCharges = JSON.parse(saved);
+        const savedCharges: StudentCharge[] = JSON.parse(saved);
+        const map = new Map<string, StudentCharge>();
+        DEFAULT_CHARGES.forEach(c => map.set(c.id, c));
+        savedCharges.forEach(c => map.set(c.id, c));
+        allCharges = Array.from(map.values());
       }
     } catch (_) {}
 
     const familyIds = [student.studentId, ...siblings.map(s => s.studentId)];
-    let familyCharges = allCharges.filter(c => familyIds.includes(c.studentId));
-    if (familyCharges.length === 0) {
-      const defaultCharge: StudentCharge = {
-        id: `CHG-fee-dc-trip-2026-${student.studentId}`,
-        feeId: 'fee-dc-trip-2026',
-        feeTitle: '8th Grade Washington D.C. Educational Tour',
-        schoolId: 'bb-env-oakridge-2026',
-        studentId: student.studentId,
-        studentName: student.studentName,
-        parentEmail: student.parentEmail,
-        parentPhone: student.parentPhone,
-        bbFeeTypeId: 'FT-TRIP-03',
-        amount: 350.00,
-        amountPaid: 0.00,
-        dueDate: '2026-09-30',
-        paymentStatus: 'UNPAID',
-        bbSyncStatus: 'QUEUED',
-        paymentReceipts: [],
-        createdAt: '2026-08-01T10:00:00.000Z'
-      };
-      familyCharges = [defaultCharge];
-    }
+    const familyCharges = allCharges.filter(c => familyIds.includes(c.studentId));
 
-    const totalDue = familyCharges.filter(c => c.studentId === student.studentId).reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
-    const totalFamilyBalance = familyCharges.reduce((acc, c) => acc + (c.amount - c.amountPaid), 0);
+    const totalDue = familyCharges.filter(c => c.studentId === student.studentId).reduce((acc, c) => acc + Math.max(0, c.amount - c.amountPaid), 0);
+    const totalFamilyBalance = familyCharges.reduce((acc, c) => acc + Math.max(0, c.amount - c.amountPaid), 0);
 
     return {
       student,

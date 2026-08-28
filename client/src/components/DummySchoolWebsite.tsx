@@ -190,50 +190,7 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
   return (
     <div style={{ background: '#f8fafc', color: '#0f172a', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
       
-      {/* 1. TOP SIMULATION & COMPLIANCE BANNER */}
-      <div style={{
-        background: '#001b2e',
-        color: '#ffffff',
-        padding: '0.45rem 1.5rem',
-        fontSize: '0.775rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.12)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <span style={{ background: '#0284c7', color: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.04em' }}>
-            SIMULATION PREVIEW
-          </span>
-          <span style={{ color: '#cbd5e1' }}>
-            Interactive Demo: <strong>{schoolName}</strong> Public Portal with CredResolve SKY API Fee Layer
-          </span>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span style={{ color: '#94a3b8', fontSize: '0.725rem' }}>Bursar Office: (555) 019-2831</span>
-          <button
-            onClick={onNavigateToAdmin}
-            style={{
-              background: 'var(--sky-color-primary)',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '4px',
-              padding: '0.25rem 0.65rem',
-              fontSize: '0.725rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.3rem'
-            }}
-          >
-            <ArrowLeft size={12} /> Return to Fee Studio
-          </button>
-        </div>
-      </div>
 
       {/* 2. ACADEMIC UTILITY & ANNOUNCEMENT TICKER */}
       <div style={{
@@ -383,26 +340,28 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
               </button>
             )}
 
-            <button
-              onClick={() => onNavigateToQuickPay()}
-              style={{
-                background: 'var(--sky-color-primary)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '0.6rem 1.15rem',
-                fontSize: '0.875rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                boxShadow: '0 2px 6px rgba(0, 126, 168, 0.25)'
-              }}
-            >
-              <CreditCard size={15} />
-              <span>Pay Fees &amp; Activities</span>
-            </button>
+            {!loggedInParentResult && (
+              <button
+                onClick={() => onNavigateToQuickPay()}
+                style={{
+                  background: 'var(--sky-color-primary)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '0.6rem 1.15rem',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  boxShadow: '0 2px 6px rgba(0, 126, 168, 0.25)'
+                }}
+              >
+                <CreditCard size={15} />
+                <span>Pay Fees &amp; Activities</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -422,7 +381,7 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                   <span>Authenticated Parent Portal</span>
                 </div>
                 <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0c4a6e', marginTop: '0.25rem' }}>
-                  Family Account &amp; Student Fees: {loggedInParentResult.student.parentName}
+                  Account Name : {loggedInParentResult.student.parentName}
                 </h2>
               </div>
 
@@ -734,7 +693,7 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                   <span>ACADEMIC YEAR 2026–2027 ENROLLMENT &amp; ACTIVITIES</span>
                 </div>
 
-                <h2 style={{ fontSize: '2.75rem', fontWeight: 800, lineHeight: 1.15, margin: '0 0 1.25rem 0', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '2.75rem', fontWeight: 800, lineHeight: 1.15, margin: '0 0 1.25rem 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
                   Where Curiosity Meets Character.
                 </h2>
 
