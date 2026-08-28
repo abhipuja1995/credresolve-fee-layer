@@ -1068,3 +1068,632 @@ export const DEFAULT_CONTEXT: BlackbaudContext = {
     totalBatchesSubmitted: 1
   }
 };
+
+// ============================================================================
+// CREDRESOLVE PARENT HUB: MULTI-CHILD & MULTI-SCHOOL FAMILY PLATFORM TYPES
+// ============================================================================
+
+export interface SchoolNotice {
+  id: string;
+  schoolId: string;
+  schoolName: string;
+  studentId: string;
+  studentName: string;
+  title: string;
+  summary: string;
+  fullContent?: string;
+  category: 'PTM' | 'EXAM' | 'EVENT' | 'HOLIDAY' | 'LOGISTICS' | 'URGENT' | 'CIRCULAR';
+  publishedDate: string;
+  eventDate?: string;
+  isRead?: boolean;
+  actionRequired?: boolean;
+  actionLabel?: string;
+}
+
+export interface MultiSchoolFeeItem {
+  id: string;
+  schoolId: string;
+  schoolName: string;
+  schoolShortCode: string;
+  schoolBadgeColor: string;
+  schoolErpSystem: string;
+  schoolGateway: string;
+  studentId: string;
+  studentName: string;
+  grade: string;
+  feeTitle: string;
+  category: 'TUITION' | 'TRANSPORT' | 'ACTIVITY' | 'TECH' | 'ATHLETIC' | 'EXPEDITION' | 'OTHER';
+  amount: number;
+  amountPaid: number;
+  dueDate: string;
+  isOverdue: boolean;
+  paymentStatus: 'UNPAID' | 'PARTIALLY_PAID' | 'PAID';
+}
+
+export interface MultiSchoolChild {
+  studentId: string;
+  studentName: string;
+  gender?: string;
+  grade: string;
+  section?: string;
+  schoolId: string;
+  schoolName: string;
+  schoolShortCode: string;
+  schoolBadgeColor: string;
+  schoolCity: string;
+  schoolErpSystem: string; // e.g. Blackbaud SKY, PowerSchool, Edunext
+  schoolLogoUrl?: string;
+  totalDue: number;
+  activeFeesCount: number;
+  noticesCount: number;
+  fees: MultiSchoolFeeItem[];
+  notices: SchoolNotice[];
+}
+
+export interface MultiSchoolPaymentRecord {
+  transactionId: string;
+  receiptNumber: string;
+  paidAt: string;
+  studentId: string;
+  studentName: string;
+  schoolId: string;
+  schoolName: string;
+  feeTitle: string;
+  amount: number;
+  currency: string;
+  paymentMethod: string;
+  status: 'PAID' | 'POSTED_TO_SCHOOL_ERP';
+  authorizationCode: string;
+  subledgerJournalEntryId: string;
+}
+
+export interface MultiSchoolParentProfile {
+  id: string;
+  parentName: string;
+  parentEmail: string;
+  parentPhone: string;
+  currency: 'INR' | 'USD';
+  currencySymbol: '₹' | '$';
+  children: MultiSchoolChild[];
+  paymentHistory: MultiSchoolPaymentRecord[];
+}
+
+export const DEFAULT_PARENT_HUB_PROFILES: MultiSchoolParentProfile[] = [
+  // =========================================================================
+  // PROFILE 1: Abhijit Das (2 Children • 2 Different Schools • ₹31,300 Total)
+  // =========================================================================
+  {
+    id: 'HUB-PAR-001',
+    parentName: 'Abhijit Das',
+    parentEmail: 'abhijit.das@example.com',
+    parentPhone: '+91 98765 43210',
+    currency: 'INR',
+    currencySymbol: '₹',
+    children: [
+      {
+        studentId: 'DPS-2026-881',
+        studentName: 'Aarav Das',
+        gender: 'Male',
+        grade: 'Grade 5',
+        section: '5-B',
+        schoolId: 'SCH-DPS-DELHI',
+        schoolName: 'Oakridge International Academy',
+        schoolShortCode: 'School A',
+        schoolBadgeColor: '#0284c7', // Sky Blue
+        schoolCity: 'Bengaluru / Central',
+        schoolErpSystem: 'Blackbaud SKY API Education',
+        schoolLogoUrl: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=128&auto=format&fit=crop&q=80',
+        totalDue: 18500,
+        activeFeesCount: 2,
+        noticesCount: 3,
+        fees: [
+          {
+            id: 'FEE-AARAV-TUIT',
+            schoolId: 'SCH-DPS-DELHI',
+            schoolName: 'Oakridge International Academy',
+            schoolShortCode: 'School A',
+            schoolBadgeColor: '#0284c7',
+            schoolErpSystem: 'Blackbaud General Ledger (GL-1010-00)',
+            schoolGateway: 'Razorpay / Blackbaud SKY Merchant',
+            studentId: 'DPS-2026-881',
+            studentName: 'Aarav Das',
+            grade: 'Grade 5',
+            feeTitle: 'Term 2 Academic Tuition Fee',
+            category: 'TUITION',
+            amount: 15000,
+            amountPaid: 0,
+            dueDate: '2026-09-10',
+            isOverdue: false,
+            paymentStatus: 'UNPAID'
+          },
+          {
+            id: 'FEE-AARAV-TRANS',
+            schoolId: 'SCH-DPS-DELHI',
+            schoolName: 'Oakridge International Academy',
+            schoolShortCode: 'School A',
+            schoolBadgeColor: '#0284c7',
+            schoolErpSystem: 'Blackbaud General Ledger (GL-2020-04)',
+            schoolGateway: 'Razorpay / Blackbaud SKY Merchant',
+            studentId: 'DPS-2026-881',
+            studentName: 'Aarav Das',
+            grade: 'Grade 5',
+            feeTitle: 'GPS-Tracked AC Bus Transport (Q3)',
+            category: 'TRANSPORT',
+            amount: 3500,
+            amountPaid: 0,
+            dueDate: '2026-09-10',
+            isOverdue: false,
+            paymentStatus: 'UNPAID'
+          }
+        ],
+        notices: [
+          {
+            id: 'NOT-AARAV-1',
+            schoolId: 'SCH-DPS-DELHI',
+            schoolName: 'Oakridge International Academy',
+            studentId: 'DPS-2026-881',
+            studentName: 'Aarav Das',
+            title: 'Parent-Teacher Meeting (PTM) — 2 Sep',
+            summary: 'One-on-one progress review with Class Teacher & Math Mentor in Room 302.',
+            fullContent: 'Dear Parents, PTM for Term 1 progress analysis is scheduled for Saturday, 2nd September between 9:00 AM and 1:30 PM. Please book your 15-minute slot via the Parent Hub.',
+            category: 'PTM',
+            publishedDate: '2026-08-26',
+            eventDate: '2026-09-02',
+            actionRequired: true,
+            actionLabel: 'Confirm PTM Slot'
+          },
+          {
+            id: 'NOT-AARAV-2',
+            schoolId: 'SCH-DPS-DELHI',
+            schoolName: 'Oakridge International Academy',
+            studentId: 'DPS-2026-881',
+            studentName: 'Aarav Das',
+            title: 'Term 1 Examination Schedule & Syllabus Blueprint',
+            summary: 'Comprehensive date sheet released for Mathematics, Science, English & Robotics.',
+            category: 'EXAM',
+            publishedDate: '2026-08-24',
+            eventDate: '2026-09-18'
+          },
+          {
+            id: 'NOT-AARAV-3',
+            schoolId: 'SCH-DPS-DELHI',
+            schoolName: 'Oakridge International Academy',
+            studentId: 'DPS-2026-881',
+            studentName: 'Aarav Das',
+            title: 'Inter-School Sports Day Athletics Selection',
+            summary: 'Trials for 100m sprint, relay, and basketball open this Thursday after school.',
+            category: 'EVENT',
+            publishedDate: '2026-08-22',
+            eventDate: '2026-09-05'
+          }
+        ]
+      },
+      {
+        studentId: 'CAMB-2026-442',
+        studentName: 'Ananya Das',
+        gender: 'Female',
+        grade: 'Grade 2',
+        section: '2-A',
+        schoolId: 'SCH-CAMB-MONT',
+        schoolName: 'Cambridge Montessori Prep',
+        schoolShortCode: 'School B',
+        schoolBadgeColor: '#d97706', // Amber Gold
+        schoolCity: 'Bengaluru / South Hub',
+        schoolErpSystem: 'Powerschool Campus ERP v14',
+        schoolLogoUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=128&auto=format&fit=crop&q=80',
+        totalDue: 12800,
+        activeFeesCount: 2,
+        noticesCount: 2,
+        fees: [
+          {
+            id: 'FEE-ANANYA-TUIT',
+            schoolId: 'SCH-CAMB-MONT',
+            schoolName: 'Cambridge Montessori Prep',
+            schoolShortCode: 'School B',
+            schoolBadgeColor: '#d97706',
+            schoolErpSystem: 'Powerschool Finance Subledger (PS-901)',
+            schoolGateway: 'BillDesk Direct / HDFC SmartHub',
+            studentId: 'CAMB-2026-442',
+            studentName: 'Ananya Das',
+            grade: 'Grade 2',
+            feeTitle: 'Primary Tuition & Montessori Materials',
+            category: 'TUITION',
+            amount: 10000,
+            amountPaid: 0,
+            dueDate: '2026-09-15',
+            isOverdue: false,
+            paymentStatus: 'UNPAID'
+          },
+          {
+            id: 'FEE-ANANYA-ACT',
+            schoolId: 'SCH-CAMB-MONT',
+            schoolName: 'Cambridge Montessori Prep',
+            schoolShortCode: 'School B',
+            schoolBadgeColor: '#d97706',
+            schoolErpSystem: 'Powerschool Finance Subledger (PS-904)',
+            schoolGateway: 'BillDesk Direct / HDFC SmartHub',
+            studentId: 'CAMB-2026-442',
+            studentName: 'Ananya Das',
+            grade: 'Grade 2',
+            feeTitle: 'Creative Arts, Pottery & Annual Drama Activity',
+            category: 'ACTIVITY',
+            amount: 2800,
+            amountPaid: 0,
+            dueDate: '2026-09-15',
+            isOverdue: false,
+            paymentStatus: 'UNPAID'
+          }
+        ],
+        notices: [
+          {
+            id: 'NOT-ANANYA-1',
+            schoolId: 'SCH-CAMB-MONT',
+            schoolName: 'Cambridge Montessori Prep',
+            studentId: 'CAMB-2026-442',
+            studentName: 'Ananya Das',
+            title: 'Holiday Notice — Mid-Term Festival Break',
+            summary: 'Campus closed on Friday 8th September. Online activities available.',
+            category: 'HOLIDAY',
+            publishedDate: '2026-08-27',
+            eventDate: '2026-09-08'
+          },
+          {
+            id: 'NOT-ANANYA-2',
+            schoolId: 'SCH-CAMB-MONT',
+            schoolName: 'Cambridge Montessori Prep',
+            studentId: 'CAMB-2026-442',
+            studentName: 'Ananya Das',
+            title: 'Annual Function Registration & Stage Costume Sizing',
+            summary: 'Please submit costume measurements before 10th September.',
+            category: 'EVENT',
+            publishedDate: '2026-08-25',
+            eventDate: '2026-09-10',
+            actionRequired: true,
+            actionLabel: 'Submit Costume Size'
+          }
+        ]
+      }
+    ],
+    paymentHistory: [
+      {
+        transactionId: 'TXN-IND-88102',
+        receiptNumber: 'REC-DPS-2026-041',
+        paidAt: '2026-08-10T11:20:00.000Z',
+        studentId: 'DPS-2026-881',
+        studentName: 'Aarav Das',
+        schoolId: 'SCH-DPS-DELHI',
+        schoolName: 'Oakridge International Academy',
+        feeTitle: 'Term 1 Tuition & Lab Fee',
+        amount: 18500,
+        currency: 'INR',
+        paymentMethod: 'UPI / NetBanking (Razorpay)',
+        status: 'POSTED_TO_SCHOOL_ERP',
+        authorizationCode: 'AUTH-RZP-99120',
+        subledgerJournalEntryId: 'GL-JE-IND-77821'
+      },
+      {
+        transactionId: 'TXN-IND-88103',
+        receiptNumber: 'REC-CAMB-2026-089',
+        paidAt: '2026-08-15T15:45:00.000Z',
+        studentId: 'CAMB-2026-442',
+        studentName: 'Ananya Das',
+        schoolId: 'SCH-CAMB-MONT',
+        schoolName: 'Cambridge Montessori Prep',
+        feeTitle: 'Term 1 Admission & Montessori Kit',
+        amount: 12800,
+        currency: 'INR',
+        paymentMethod: 'UPI (Google Pay)',
+        status: 'POSTED_TO_SCHOOL_ERP',
+        authorizationCode: 'AUTH-BD-33419',
+        subledgerJournalEntryId: 'PS-JE-88912'
+      }
+    ]
+  },
+
+  // =========================================================================
+  // PROFILE 2: Robert Sterling (3 Children • 3 Schools • 8 Overdue Fees • $1,725)
+  // =========================================================================
+  {
+    id: 'HUB-PAR-002',
+    parentName: 'Robert Sterling',
+    parentEmail: 'robert.sterling@example.com',
+    parentPhone: '+1 (555) 019-0291',
+    currency: 'USD',
+    currencySymbol: '$',
+    children: [
+      {
+        studentId: 'BB-STU-131',
+        studentName: 'William Sterling',
+        gender: 'Male',
+        grade: 'Grade 10',
+        section: '10-A',
+        schoolId: 'SCH-OAK-UPPER',
+        schoolName: 'Oakridge Upper Academy',
+        schoolShortCode: 'School A',
+        schoolBadgeColor: '#0369a1',
+        schoolCity: 'Boston Campus',
+        schoolErpSystem: 'Blackbaud SKY API Financial Edge NXT',
+        totalDue: 830,
+        activeFeesCount: 3,
+        noticesCount: 2,
+        fees: [
+          {
+            id: 'CHG-PHYS-131',
+            schoolId: 'SCH-OAK-UPPER',
+            schoolName: 'Oakridge Upper Academy',
+            schoolShortCode: 'School A',
+            schoolBadgeColor: '#0369a1',
+            schoolErpSystem: 'Blackbaud General Ledger (GL-4040-02)',
+            schoolGateway: 'Blackbaud Merchant Services (BBMS)',
+            studentId: 'BB-STU-131',
+            studentName: 'William Sterling',
+            grade: 'Grade 10',
+            feeTitle: 'AP Physics C & Advanced Robotics Lab Kit',
+            category: 'TECH',
+            amount: 280,
+            amountPaid: 0,
+            dueDate: '2026-07-15',
+            isOverdue: true,
+            paymentStatus: 'UNPAID'
+          },
+          {
+            id: 'CHG-ROW-131',
+            schoolId: 'SCH-OAK-UPPER',
+            schoolName: 'Oakridge Upper Academy',
+            schoolShortCode: 'School A',
+            schoolBadgeColor: '#0369a1',
+            schoolErpSystem: 'Blackbaud General Ledger (GL-2020-15)',
+            schoolGateway: 'Blackbaud Merchant Services (BBMS)',
+            studentId: 'BB-STU-131',
+            studentName: 'William Sterling',
+            grade: 'Grade 10',
+            feeTitle: 'Varsity Crew & Head of Charles Regatta Travel',
+            category: 'ATHLETIC',
+            amount: 340,
+            amountPaid: 0,
+            dueDate: '2026-08-01',
+            isOverdue: true,
+            paymentStatus: 'UNPAID'
+          },
+          {
+            id: 'CHG-MUNH-131',
+            schoolId: 'SCH-OAK-UPPER',
+            schoolName: 'Oakridge Upper Academy',
+            schoolShortCode: 'School A',
+            schoolBadgeColor: '#0369a1',
+            schoolErpSystem: 'Blackbaud General Ledger (GL-3030-40)',
+            schoolGateway: 'Blackbaud Merchant Services (BBMS)',
+            studentId: 'BB-STU-131',
+            studentName: 'William Sterling',
+            grade: 'Grade 10',
+            feeTitle: 'National Model UN Harvard Delegation Delegate Fee',
+            category: 'ACTIVITY',
+            amount: 210,
+            amountPaid: 0,
+            dueDate: '2026-08-15',
+            isOverdue: true,
+            paymentStatus: 'UNPAID'
+          }
+        ],
+        notices: [
+          {
+            id: 'NOT-WILL-1',
+            schoolId: 'SCH-OAK-UPPER',
+            schoolName: 'Oakridge Upper Academy',
+            studentId: 'BB-STU-131',
+            studentName: 'William Sterling',
+            title: 'College Board AP Exam Registration Window',
+            summary: 'Final registration deadline for May 2027 AP Physics and AP Calc exams.',
+            category: 'EXAM',
+            publishedDate: '2026-08-20',
+            eventDate: '2026-09-15'
+          },
+          {
+            id: 'NOT-WILL-2',
+            schoolId: 'SCH-OAK-UPPER',
+            schoolName: 'Oakridge Upper Academy',
+            studentId: 'BB-STU-131',
+            studentName: 'William Sterling',
+            title: 'Head of the Charles Regatta Itinerary & Medical Waiver',
+            summary: 'Bus departure schedule and hotel lodging assignment confirmed.',
+            category: 'LOGISTICS',
+            publishedDate: '2026-08-25',
+            eventDate: '2026-10-18',
+            actionRequired: true,
+            actionLabel: 'Sign Travel Waiver'
+          }
+        ]
+      },
+      {
+        studentId: 'STJ-2026-904',
+        studentName: 'Charlotte Sterling',
+        gender: 'Female',
+        grade: 'Grade 7',
+        section: '7-A',
+        schoolId: 'SCH-STJUDE-PREP',
+        schoolName: "St. Jude's Jesuit Middle Prep",
+        schoolShortCode: 'School B',
+        schoolBadgeColor: '#7c3aed', // Purple
+        schoolCity: 'Cambridge Campus',
+        schoolErpSystem: 'Blackbaud Education Management Core',
+        totalDue: 680,
+        activeFeesCount: 3,
+        noticesCount: 2,
+        fees: [
+          {
+            id: 'CHG-ADIR-132',
+            schoolId: 'SCH-STJUDE-PREP',
+            schoolName: "St. Jude's Jesuit Middle Prep",
+            schoolShortCode: 'School B',
+            schoolBadgeColor: '#7c3aed',
+            schoolErpSystem: 'Blackbaud General Ledger (GL-3030-55)',
+            schoolGateway: 'Blackbaud Merchant Services (BBMS)',
+            studentId: 'STJ-2026-904',
+            studentName: 'Charlotte Sterling',
+            grade: 'Grade 7',
+            feeTitle: '7th Grade Adirondack Outdoor Leadership Expedition',
+            category: 'EXPEDITION',
+            amount: 325,
+            amountPaid: 0,
+            dueDate: '2026-07-20',
+            isOverdue: true,
+            paymentStatus: 'UNPAID'
+          },
+          {
+            id: 'CHG-CELLO-132',
+            schoolId: 'SCH-STJUDE-PREP',
+            schoolName: "St. Jude's Jesuit Middle Prep",
+            schoolShortCode: 'School B',
+            schoolBadgeColor: '#7c3aed',
+            schoolErpSystem: 'Blackbaud General Ledger (GL-2020-80)',
+            schoolGateway: 'Blackbaud Merchant Services (BBMS)',
+            studentId: 'STJ-2026-904',
+            studentName: 'Charlotte Sterling',
+            grade: 'Grade 7',
+            feeTitle: 'MS Symphonic Orchestra Cello Rental & Maintenance',
+            category: 'ACTIVITY',
+            amount: 160,
+            amountPaid: 0,
+            dueDate: '2026-08-10',
+            isOverdue: true,
+            paymentStatus: 'UNPAID'
+          },
+          {
+            id: 'CHG-FRRET-132',
+            schoolId: 'SCH-STJUDE-PREP',
+            schoolName: "St. Jude's Jesuit Middle Prep",
+            schoolShortCode: 'School B',
+            schoolBadgeColor: '#7c3aed',
+            schoolErpSystem: 'Blackbaud General Ledger (GL-3030-40)',
+            schoolGateway: 'Blackbaud Merchant Services (BBMS)',
+            studentId: 'STJ-2026-904',
+            studentName: 'Charlotte Sterling',
+            grade: 'Grade 7',
+            feeTitle: 'French Language Immersion Weekend Retreat',
+            category: 'EXPEDITION',
+            amount: 195,
+            amountPaid: 0,
+            dueDate: '2026-08-20',
+            isOverdue: true,
+            paymentStatus: 'UNPAID'
+          }
+        ],
+        notices: [
+          {
+            id: 'NOT-CHAR-1',
+            schoolId: 'SCH-STJUDE-PREP',
+            schoolName: "St. Jude's Jesuit Middle Prep",
+            studentId: 'STJ-2026-904',
+            studentName: 'Charlotte Sterling',
+            title: 'Middle School Fall Concert Auditions',
+            summary: 'Audition slots for Symphony Orchestra and Jazz Ensemble open next week.',
+            category: 'EVENT',
+            publishedDate: '2026-08-24',
+            eventDate: '2026-09-08'
+          },
+          {
+            id: 'NOT-CHAR-2',
+            schoolId: 'SCH-STJUDE-PREP',
+            schoolName: "St. Jude's Jesuit Middle Prep",
+            studentId: 'STJ-2026-904',
+            studentName: 'Charlotte Sterling',
+            title: 'Parent Council Meeting & Curriculum Night',
+            summary: 'Meet Middle School Dean and Department Heads on September 12.',
+            category: 'PTM',
+            publishedDate: '2026-08-27',
+            eventDate: '2026-09-12'
+          }
+        ]
+      },
+      {
+        studentId: 'BHA-2026-310',
+        studentName: 'Benjamin Sterling',
+        gender: 'Male',
+        grade: 'Grade 4',
+        section: '4-A',
+        schoolId: 'SCH-BEACON-HILL',
+        schoolName: 'Beacon Hill Academy Elementary',
+        schoolShortCode: 'School C',
+        schoolBadgeColor: '#059669', // Emerald Green
+        schoolCity: 'Beacon Hill Campus',
+        schoolErpSystem: 'Veracross Elementary Student System',
+        totalDue: 215,
+        activeFeesCount: 2,
+        noticesCount: 1,
+        fees: [
+          {
+            id: 'CHG-HIST-133',
+            schoolId: 'SCH-BEACON-HILL',
+            schoolName: 'Beacon Hill Academy Elementary',
+            schoolShortCode: 'School C',
+            schoolBadgeColor: '#059669',
+            schoolErpSystem: 'Veracross Billing Ledger',
+            schoolGateway: 'Stripe Connect / Veracross Pay',
+            studentId: 'BHA-2026-310',
+            studentName: 'Benjamin Sterling',
+            grade: 'Grade 4',
+            feeTitle: '4th Grade Living History Museum & Transportation',
+            category: 'ACTIVITY',
+            amount: 120,
+            amountPaid: 0,
+            dueDate: '2026-07-30',
+            isOverdue: true,
+            paymentStatus: 'UNPAID'
+          },
+          {
+            id: 'CHG-STEAM-133',
+            schoolId: 'SCH-BEACON-HILL',
+            schoolName: 'Beacon Hill Academy Elementary',
+            schoolShortCode: 'School C',
+            schoolBadgeColor: '#059669',
+            schoolErpSystem: 'Veracross Billing Ledger',
+            schoolGateway: 'Stripe Connect / Veracross Pay',
+            studentId: 'BHA-2026-310',
+            studentName: 'Benjamin Sterling',
+            grade: 'Grade 4',
+            feeTitle: 'Lower School STEAM Discovery & Coding Module Kit',
+            category: 'TECH',
+            amount: 95,
+            amountPaid: 0,
+            dueDate: '2026-08-05',
+            isOverdue: true,
+            paymentStatus: 'UNPAID'
+          }
+        ],
+        notices: [
+          {
+            id: 'NOT-BEN-1',
+            schoolId: 'SCH-BEACON-HILL',
+            schoolName: 'Beacon Hill Academy Elementary',
+            studentId: 'BHA-2026-310',
+            studentName: 'Benjamin Sterling',
+            title: 'Elementary Science Fair Volunteer Mentors Needed',
+            summary: 'Parents invited to judge 4th grade invention displays on Friday.',
+            category: 'EVENT',
+            publishedDate: '2026-08-26',
+            eventDate: '2026-09-15'
+          }
+        ]
+      }
+    ],
+    paymentHistory: [
+      {
+        transactionId: 'TXN-BB-29182',
+        receiptNumber: 'REC-OAK-2026-0091',
+        paidAt: '2026-08-02T10:15:00.000Z',
+        studentId: 'BB-STU-131',
+        studentName: 'William Sterling',
+        schoolId: 'SCH-OAK-UPPER',
+        schoolName: 'Oakridge Upper Academy',
+        feeTitle: 'Term 1 Technology & Digital Licensing',
+        amount: 195,
+        currency: 'USD',
+        paymentMethod: 'Credit Card (Apple Pay)',
+        status: 'POSTED_TO_SCHOOL_ERP',
+        authorizationCode: 'AUTH-BBMS-77192',
+        subledgerJournalEntryId: 'GL-JE-99012'
+      }
+    ]
+  }
+];
+

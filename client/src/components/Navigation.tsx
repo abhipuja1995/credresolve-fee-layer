@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { BlackbaudContext } from '../types/index.js';
 
-export type ActiveTab = 'fees' | 'ledger' | 'quickpay' | 'school_site' | 'guide';
+export type ActiveTab = 'fees' | 'ledger' | 'quickpay' | 'school_site' | 'parent_hub' | 'guide';
 
 interface NavigationProps {
   activeTab: ActiveTab;
@@ -206,6 +206,39 @@ export const Navigation: React.FC<NavigationProps> = ({
                   <button
                     onClick={() => {
                       setIsSettingsOpen(false);
+                      onTabChange('parent_hub');
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      fontSize: '0.825rem',
+                      fontWeight: 600,
+                      color: 'var(--text-heading)',
+                      background: 'transparent',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-surface-subtle)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Users size={15} color="var(--sky-color-primary)" />
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <span>CredResolve Parent Hub</span>
+                        <span style={{ background: '#0284c7', color: '#ffffff', fontSize: '0.6rem', padding: '0.05rem 0.35rem', borderRadius: '4px', fontWeight: 800 }}>MULTI-SCHOOL</span>
+                      </div>
+                      <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                        Unified family account across multiple children &amp; schools
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsSettingsOpen(false);
                       onTabChange('quickpay');
                     }}
                     style={{
@@ -388,6 +421,38 @@ export const Navigation: React.FC<NavigationProps> = ({
             >
               <Users size={16} color={activeTab === 'ledger' ? 'var(--sky-color-primary)' : 'var(--text-muted)'} />
               Student Account Subledgers
+            </button>
+
+            <button
+              onClick={() => onTabChange('parent_hub')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.85rem 0.25rem',
+                fontWeight: activeTab === 'parent_hub' ? 700 : 500,
+                fontSize: '0.9rem',
+                background: 'transparent',
+                color: activeTab === 'parent_hub' ? 'var(--sky-color-primary)' : 'var(--text-body)',
+                borderBottom: activeTab === 'parent_hub' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                borderRadius: 0,
+                whiteSpace: 'nowrap',
+                cursor: 'pointer'
+              }}
+            >
+              <Users size={16} color={activeTab === 'parent_hub' ? 'var(--sky-color-primary)' : 'var(--text-muted)'} />
+              <span>CredResolve Parent Hub</span>
+              <span style={{
+                background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
+                color: '#ffffff',
+                padding: '0.12rem 0.45rem',
+                borderRadius: '12px',
+                fontSize: '0.65rem',
+                fontWeight: 800,
+                letterSpacing: '0.02em'
+              }}>
+                Multi-School
+              </span>
             </button>
 
             {activeTab === 'quickpay' && (

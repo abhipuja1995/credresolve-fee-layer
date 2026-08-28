@@ -8,6 +8,7 @@ import { BrandingSettingsModal } from './components/BrandingSettingsModal.js';
 import { SharePaymentLinkModal } from './components/SharePaymentLinkModal.js';
 import { UserGuideView } from './components/UserGuideView.js';
 import { DummySchoolWebsite } from './components/DummySchoolWebsite.js';
+import { CredresolveParentHub } from './components/ParentHub/CredresolveParentHub.js';
 import { api } from './services/api.js';
 import { 
   BlackbaudContext, 
@@ -205,7 +206,7 @@ export const App: React.FC = () => {
         onOpenBrandingModal={() => setIsBrandingModalOpen(true)}
       />
 
-      <main className="container" style={{ flex: 1, padding: '2rem' }}>
+      <main className={activeTab === 'parent_hub' || activeTab === 'school_site' ? '' : 'container'} style={{ flex: 1, padding: activeTab === 'parent_hub' || activeTab === 'school_site' ? 0 : '2rem' }}>
         {loading ? (
           <div className="card-panel" style={{ padding: '3rem', textAlign: 'center' }}>
             <div style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>
@@ -270,6 +271,13 @@ export const App: React.FC = () => {
                   setActiveTab('quickpay');
                 }}
                 onNavigateToAdmin={() => setActiveTab('fees')}
+              />
+            )}
+
+            {activeTab === 'parent_hub' && (
+              <CredresolveParentHub
+                onNavigateToFeeStudio={() => setActiveTab('fees')}
+                onNavigateToSchoolWebsite={() => setActiveTab('school_site')}
               />
             )}
 
