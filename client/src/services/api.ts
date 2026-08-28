@@ -290,6 +290,7 @@ export const api = {
     waiverSignature?: { signerName: string; agreed: boolean };
     feeCoverAmount?: number;
   }): Promise<any> {
+    let result: any = null;
     try {
       const res = await fetch(`${API_BASE}/checkout/pay`, {
         method: 'POST',
@@ -299,26 +300,64 @@ export const api = {
       if (res.ok) {
         const text = await res.text();
         if (text && text.trim().length > 0) {
-          return JSON.parse(text);
+          result = JSON.parse(text);
         }
       }
     } catch (err) {
       console.warn('Backend checkout offline, processing locally:', err);
     }
 
+    const txn = result?.transaction || result || {};
+    const transactionId = txn.transactionId || `BBMS-TXN-${Date.now().toString().slice(-6)}`;
+    const authorizationCode = txn.authorizationCode || txn.bbmsAuthorizationCode || `AUTH-${Math.floor(100000 + Math.random() * 899999)}`;
+    const receiptNumber = txn.receiptNumber || `REC-BBMS-${Date.now().toString().slice(-6)}`;
+    const subledgerJournalEntryId = txn.subledgerJournalEntryId || `GL-JE-${Date.now().toString().slice(-6)}`;
+    const paidAt = txn.paidAt || new Date().toISOString();
+
     const receipt = {
-      transactionId: `BBMS-TXN-${Date.now().toString().slice(-6)}`,
+      transactionId,
       amount: payload.amount,
       paymentMethod: payload.paymentMethod || 'Blackbaud Merchant Services (BBMS) - New Checkout',
-      cardBrand: payload.cardDetails?.brand || 'Visa',
-      last4: payload.cardDetails?.last4 || '4242',
-      paidAt: new Date().toISOString(),
-      receiptNumber: `REC-BBMS-${Date.now().toString().slice(-6)}`,
+      cardBrand: payload.cardDetails?.brand || txn.cardBrand || 'Visa',
+      last4: payload.cardDetails?.last4 || txn.last4 || '4242',
+      paidAt,
+      receiptNumber,
       bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
-      bbmsAuthorizationCode: `AUTH-${Math.floor(100000 + Math.random() * 899999)}`,
-      subledgerJournalEntryId: `GL-JE-${Date.now().toString().slice(-6)}`,
+      bbmsAuthorizationCode: authorizationCode,
+      subledgerJournalEntryId,
       checkoutToken: payload.checkoutToken || `chk_tok_${Date.now().toString().slice(-8)}`
     };
+
+    // Synchronize localStorage
+    try {
+      const savedChargesStr = localStorage.getItem('credresolve_charges');
+      const allCharges: StudentCharge[] = savedChargesStr ? JSON.parse(savedChargesStr) : [...DEFAULT_CHARGES];
+      const chargeIdx = allCharges.findIndex(c => c.id === payload.chargeId);
+
+      if (chargeIdx >= 0) {
+        const targetCharge = allCharges[chargeIdx];
+        targetCharge.amountPaid = Number((targetCharge.amountPaid + payload.amount).toFixed(2));
+        targetCharge.paymentStatus = targetCharge.amountPaid >= (targetCharge.amount - 0.001) ? 'PAID' : 'PARTIALLY_PAID';
+        if (!targetCharge.paymentReceipts) targetCharge.paymentReceipts = [];
+        targetCharge.paymentReceipts.push(receipt);
+        
+        if (payload.customFormResponses) {
+          targetCharge.customFormResponses = {
+            ...(targetCharge.customFormResponses || {}),
+            ...payload.customFormResponses
+          };
+        }
+        if (payload.waiverSignature && payload.waiverSignature.agreed) {
+          targetCharge.waiverSignedAt = paidAt;
+          targetCharge.waiverSignerName = payload.waiverSignature.signerName;
+        }
+
+        allCharges[chargeIdx] = targetCharge;
+        localStorage.setItem('credresolve_charges', JSON.stringify(allCharges));
+      }
+    } catch (e) {
+      console.warn('Could not sync payment to localStorage:', e);
+    }
 
     return {
       success: true,
@@ -329,6 +368,7 @@ export const api = {
   },
 
   async processBbmsCheckout(payload: import('../types/index.js').BlackbaudCheckoutTransactionRequest): Promise<import('../types/index.js').BlackbaudCheckoutTransactionResponse> {
+    let result: any = null;
     try {
       const res = await fetch(`${API_BASE}/blackbaud/payments/checkout/transaction`, {
         method: 'POST',
@@ -338,18 +378,25 @@ export const api = {
       if (res.ok) {
         const text = await res.text();
         if (text && text.trim().length > 0) {
-          return JSON.parse(text);
+          result = JSON.parse(text);
         }
       }
     } catch (err) {
       console.warn('Blackbaud Payments New Checkout API offline, using fallback:', err);
     }
 
-    return {
+    const txn = result?.transaction || result || {};
+    const transactionId = txn.transactionId || `BBMS-TXN-${Date.now().toString().slice(-6)}`;
+    const authorizationCode = txn.authorizationCode || txn.bbmsAuthorizationCode || `AUTH-${Math.floor(100000 + Math.random() * 899999)}`;
+    const receiptNumber = txn.receiptNumber || `REC-BBMS-${Date.now().toString().slice(-6)}`;
+    const subledgerJournalEntryId = txn.subledgerJournalEntryId || `GL-JE-${Date.now().toString().slice(-6)}`;
+    const paidAt = txn.paidAt || new Date().toISOString();
+
+    const responseObj: import('../types/index.js').BlackbaudCheckoutTransactionResponse = {
       success: true,
-      transactionId: `BBMS-TXN-${Date.now().toString().slice(-6)}`,
-      authorizationCode: `AUTH-${Math.floor(100000 + Math.random() * 899999)}`,
-      receiptNumber: `REC-BBMS-${Date.now().toString().slice(-6)}`,
+      transactionId,
+      authorizationCode,
+      receiptNumber,
       amount: payload.amount,
       feeCoverAmount: payload.feeCoverAmount || 0,
       paymentMethod: 'Blackbaud Merchant Services (BBMS) - New Checkout',
@@ -357,9 +404,68 @@ export const api = {
       last4: '4242',
       status: 'SUCCESS',
       bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
-      subledgerJournalEntryId: `GL-JE-${Date.now().toString().slice(-6)}`,
-      paidAt: new Date().toISOString()
+      subledgerJournalEntryId,
+      paidAt
     };
+
+    // Synchronize localStorage with updated charge status, amountPaid, receipts, and student balances!
+    try {
+      const savedChargesStr = localStorage.getItem('credresolve_charges');
+      const allCharges: StudentCharge[] = savedChargesStr ? JSON.parse(savedChargesStr) : [...DEFAULT_CHARGES];
+      const chargeIdx = allCharges.findIndex(c => c.id === payload.chargeId);
+
+      const receiptRecord = {
+        transactionId,
+        amount: payload.amount,
+        paymentMethod: 'Blackbaud Merchant Services (BBMS) - New Checkout',
+        cardBrand: 'Visa',
+        last4: '4242',
+        paidAt,
+        receiptNumber,
+        bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
+        bbmsAuthorizationCode: authorizationCode,
+        subledgerJournalEntryId,
+        checkoutToken: payload.checkoutToken
+      };
+
+      if (chargeIdx >= 0) {
+        const targetCharge = allCharges[chargeIdx];
+        targetCharge.amountPaid = Number((targetCharge.amountPaid + payload.amount).toFixed(2));
+        targetCharge.paymentStatus = targetCharge.amountPaid >= (targetCharge.amount - 0.001) ? 'PAID' : 'PARTIALLY_PAID';
+        if (!targetCharge.paymentReceipts) targetCharge.paymentReceipts = [];
+        targetCharge.paymentReceipts.push(receiptRecord);
+        
+        if (payload.customFields) {
+          targetCharge.customFormResponses = {
+            ...(targetCharge.customFormResponses || {}),
+            ...payload.customFields
+          };
+        }
+        if (payload.waiverSignature && payload.waiverSignature.agreed) {
+          targetCharge.waiverSignedAt = paidAt;
+          targetCharge.waiverSignerName = payload.waiverSignature.signerName;
+        }
+
+        allCharges[chargeIdx] = targetCharge;
+        localStorage.setItem('credresolve_charges', JSON.stringify(allCharges));
+      }
+
+      // Synchronize student account balance
+      const savedStudentsStr = localStorage.getItem('credresolve_students');
+      const allStudents: StudentAccount[] = savedStudentsStr ? JSON.parse(savedStudentsStr) : [...DEFAULT_STUDENTS];
+      const studentIdToFind = payload.customFields?.studentId;
+      if (studentIdToFind) {
+        const sIdx = allStudents.findIndex(s => s.studentId === studentIdToFind);
+        if (sIdx >= 0) {
+          allStudents[sIdx].currentBalance = Math.max(0, Number((allStudents[sIdx].currentBalance - payload.amount).toFixed(2)));
+          localStorage.setItem('credresolve_students', JSON.stringify(allStudents));
+        }
+      }
+    } catch (e) {
+      console.warn('Could not sync payment to localStorage:', e);
+    }
+
+    return responseObj;
   },
 
   async lookupStudent(query: string): Promise<import('../types/index.js').StudentLookupResult> {

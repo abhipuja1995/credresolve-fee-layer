@@ -241,7 +241,7 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
                               onClick={() => handleOpenReceiptOrCheckout(c.id)}
                               style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }}
                             >
-                              <CreditCard size={13} /> Pay Now
+                              <CreditCard size={13} /> {c.paymentStatus === 'PARTIALLY_PAID' ? `Pay Balance ($${remaining.toFixed(2)})` : 'Pay Now'}
                             </button>
                           ) : (
                             <button

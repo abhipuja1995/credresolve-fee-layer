@@ -439,22 +439,33 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                         <div style={{ fontSize: '0.725rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           Active Fee Obligations ({childCharges.length})
                         </div>
-                        {childCharges.map(charge => (
-                          <div key={charge.id} style={{ padding: '0.65rem 0.85rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.825rem' }}>
-                            <div>
-                              <strong style={{ color: '#0f172a' }}>{charge.feeTitle}</strong>
-                              <div style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '0.1rem' }}>Due Date: {charge.dueDate}</div>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontWeight: 800, color: charge.paymentStatus === 'PAID' ? '#16a34a' : '#002238' }}>
-                                ${charge.amount.toFixed(2)}
+                        {childCharges.map(charge => {
+                          const remaining = Math.max(0, Math.round((charge.amount - charge.amountPaid) * 100) / 100);
+                          return (
+                            <div key={charge.id} style={{ padding: '0.65rem 0.85rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.825rem' }}>
+                              <div>
+                                <strong style={{ color: '#0f172a' }}>{charge.feeTitle}</strong>
+                                <div style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '0.1rem' }}>Due Date: {charge.dueDate}</div>
                               </div>
-                              <span style={{ fontSize: '0.65rem', color: charge.paymentStatus === 'PAID' ? '#16a34a' : '#b45309', fontWeight: 700 }}>
-                                {charge.paymentStatus === 'PAID' ? '✓ Paid' : 'Pending Payment'}
-                              </span>
+                              <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontWeight: 800, color: charge.paymentStatus === 'PAID' ? '#16a34a' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#002238') }}>
+                                  {charge.paymentStatus === 'PAID' 
+                                    ? `$${charge.amount.toFixed(2)}` 
+                                    : (charge.paymentStatus === 'PARTIALLY_PAID' 
+                                      ? `$${remaining.toFixed(2)} due` 
+                                      : `$${charge.amount.toFixed(2)}`)}
+                                </div>
+                                <span style={{ fontSize: '0.65rem', color: charge.paymentStatus === 'PAID' ? '#16a34a' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#64748b'), fontWeight: 700 }}>
+                                  {charge.paymentStatus === 'PAID' 
+                                    ? '✓ Fully Paid' 
+                                    : (charge.paymentStatus === 'PARTIALLY_PAID' 
+                                      ? `Partially Paid ($${charge.amountPaid.toFixed(2)} paid)` 
+                                      : 'Pending Payment')}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 

@@ -44,13 +44,13 @@ export class ReconciliationService {
       throw new Error('Payment amount must be greater than $0.00');
     }
 
-    const remainingBalance = charge.amount - charge.amountPaid;
-    if (input.amount > remainingBalance) {
-      throw new Error(`Payment amount ($${input.amount}) exceeds outstanding balance of $${remainingBalance}.`);
+    const remainingBalance = Math.round((charge.amount - charge.amountPaid) * 100) / 100;
+    if (input.amount > remainingBalance + 0.01) {
+      throw new Error(`Payment amount ($${input.amount.toFixed(2)}) exceeds outstanding balance of $${remainingBalance.toFixed(2)}.`);
     }
 
     if (!fee.allowPartialPayment && input.amount < charge.amount) {
-      throw new Error(`Partial payments are not permitted for "${fee.title}". Full balance of $${charge.amount} is required.`);
+      throw new Error(`Partial payments are not permitted for "${fee.title}". Full balance of $${charge.amount.toFixed(2)} is required.`);
     }
 
     // Validate Required Custom Form Fields
@@ -109,9 +109,9 @@ export class ReconciliationService {
       checkoutToken
     };
 
-    // Update Charge subledger
-    charge.amountPaid += input.amount;
-    charge.paymentStatus = charge.amountPaid >= charge.amount ? 'PAID' : 'PARTIALLY_PAID';
+    // Update Charge subledger with precise rounding
+    charge.amountPaid = Math.round((charge.amountPaid + input.amount) * 100) / 100;
+    charge.paymentStatus = charge.amountPaid >= (charge.amount - 0.001) ? 'PAID' : 'PARTIALLY_PAID';
     
     if (input.customFormResponses) {
       charge.customFormResponses = {
@@ -125,12 +125,13 @@ export class ReconciliationService {
       charge.waiverSignerName = input.waiverSignature.signerName.trim();
     }
 
+    if (!charge.paymentReceipts) charge.paymentReceipts = [];
     charge.paymentReceipts.push(transaction);
     charge.updatedAt = now;
 
     // Update Student Account balance
     if (student) {
-      student.currentBalance = Math.max(0, student.currentBalance - input.amount);
+      student.currentBalance = Math.max(0, Math.round((student.currentBalance - input.amount) * 100) / 100);
     }
 
     return {

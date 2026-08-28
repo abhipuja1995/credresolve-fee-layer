@@ -147,6 +147,13 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
     setIsProcessing(true);
 
     try {
+      if (parsedAmount <= 0) {
+        throw new Error('Please enter a valid payment amount greater than $0.00.');
+      }
+      if (parsedAmount > remainingBalance + 0.01) {
+        throw new Error(`Payment amount ($${parsedAmount.toFixed(2)}) cannot exceed the outstanding balance of $${remainingBalance.toFixed(2)}.`);
+      }
+
       // Validate Custom Form Fields
       if (fee.customFormSchema && fee.customFormSchema.length > 0) {
         for (const field of fee.customFormSchema) {
@@ -188,9 +195,9 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
       });
 
       const receipt = {
-        receiptNumber: res.receiptNumber || `REC-BBMS-${Date.now().toString().slice(-6)}`,
-        transactionId: res.transactionId || `BBMS-TXN-${Date.now().toString().slice(-6)}`,
-        authorizationCode: res.authorizationCode || `AUTH-992144`,
+        receiptNumber: res.receiptNumber || (res as any).transaction?.receiptNumber || `REC-BBMS-${Date.now().toString().slice(-6)}`,
+        transactionId: res.transactionId || (res as any).transaction?.transactionId || `BBMS-TXN-${Date.now().toString().slice(-6)}`,
+        authorizationCode: res.authorizationCode || (res as any).transaction?.authorizationCode || `AUTH-992144`,
         amount: parsedAmount,
         feeCoverAmount: processingFee,
         paymentMethod: paymentMethod === 'APPLE_PAY' 
@@ -202,10 +209,21 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
           : paymentMethod === 'PAYPAL_VENMO'
           ? 'Blackbaud New Checkout (PayPal / Venmo)'
           : 'Blackbaud New Checkout (Visa •••• 4242)',
-        paidAt: res.paidAt || new Date().toISOString(),
+        paidAt: res.paidAt || (res as any).transaction?.paidAt || new Date().toISOString(),
         bbLedgerSyncStatus: 'POSTED_TO_BLACKBAUD',
-        subledgerJournalEntryId: res.subledgerJournalEntryId || `GL-JE-${Date.now().toString().slice(-6)}`
+        subledgerJournalEntryId: res.subledgerJournalEntryId || (res as any).transaction?.subledgerJournalEntryId || `GL-JE-${Date.now().toString().slice(-6)}`
       };
+
+      // Immediately update local charge state with new amountPaid and paymentStatus
+      const newAmountPaid = Math.round((charge.amountPaid + parsedAmount) * 100) / 100;
+      const newStatus = newAmountPaid >= (charge.amount - 0.001) ? 'PAID' : 'PARTIALLY_PAID';
+      const updatedCharge: StudentCharge = {
+        ...charge,
+        amountPaid: newAmountPaid,
+        paymentStatus: newStatus,
+        paymentReceipts: [...(charge.paymentReceipts || []), receipt]
+      };
+      setData({ ...data, charge: updatedCharge });
 
       setSuccessReceipt(receipt);
       onPaymentCompleted();
@@ -299,9 +317,15 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
               </div>
 
               <div>
-                <span className="badge badge-success">
-                  <Check size={12} /> PAID & RECONCILED
-                </span>
+                {charge.paymentStatus === 'PAID' ? (
+                  <span className="badge badge-success">
+                    <Check size={12} /> PAID &amp; ACCOUNT SETTLED
+                  </span>
+                ) : (
+                  <span className="badge badge-warning" style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                    <Check size={12} /> PARTIAL PAYMENT POSTED
+                  </span>
+                )}
               </div>
             </div>
 
@@ -309,21 +333,27 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Amount & Status Banner */}
               <div style={{
-                background: 'var(--sky-color-primary-light)',
-                border: '1px solid var(--border-strong)',
+                background: charge.paymentStatus === 'PAID' ? 'var(--sky-color-primary-light)' : '#fefce8',
+                border: `1px solid ${charge.paymentStatus === 'PAID' ? 'var(--border-strong)' : '#fef08a'}`,
                 borderRadius: 'var(--radius-sm)',
                 padding: '1.25rem',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Amount Paid & Reconciled
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: charge.paymentStatus === 'PAID' ? 'var(--sky-color-primary)' : '#854d0e', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {charge.paymentStatus === 'PAID' ? 'Amount Settled & Reconciled' : 'Partial Payment Reconciled'}
                 </div>
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--sky-color-primary)', margin: '0.25rem 0' }}>
+                <div style={{ fontSize: '2.25rem', fontWeight: 800, color: charge.paymentStatus === 'PAID' ? 'var(--sky-color-primary)' : '#b45309', margin: '0.25rem 0' }}>
                   ${Number(successReceipt.amount).toFixed(2)}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-body)' }}>
+                <div style={{ fontSize: '0.825rem', color: 'var(--text-body)' }}>
                   Fee: <strong>{charge.feeTitle}</strong>
                 </div>
+
+                {charge.paymentStatus === 'PARTIALLY_PAID' && (
+                  <div style={{ marginTop: '0.65rem', paddingTop: '0.65rem', borderTop: '1px solid #fef08a', fontSize: '0.8rem', color: '#854d0e' }}>
+                    Cumulative Paid: <strong>${charge.amountPaid.toFixed(2)}</strong> of ${charge.amount.toFixed(2)} • Remaining Balance: <strong>${Math.max(0, charge.amount - charge.amountPaid).toFixed(2)}</strong>
+                  </div>
+                )}
               </div>
 
               {/* Subledger Details Grid */}
@@ -379,7 +409,7 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 gap: '0.75rem'
               }}>
                 <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-                  Dispatch Official Receipt to Parent & Student Channels:
+                  Dispatch Official Receipt to Parent &amp; Student Channels:
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button
@@ -425,12 +455,25 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
               </div>
 
               {/* Actions */}
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                <button className="sky-btn-default" onClick={handlePrint} style={{ flex: 1 }}>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                <button className="sky-btn-default" onClick={handlePrint} style={{ flex: 1, minWidth: '160px' }}>
                   <Printer size={15} /> Print / Save PDF
                 </button>
-                <button className="sky-btn-primary" onClick={onBackToLedger} style={{ flex: 1 }}>
-                  Done & Return to Ledger
+                {charge.paymentStatus === 'PARTIALLY_PAID' && (charge.amount - charge.amountPaid) > 0 && (
+                  <button 
+                    className="sky-btn-primary" 
+                    onClick={() => {
+                      setSuccessReceipt(null);
+                      const rem = Math.round((charge.amount - charge.amountPaid) * 100) / 100;
+                      setCustomAmount(rem);
+                    }}
+                    style={{ flex: 1, minWidth: '180px' }}
+                  >
+                    Pay Remaining (${(charge.amount - charge.amountPaid).toFixed(2)})
+                  </button>
+                )}
+                <button className="sky-btn-default" onClick={onBackToLedger} style={{ flex: 1, minWidth: '160px' }}>
+                  Done &amp; Return to Ledger
                 </button>
               </div>
             </div>
@@ -507,16 +550,35 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 background: 'var(--bg-surface-subtle)',
                 border: '1px solid var(--border-strong)',
                 borderRadius: 'var(--radius-sm)',
-                padding: '1.25rem'
+                padding: '1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem'
               }}>
-                <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
-                    Payment Amount
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Total Due: <strong>${charge.amount.toFixed(2)}</strong>
-                    {charge.amountPaid > 0 && ` (Paid: $${charge.amountPaid.toFixed(2)})`}
-                  </span>
+                <div className="flex-between" style={{ alignItems: 'flex-start' }}>
+                  <div>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--text-heading)', display: 'block' }}>
+                      Payment Amount
+                    </label>
+                    <span style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>
+                      Enter full or partial payment for this obligation
+                    </span>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                      Outstanding Balance
+                    </span>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 800, color: remainingBalance > 0 ? '#b45309' : '#16a34a' }}>
+                      ${remainingBalance.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Balance Breakdown Row */}
+                <div style={{ display: 'flex', gap: '0.75rem', background: '#ffffff', padding: '0.6rem 0.85rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', fontSize: '0.775rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <div>Total Fee: <strong>${charge.amount.toFixed(2)}</strong></div>
+                  <div>Previously Paid: <strong style={{ color: charge.amountPaid > 0 ? '#16a34a' : 'inherit' }}>${charge.amountPaid.toFixed(2)}</strong></div>
+                  <div>Current Balance Due: <strong style={{ color: '#b45309' }}>${remainingBalance.toFixed(2)}</strong></div>
                 </div>
 
                 <div style={{ position: 'relative' }}>
@@ -538,16 +600,51 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                     disabled={!fee.allowPartialPayment}
                     style={{
                       paddingLeft: '1.75rem',
-                      fontSize: '1.1rem',
-                      fontWeight: 700,
+                      fontSize: '1.15rem',
+                      fontWeight: 800,
                       color: 'var(--text-heading)'
                     }}
                   />
                 </div>
 
+                {/* 1-Click Quick Amount Selectors */}
                 {fee.allowPartialPayment && (
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-                    💡 Partial payments allowed (Min: ${fee.minPartialAmount?.toFixed(2) || '1.00'}). Remaining balance will update immediately.
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 700 }}>Quick Select:</span>
+                    <button
+                      type="button"
+                      onClick={() => setCustomAmount(remainingBalance)}
+                      style={{
+                        background: Number(customAmount) === remainingBalance ? 'var(--sky-color-primary)' : '#ffffff',
+                        color: Number(customAmount) === remainingBalance ? '#ffffff' : 'var(--text-heading)',
+                        border: '1px solid var(--border-strong)',
+                        borderRadius: '4px',
+                        padding: '0.25rem 0.65rem',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Pay Full Remaining (${remainingBalance.toFixed(2)})
+                    </button>
+                    {remainingBalance > (fee.minPartialAmount || 50) && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomAmount(fee.minPartialAmount || 50)}
+                        style={{
+                          background: Number(customAmount) === (fee.minPartialAmount || 50) ? 'var(--sky-color-primary)' : '#ffffff',
+                          color: Number(customAmount) === (fee.minPartialAmount || 50) ? '#ffffff' : 'var(--text-heading)',
+                          border: '1px solid var(--border-strong)',
+                          borderRadius: '4px',
+                          padding: '0.25rem 0.65rem',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Pay Min Partial (${(fee.minPartialAmount || 50).toFixed(2)})
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
