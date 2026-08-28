@@ -258,17 +258,12 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
                       'balance_due',
                       'last_date_of_payment',
                       'payment_status',
-                      'prefilled_payment_link',
-                      'whatsapp_dispatch_link',
-                      'sms_message_template'
+                      'prefilled_payment_link'
                     ];
 
                     const rows = charges.map(c => {
                       const remaining = Math.max(0, Math.round((c.amount - c.amountPaid) * 100) / 100);
                       const paymentLink = `${window.location.origin}/?chargeId=${c.id}`;
-                      const smsMsg = `Dear ${c.parentEmail.split('@')[0]}, payment of $${remaining.toFixed(2)} for ${c.feeTitle} (${c.studentName}) is due ${c.dueDate}. Settle securely: ${paymentLink}`;
-                      const waMsg = `*${c.feeTitle} - Payment Notice*\nStudent: ${c.studentName}\nDue Date: ${c.dueDate}\nOutstanding Balance: $${remaining.toFixed(2)}\nPay link: ${paymentLink}`;
-                      const waLink = `https://api.whatsapp.com/send?phone=${encodeURIComponent(c.parentPhone || '')}&text=${encodeURIComponent(waMsg)}`;
 
                       return [
                         `"${c.studentId}"`,
@@ -285,9 +280,7 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
                         remaining.toFixed(2),
                         `"${c.dueDate}"`,
                         `"${c.paymentStatus}"`,
-                        `"${paymentLink}"`,
-                        `"${waLink.replace(/"/g, '""')}"`,
-                        `"${smsMsg.replace(/"/g, '""')}"`
+                        `"${paymentLink}"`
                       ].join(',');
                     });
 

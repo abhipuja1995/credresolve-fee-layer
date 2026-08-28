@@ -147,8 +147,31 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
 
   const handleDownloadCsvTemplate = () => {
     const headers = 'student_id,student_name,student_email,student_mobile,gender,grade,school,parent_name,parent_email,parent_mobile,family_id\n';
-    const sample = 'BB-STU-201,Lucas Miller,lucas.m@oakridge.edu,+1-555-0201,Male,Grade 8,Oakridge Middle School,Robert Miller,robert.m@example.com,+1-555-0201,BB-FAM-601\nBB-STU-202,Chloe Zhang,chloe.z@oakridge.edu,+1-555-0202,Female,Grade 8,Oakridge Middle School,Wei Zhang,wei.z@example.com,+1-555-0202,BB-FAM-602\n';
-    const blob = new Blob([headers + sample], { type: 'text/csv;charset=utf-8;' });
+    const sampleRows = [
+      'BB-STU-201,Lucas Miller,lucas.m@oakridge.edu,+1-555-0201,Male,Grade 8,Oakridge Middle School,Robert Miller,robert.m@example.com,+1-555-0201,BB-FAM-601',
+      'BB-STU-202,Chloe Zhang,chloe.z@oakridge.edu,+1-555-0202,Female,Grade 8,Oakridge Middle School,Wei Zhang,wei.z@example.com,+1-555-0202,BB-FAM-602',
+      'BB-STU-203,Elijah Bennett,elijah.b@oakridge.edu,+1-555-0203,Male,Grade 8,Oakridge Middle School,Mark Bennett,mark.b@example.com,+1-555-0203,BB-FAM-603',
+      'BB-STU-204,Mia Rodriguez,mia.r@oakridge.edu,+1-555-0204,Female,Grade 8,Oakridge Middle School,Maria Rodriguez,maria.r@example.com,+1-555-0204,BB-FAM-604',
+      'BB-STU-205,Ethan Nakamura,ethan.n@oakridge.edu,+1-555-0205,Male,Grade 8,Oakridge Middle School,Kenji Nakamura,kenji.n@example.com,+1-555-0205,BB-FAM-605',
+      'BB-STU-206,Ava Sullivan,ava.s@oakridge.edu,+1-555-0206,Female,Grade 8,Oakridge Middle School,Patrick Sullivan,patrick.s@example.com,+1-555-0206,BB-FAM-606',
+      'BB-STU-207,Oliver Goldberg,oliver.g@oakridge.edu,+1-555-0207,Male,Grade 8,Oakridge Middle School,Rachel Goldberg,rachel.g@example.com,+1-555-0207,BB-FAM-607',
+      'BB-STU-208,Harper Johansson,harper.j@oakridge.edu,+1-555-0208,Female,Grade 8,Oakridge Middle School,Lars Johansson,lars.j@example.com,+1-555-0208,BB-FAM-608',
+      'BB-STU-209,Aiden Washington,aiden.w@oakridge.edu,+1-555-0209,Male,Grade 8,Oakridge Middle School,Corey Washington,corey.w@example.com,+1-555-0209,BB-FAM-609',
+      'BB-STU-210,Zoe Al-Mansoor,zoe.am@oakridge.edu,+1-555-0210,Female,Grade 8,Oakridge Middle School,Tariq Al-Mansoor,tariq.am@example.com,+1-555-0210,BB-FAM-610',
+      'BB-STU-211,Jackson Rivera,jackson.r@oakridge.edu,+1-555-0211,Male,Grade 8,Oakridge Middle School,Mateo Rivera,mateo.r@example.com,+1-555-0211,BB-FAM-611',
+      'BB-STU-212,Lily Campbell,lily.c@oakridge.edu,+1-555-0212,Female,Grade 8,Oakridge Middle School,Heather Campbell,heather.c@example.com,+1-555-0212,BB-FAM-612',
+      'BB-STU-213,Mason Sharma,mason.s@oakridge.edu,+1-555-0213,Male,Grade 8,Oakridge Middle School,Vikram Sharma,vikram.s@example.com,+1-555-0213,BB-FAM-613',
+      'BB-STU-214,Grace O\'Donnell,grace.od@oakridge.edu,+1-555-0214,Female,Grade 8,Oakridge Middle School,Ciaran O\'Donnell,ciaran.od@example.com,+1-555-0214,BB-FAM-614',
+      'BB-STU-215,Noah Tanaka,noah.t@oakridge.edu,+1-555-0215,Male,Grade 8,Oakridge Middle School,Yuki Tanaka,yuki.t@example.com,+1-555-0215,BB-FAM-615',
+      'BB-STU-216,Ella Foster,ella.f@oakridge.edu,+1-555-0216,Female,Grade 8,Oakridge Middle School,David Foster,david.f@example.com,+1-555-0216,BB-FAM-616',
+      'BB-STU-217,Carter Brooks,carter.b@oakridge.edu,+1-555-0217,Male,Grade 8,Oakridge Middle School,Jonathan Brooks,jonathan.b@example.com,+1-555-0217,BB-FAM-617',
+      'BB-STU-218,Scarlett Jensen,scarlett.j@oakridge.edu,+1-555-0218,Female,Grade 8,Oakridge Middle School,Karen Jensen,karen.j@example.com,+1-555-0218,BB-FAM-618',
+      'BB-STU-219,Wyatt Cooper,wyatt.c@oakridge.edu,+1-555-0219,Male,Grade 8,Oakridge Middle School,Bradley Cooper,bradley.c@example.com,+1-555-0219,BB-FAM-619',
+      'BB-STU-220,Hannah Ortiz,hannah.o@oakridge.edu,+1-555-0220,Female,Grade 8,Oakridge Middle School,Gabriel Ortiz,gabriel.o@example.com,+1-555-0220,BB-FAM-620',
+      'BB-STU-221,Leo Kowalski,leo.k@oakridge.edu,+1-555-0221,Male,Grade 8,Oakridge Middle School,Piotr Kowalski,piotr.k@example.com,+1-555-0221,BB-FAM-621',
+      'BB-STU-222,Victoria Hughes,victoria.h@oakridge.edu,+1-555-0222,Female,Grade 8,Oakridge Middle School,Simon Hughes,simon.h@example.com,+1-555-0222,BB-FAM-622'
+    ];
+    const blob = new Blob([headers + sampleRows.join('\n') + '\n'], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -241,11 +264,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
         'balance_due',
         'last_date_of_payment',
         'payment_status',
-        'prefilled_payment_link',
-        'whatsapp_dispatch_link',
-        'sms_message_template',
-        'email_subject_template',
-        'email_body_template'
+        'prefilled_payment_link'
       ];
 
       const csvRows = targeted.map(stu => {
@@ -255,12 +274,6 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
         const paymentStatus = charge ? charge.paymentStatus : (balanceDue === 0 ? 'PAID' : 'UNPAID');
         const chargeId = charge ? charge.id : `CHG-${fee.id}-${stu.studentId}`;
         const paymentLink = `${window.location.origin}/?chargeId=${chargeId}`;
-        
-        const smsMsg = `Oakridge Academy: Dear ${stu.parentName}, the payment for ${fee.title} ($${balanceDue.toFixed(2)}) for ${stu.studentName} is due by ${fee.dueDate}. Settle securely: ${paymentLink}`;
-        const waMsg = `*${fee.title} - Payment Notice*\nDear ${stu.parentName},\nStudent: ${stu.studentName} (${stu.grade})\nDue Date: ${fee.dueDate}\nOutstanding Balance: $${balanceDue.toFixed(2)}\nPay securely online: ${paymentLink}`;
-        const waLink = `https://api.whatsapp.com/send?phone=${encodeURIComponent(stu.parentMobile || stu.parentPhone || '')}&text=${encodeURIComponent(waMsg)}`;
-        const emailSubject = `Payment Due: ${fee.title} for ${stu.studentName}`;
-        const emailBody = `Dear ${stu.parentName},\n\nThis is a notification from Oakridge Academy regarding the fee for ${fee.title}.\n\nStudent: ${stu.studentName} (${stu.grade})\nTotal Fee: $${fee.baseAmount.toFixed(2)}\nAmount Paid: $${amountPaid.toFixed(2)}\nRemaining Balance: $${balanceDue.toFixed(2)}\nDue Date: ${fee.dueDate}\n\nPlease settle this payment online using your secure pre-filled link:\n${paymentLink}\n\nThank you,\nBursar Office, Oakridge International Preparatory Academy`;
 
         const row = [
           `"${stu.studentId}"`,
@@ -281,11 +294,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
           balanceDue.toFixed(2),
           `"${fee.dueDate}"`,
           `"${paymentStatus}"`,
-          `"${paymentLink}"`,
-          `"${waLink.replace(/"/g, '""')}"`,
-          `"${smsMsg.replace(/"/g, '""')}"`,
-          `"${emailSubject.replace(/"/g, '""')}"`,
-          `"${emailBody.replace(/"/g, '""')}"`
+          `"${paymentLink}"`
         ];
         return row.join(',');
       });
@@ -328,9 +337,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
         'balance_due',
         'last_date_of_payment',
         'payment_status',
-        'prefilled_payment_link',
-        'whatsapp_dispatch_link',
-        'sms_message_template'
+        'prefilled_payment_link'
       ];
 
       const csvRows: string[] = [];
@@ -354,9 +361,6 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
           const paymentStatus = charge ? charge.paymentStatus : (balanceDue === 0 ? 'PAID' : 'UNPAID');
           const chargeId = charge ? charge.id : `CHG-${fee.id}-${stu.studentId}`;
           const paymentLink = `${window.location.origin}/?chargeId=${chargeId}`;
-          const smsMsg = `Oakridge Academy: Dear ${stu.parentName}, payment for ${fee.title} ($${balanceDue.toFixed(2)}) is due ${fee.dueDate}. Pay: ${paymentLink}`;
-          const waMsg = `*${fee.title} - Payment Notice*\nDear ${stu.parentName},\nStudent: ${stu.studentName} (${stu.grade})\nDue: ${fee.dueDate}\nBalance: $${balanceDue.toFixed(2)}\nPay link: ${paymentLink}`;
-          const waLink = `https://api.whatsapp.com/send?phone=${encodeURIComponent(stu.parentMobile || stu.parentPhone || '')}&text=${encodeURIComponent(waMsg)}`;
 
           const row = [
             `"${stu.studentId}"`,
@@ -377,9 +381,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
             balanceDue.toFixed(2),
             `"${fee.dueDate}"`,
             `"${paymentStatus}"`,
-            `"${paymentLink}"`,
-            `"${waLink.replace(/"/g, '""')}"`,
-            `"${smsMsg.replace(/"/g, '""')}"`
+            `"${paymentLink}"`
           ];
           csvRows.push(row.join(','));
         });

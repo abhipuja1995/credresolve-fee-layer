@@ -87,9 +87,7 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
         'balance_due',
         'due_date',
         'payment_status',
-        'prefilled_payment_link',
-        'whatsapp_dispatch_link',
-        'sms_message_template'
+        'prefilled_payment_link'
       ];
 
       const csvRows = filteredCharges.map(c => {
@@ -97,9 +95,6 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
         const paymentLink = `${window.location.origin}/?chargeId=${c.id}`;
         const fee = fees.find(f => f.id === c.feeId);
         const feeType = fee?.bbFeeTypeId || c.bbFeeTypeId;
-        const smsMsg = `Oakridge Academy: Dear ${c.parentEmail.split('@')[0]}, payment of $${remaining.toFixed(2)} for ${c.feeTitle} (${c.studentName}) is due ${c.dueDate}. Settle securely: ${paymentLink}`;
-        const waMsg = `*${c.feeTitle} - Payment Notice*\nStudent: ${c.studentName}\nDue Date: ${c.dueDate}\nOutstanding Balance: $${remaining.toFixed(2)}\nPay link: ${paymentLink}`;
-        const waLink = `https://api.whatsapp.com/send?phone=${encodeURIComponent(c.parentPhone || '')}&text=${encodeURIComponent(waMsg)}`;
 
         const row = [
           `"${c.studentId}"`,
@@ -118,9 +113,7 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
           remaining.toFixed(2),
           `"${c.dueDate}"`,
           `"${c.paymentStatus}"`,
-          `"${paymentLink}"`,
-          `"${waLink.replace(/"/g, '""')}"`,
-          `"${smsMsg.replace(/"/g, '""')}"`
+          `"${paymentLink}"`
         ];
         return row.join(',');
       });
