@@ -87,6 +87,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
   }, [initialQuery]);
 
   const sampleLookups = [
+    { label: 'Robert Sterling (3 Kids • ⚠️ 8 Overdue Fees • $1,725 Due)', val: 'robert.sterling@example.com' },
     { label: 'Michael Hayes (Alex & Maya • $565 Due)', val: 'michael.hayes@example.com' },
     { label: 'Priya Patel (Sophia & Aarav • $380 Due)', val: 'priya.patel@example.com' },
     { label: 'David Vance (Lucas & Chloe • $710 Due)', val: 'david.vance@example.com' },
@@ -463,6 +464,7 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                       const remaining = Math.max(0, Math.round((charge.amount - charge.amountPaid) * 100) / 100);
                       const isPaid = charge.paymentStatus === 'PAID';
                       const isSelected = selectedChargeIds.includes(charge.id);
+                      const isOverdue = !isPaid && new Date(charge.dueDate) < new Date();
 
                       return (
                         <div
@@ -470,8 +472,8 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                           style={{
                             padding: '1rem 1.25rem',
                             borderRadius: 'var(--radius-sm)',
-                            border: isSelected ? '2px solid var(--sky-color-primary)' : (isPaid ? '1px solid var(--success-border)' : '1px solid var(--border-strong)'),
-                            background: isSelected ? '#f0fdf4' : (isPaid ? 'var(--success-bg)' : 'var(--bg-card)'),
+                            border: isSelected ? '2px solid var(--sky-color-primary)' : (isPaid ? '1px solid var(--success-border)' : (isOverdue ? '1.5px solid #fca5a5' : '1px solid var(--border-strong)')),
+                            background: isSelected ? '#f0fdf4' : (isPaid ? 'var(--success-bg)' : (isOverdue ? '#fff5f5' : 'var(--bg-card)')),
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
@@ -489,12 +491,16 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                               />
                             )}
                             <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                                 <h5 className="sky-heading-4">
                                   {charge.feeTitle}
                                 </h5>
                                 {isPaid ? (
                                   <span className="badge badge-success">Paid in Full</span>
+                                ) : isOverdue ? (
+                                  <span className="badge" style={{ background: '#fee2e2', color: '#991b1b', border: '1px solid #f87171', fontWeight: 800 }}>
+                                    ⚠️ Overdue
+                                  </span>
                                 ) : charge.paymentStatus === 'PARTIALLY_PAID' ? (
                                   <span className="badge badge-warning">Partial Payment</span>
                                 ) : (
@@ -502,8 +508,8 @@ export const ParentQuickPayPortal: React.FC<ParentQuickPayPortalProps> = ({
                                 )}
                               </div>
 
-                              <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.25rem', fontSize: '0.775rem', color: 'var(--text-muted)' }}>
-                                <span>Due Date: <strong style={{ color: 'var(--text-heading)' }}>{charge.dueDate}</strong></span>
+                              <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.25rem', fontSize: '0.775rem', color: isOverdue ? '#dc2626' : 'var(--text-muted)' }}>
+                                <span>Due Date: <strong style={{ color: isOverdue ? '#b91c1c' : 'var(--text-heading)' }}>{charge.dueDate} {isOverdue && '(Past Due)'}</strong></span>
                                 <span>Total: <strong>${charge.amount.toFixed(2)}</strong></span>
                                 {charge.amountPaid > 0 && (
                                   <span style={{ color: 'var(--success)' }}>Paid: <strong>${charge.amountPaid.toFixed(2)}</strong></span>

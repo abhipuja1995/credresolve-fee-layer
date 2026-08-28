@@ -679,21 +679,39 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                               onClick={e => e.stopPropagation()}
                             />
                             <div>
-                              <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
-                                {item.charge.studentName} <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>({item.charge.studentId})</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                <span style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0f172a' }}>
+                                  {item.charge.studentName}
+                                </span>
+                                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                                  ({item.charge.studentId})
+                                </span>
+                                {!isSettled && new Date(item.charge.dueDate) < new Date() && (
+                                  <span style={{
+                                    background: '#fee2e2',
+                                    color: '#991b1b',
+                                    border: '1px solid #f87171',
+                                    padding: '0.05rem 0.35rem',
+                                    borderRadius: '4px',
+                                    fontSize: '0.625rem',
+                                    fontWeight: 800
+                                  }}>
+                                    ⚠️ OVERDUE
+                                  </span>
+                                )}
                               </div>
-                              <div style={{ fontSize: '0.775rem', color: '#475569' }}>
-                                {item.charge.feeTitle} • Due {item.charge.dueDate}
+                              <div style={{ fontSize: '0.775rem', color: !isSettled && new Date(item.charge.dueDate) < new Date() ? '#dc2626' : '#475569' }}>
+                                {item.charge.feeTitle} • Due {item.charge.dueDate} {!isSettled && new Date(item.charge.dueDate) < new Date() && '(Past Due)'}
                               </div>
                             </div>
                           </div>
 
                           <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: isSettled ? '#16a34a' : (isChecked ? '#15803d' : '#002238') }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: isSettled ? '#16a34a' : (!isSettled && new Date(item.charge.dueDate) < new Date() ? '#dc2626' : (isChecked ? '#15803d' : '#002238')) }}>
                               {isSettled ? '$0.00' : `$${rem.toFixed(2)}`}
                             </div>
-                            <span style={{ fontSize: '0.675rem', color: isSettled ? '#16a34a' : '#b45309', fontWeight: 700 }}>
-                              {isSettled ? '✓ Paid' : (item.charge.amountPaid > 0 ? `Partially Paid ($${item.charge.amountPaid.toFixed(2)})` : 'Balance Due')}
+                            <span style={{ fontSize: '0.675rem', color: isSettled ? '#16a34a' : (!isSettled && new Date(item.charge.dueDate) < new Date() ? '#dc2626' : '#b45309'), fontWeight: 700 }}>
+                              {isSettled ? '✓ Paid' : (!isSettled && new Date(item.charge.dueDate) < new Date() ? '⚠️ Overdue' : (item.charge.amountPaid > 0 ? `Partially Paid ($${item.charge.amountPaid.toFixed(2)})` : 'Balance Due'))}
                             </span>
                           </div>
                         </div>

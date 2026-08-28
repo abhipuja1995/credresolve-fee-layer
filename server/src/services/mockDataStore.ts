@@ -104,6 +104,11 @@ export class MockDataStore {
     { studentId: 'BB-STU-115', familyId: 'BB-FAM-513', studentName: 'Jackson Brooks', studentEmail: 'jackson.b@oakridge.edu', studentMobile: '+1-555-0115', gender: 'Male', grade: 'Grade 8', school: 'Oakridge Middle School', homeroom: '8-B', parentName: 'Marcus Brooks', parentEmail: 'marcus.b@example.com', parentPhone: '+1-555-0115', parentMobile: '+1-555-0115', currentBalance: 330.00, status: 'ACTIVE' },
     { studentId: 'BB-STU-130', familyId: 'BB-FAM-513', studentName: 'Harper Brooks', studentEmail: 'harper.b@oakridge.edu', studentMobile: '+1-555-0115', gender: 'Female', grade: 'Grade 6', school: 'Oakridge Middle School', homeroom: '6-B', parentName: 'Marcus Brooks', parentEmail: 'marcus.b@example.com', parentPhone: '+1-555-0115', parentMobile: '+1-555-0115', currentBalance: 205.00, status: 'ACTIVE' },
 
+    // Family 7: Robert Sterling (3 kids with 8 OVERDUE fees: William, Charlotte & Benjamin)
+    { studentId: 'BB-STU-131', familyId: 'BB-FAM-530', studentName: 'William Sterling', studentEmail: 'william.s@oakridge.edu', studentMobile: '+1-555-0190', gender: 'Male', grade: 'Grade 10', school: 'Oakridge Upper Academy', homeroom: '10-A', parentName: 'Robert Sterling', parentEmail: 'robert.sterling@example.com', parentPhone: '+1-555-0190', parentMobile: '+1-555-0190', currentBalance: 830.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-132', familyId: 'BB-FAM-530', studentName: 'Charlotte Sterling', studentEmail: 'charlotte.s@oakridge.edu', studentMobile: '+1-555-0190', gender: 'Female', grade: 'Grade 7', school: 'Oakridge Middle School', homeroom: '7-A', parentName: 'Robert Sterling', parentEmail: 'robert.sterling@example.com', parentPhone: '+1-555-0190', parentMobile: '+1-555-0190', currentBalance: 680.00, status: 'ACTIVE' },
+    { studentId: 'BB-STU-133', familyId: 'BB-FAM-530', studentName: 'Benjamin Sterling', studentEmail: 'benjamin.s@oakridge.edu', studentMobile: '+1-555-0190', gender: 'Male', grade: 'Grade 4', school: 'Oakridge Lower School', homeroom: '4-A', parentName: 'Robert Sterling', parentEmail: 'robert.sterling@example.com', parentPhone: '+1-555-0190', parentMobile: '+1-555-0190', currentBalance: 215.00, status: 'ACTIVE' },
+
     // Additional Roster Students
     { studentId: 'BB-STU-104', familyId: 'BB-FAM-504', studentName: 'Emma Richardson', studentEmail: 'emma.r@oakridge.edu', studentMobile: '+1-555-0104', gender: 'Female', grade: 'Grade 8', school: 'Oakridge Middle School', homeroom: '8-B', parentName: 'Sarah Richardson', parentEmail: 'sarah.r@example.com', parentPhone: '+1-555-0104', parentMobile: '+1-555-0104', currentBalance: 80.00, status: 'ACTIVE' },
     { studentId: 'BB-STU-105', familyId: 'BB-FAM-505', studentName: 'Benjamin Walker', studentEmail: 'ben.w@oakridge.edu', studentMobile: '+1-555-0105', gender: 'Male', grade: 'Grade 7', school: 'Oakridge Middle School', homeroom: '7-A', parentName: 'James Walker', parentEmail: 'james.walker@example.com', parentPhone: '+1-555-0105', parentMobile: '+1-555-0105', currentBalance: 0.00, status: 'ACTIVE' },
@@ -726,6 +731,127 @@ export class MockDataStore {
       amount: 90.00,
       amountPaid: 0.00,
       dueDate: '2026-11-05',
+      paymentStatus: 'UNPAID'
+    });
+
+    // =========================================================================
+    // FAMILY 7: Robert Sterling (William, Charlotte & Benjamin - 8 OVERDUE FEES)
+    // =========================================================================
+    // William Sterling (Grade 10) - 3 Overdue Charges
+    helperAddCharge({
+      id: 'CHG-PHYS-BB-STU-131',
+      feeId: 'fee-phys-2026',
+      feeTitle: 'AP Physics C & Advanced Robotics Lab Kit',
+      studentId: 'BB-STU-131',
+      studentName: 'William Sterling',
+      parentEmail: 'robert.sterling@example.com',
+      parentPhone: '+1-555-0190',
+      bbFeeTypeId: 'FT-TECH-04',
+      amount: 280.00,
+      amountPaid: 0.00,
+      dueDate: '2026-07-15',
+      paymentStatus: 'UNPAID'
+    });
+    helperAddCharge({
+      id: 'CHG-ROW-BB-STU-131',
+      feeId: 'fee-row-2026',
+      feeTitle: 'Varsity Crew & Head of Charles Regatta Travel Package',
+      studentId: 'BB-STU-131',
+      studentName: 'William Sterling',
+      parentEmail: 'robert.sterling@example.com',
+      parentPhone: '+1-555-0190',
+      bbFeeTypeId: 'FT-ATHL-02',
+      amount: 340.00,
+      amountPaid: 0.00,
+      dueDate: '2026-08-01',
+      paymentStatus: 'UNPAID'
+    });
+    helperAddCharge({
+      id: 'CHG-MUNH-BB-STU-131',
+      feeId: 'fee-munh-2026',
+      feeTitle: 'National Model UN Harvard Delegation Delegate Fee',
+      studentId: 'BB-STU-131',
+      studentName: 'William Sterling',
+      parentEmail: 'robert.sterling@example.com',
+      parentPhone: '+1-555-0190',
+      bbFeeTypeId: 'FT-ACT-05',
+      amount: 210.00,
+      amountPaid: 0.00,
+      dueDate: '2026-08-15',
+      paymentStatus: 'UNPAID'
+    });
+
+    // Charlotte Sterling (Grade 7) - 3 Overdue Charges
+    helperAddCharge({
+      id: 'CHG-ADIR-BB-STU-132',
+      feeId: 'fee-adir-2026',
+      feeTitle: '7th Grade Adirondack Outdoor Leadership Expedition',
+      studentId: 'BB-STU-132',
+      studentName: 'Charlotte Sterling',
+      parentEmail: 'robert.sterling@example.com',
+      parentPhone: '+1-555-0190',
+      bbFeeTypeId: 'FT-CAMP-06',
+      amount: 325.00,
+      amountPaid: 0.00,
+      dueDate: '2026-07-20',
+      paymentStatus: 'UNPAID'
+    });
+    helperAddCharge({
+      id: 'CHG-CELLO-BB-STU-132',
+      feeId: 'fee-cello-2026',
+      feeTitle: 'Middle School Symphonic Orchestra Cello Rental & Maintenance',
+      studentId: 'BB-STU-132',
+      studentName: 'Charlotte Sterling',
+      parentEmail: 'robert.sterling@example.com',
+      parentPhone: '+1-555-0190',
+      bbFeeTypeId: 'FT-ACT-05',
+      amount: 160.00,
+      amountPaid: 0.00,
+      dueDate: '2026-08-10',
+      paymentStatus: 'UNPAID'
+    });
+    helperAddCharge({
+      id: 'CHG-FRRET-BB-STU-132',
+      feeId: 'fee-frret-2026',
+      feeTitle: 'French Language Immersion Weekend Retreat',
+      studentId: 'BB-STU-132',
+      studentName: 'Charlotte Sterling',
+      parentEmail: 'robert.sterling@example.com',
+      parentPhone: '+1-555-0190',
+      bbFeeTypeId: 'FT-TRIP-03',
+      amount: 195.00,
+      amountPaid: 0.00,
+      dueDate: '2026-08-20',
+      paymentStatus: 'UNPAID'
+    });
+
+    // Benjamin Sterling (Grade 4) - 2 Overdue Charges
+    helperAddCharge({
+      id: 'CHG-HIST-BB-STU-133',
+      feeId: 'fee-hist-4-2026',
+      feeTitle: '4th Grade Living History Museum & Transportation',
+      studentId: 'BB-STU-133',
+      studentName: 'Benjamin Sterling',
+      parentEmail: 'robert.sterling@example.com',
+      parentPhone: '+1-555-0190',
+      bbFeeTypeId: 'FT-TRIP-03',
+      amount: 120.00,
+      amountPaid: 0.00,
+      dueDate: '2026-07-30',
+      paymentStatus: 'UNPAID'
+    });
+    helperAddCharge({
+      id: 'CHG-STEAM-BB-STU-133',
+      feeId: 'fee-steam-4-2026',
+      feeTitle: 'Lower School STEAM Discovery & Coding Module Kit',
+      studentId: 'BB-STU-133',
+      studentName: 'Benjamin Sterling',
+      parentEmail: 'robert.sterling@example.com',
+      parentPhone: '+1-555-0190',
+      bbFeeTypeId: 'FT-TECH-04',
+      amount: 95.00,
+      amountPaid: 0.00,
+      dueDate: '2026-08-05',
       paymentStatus: 'UNPAID'
     });
   }

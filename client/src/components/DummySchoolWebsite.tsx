@@ -537,15 +537,16 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                           const remaining = Math.max(0, Math.round((charge.amount - charge.amountPaid) * 100) / 100);
                           const isPaid = charge.paymentStatus === 'PAID';
                           const isChecked = selectedParentFeeIds.includes(charge.id);
+                          const isOverdue = !isPaid && new Date(charge.dueDate) < new Date();
 
                           return (
                             <div
                               key={charge.id}
                               style={{
-                                padding: '0.75rem 0.85rem',
-                                background: isChecked ? '#f0fdf4' : (isPaid ? '#f8fafc' : '#ffffff'),
+                                padding: '0.75rem 1rem',
+                                background: isChecked ? '#f0f9ff' : (isOverdue ? '#fff5f5' : '#ffffff'),
                                 borderRadius: '8px',
-                                border: isChecked ? '1.5px solid #16a34a' : '1px solid #e2e8f0',
+                                border: isChecked ? '1.5px solid #0284c7' : (isOverdue ? '1.5px solid #fca5a5' : '1px solid #e2e8f0'),
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
@@ -565,25 +566,45 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                                   <CheckCircle size={16} color="#16a34a" />
                                 )}
                                 <div>
-                                  <strong style={{ color: '#0f172a' }}>{charge.feeTitle}</strong>
-                                  <div style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '0.1rem' }}>Due Date: {charge.dueDate}</div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                    <strong style={{ color: '#0f172a' }}>{charge.feeTitle}</strong>
+                                    {isOverdue && (
+                                      <span style={{
+                                        background: '#fee2e2',
+                                        color: '#991b1b',
+                                        border: '1px solid #f87171',
+                                        padding: '0.1rem 0.4rem',
+                                        borderRadius: '4px',
+                                        fontSize: '0.65rem',
+                                        fontWeight: 800,
+                                        letterSpacing: '0.03em'
+                                      }}>
+                                        ⚠️ OVERDUE
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{ fontSize: '0.725rem', color: isOverdue ? '#dc2626' : '#64748b', marginTop: '0.1rem', fontWeight: isOverdue ? 600 : 400 }}>
+                                    Due Date: {charge.dueDate} {isOverdue && '(Past Due)'}
+                                  </div>
                                 </div>
                               </div>
 
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontWeight: 800, color: isPaid ? '#16a34a' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#002238') }}>
+                                <div style={{ fontWeight: 800, color: isPaid ? '#16a34a' : (isOverdue ? '#dc2626' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#002238')) }}>
                                   {isPaid 
                                     ? `$${charge.amount.toFixed(2)}` 
                                     : (charge.paymentStatus === 'PARTIALLY_PAID' 
                                       ? `$${remaining.toFixed(2)} due` 
                                       : `$${charge.amount.toFixed(2)}`)}
                                 </div>
-                                <span style={{ fontSize: '0.65rem', color: isPaid ? '#16a34a' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#64748b'), fontWeight: 700 }}>
+                                <span style={{ fontSize: '0.65rem', color: isPaid ? '#16a34a' : (isOverdue ? '#dc2626' : (charge.paymentStatus === 'PARTIALLY_PAID' ? '#b45309' : '#64748b')), fontWeight: 700 }}>
                                   {isPaid 
                                     ? '✓ Fully Paid' 
-                                    : (charge.paymentStatus === 'PARTIALLY_PAID' 
-                                      ? `Partially Paid ($${charge.amountPaid.toFixed(2)} paid)` 
-                                      : 'Pending Payment')}
+                                    : (isOverdue
+                                      ? '⚠️ Overdue'
+                                      : (charge.paymentStatus === 'PARTIALLY_PAID' 
+                                        ? `Partially Paid ($${charge.amountPaid.toFixed(2)} paid)` 
+                                        : 'Pending Payment'))}
                                 </span>
                               </div>
                             </div>
@@ -1202,12 +1223,13 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginTop: '0.5rem', maxHeight: '240px', overflowY: 'auto' }}>
                   {[
-                    { name: 'Michael Hayes', email: 'michael.hayes@example.com', kids: 'Alexander (Gr 8) & Maya (Gr 5)', due: '$565.00' },
-                    { name: 'Priya Patel', email: 'priya.patel@example.com', kids: 'Sophia (Gr 8) & Aarav (Gr 3)', due: '$380.00' },
-                    { name: 'David Vance', email: 'david.vance@example.com', kids: 'Lucas (Gr 8) & Chloe (Gr 6)', due: '$710.00' },
-                    { name: 'Carlos Martinez', email: 'carlos.m@example.com', kids: 'Olivia (Gr 7) & Mateo (Gr 4)', due: '$545.00' },
-                    { name: 'Jessica Bennett', email: 'jessica.b@example.com', kids: 'Noah (Gr 9), Liam (Gr 7) & Emma (Gr 3)', due: '$690.00' },
-                    { name: 'Marcus Brooks', email: 'marcus.b@example.com', kids: 'Jackson (Gr 8) & Harper (Gr 6)', due: '$535.00' }
+                    { name: 'Robert Sterling', email: 'robert.sterling@example.com', kids: 'William (Gr 10), Charlotte (Gr 7) & Benjamin (Gr 4)', due: '$1,725.00', isOverdue: true, feeCount: '8 Overdue Fees' },
+                    { name: 'Michael Hayes', email: 'michael.hayes@example.com', kids: 'Alexander (Gr 8) & Maya (Gr 5)', due: '$565.00', isOverdue: false, feeCount: '4 Fees' },
+                    { name: 'Priya Patel', email: 'priya.patel@example.com', kids: 'Sophia (Gr 8) & Aarav (Gr 3)', due: '$380.00', isOverdue: false, feeCount: '4 Fees' },
+                    { name: 'David Vance', email: 'david.vance@example.com', kids: 'Lucas (Gr 8) & Chloe (Gr 6)', due: '$710.00', isOverdue: false, feeCount: '4 Fees' },
+                    { name: 'Carlos Martinez', email: 'carlos.m@example.com', kids: 'Olivia (Gr 7) & Mateo (Gr 4)', due: '$545.00', isOverdue: false, feeCount: '4 Fees' },
+                    { name: 'Jessica Bennett', email: 'jessica.b@example.com', kids: 'Noah (Gr 9), Liam (Gr 7) & Emma (Gr 3)', due: '$690.00', isOverdue: false, feeCount: '5 Fees' },
+                    { name: 'Marcus Brooks', email: 'marcus.b@example.com', kids: 'Jackson (Gr 8) & Harper (Gr 6)', due: '$535.00', isOverdue: false, feeCount: '4 Fees' }
                   ].map((parent, idx) => (
                     <button
                       key={idx}
@@ -1217,8 +1239,8 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                         handleParentLogin(parent.email);
                       }}
                       style={{
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
+                        background: parent.isOverdue ? '#fff5f5' : '#f8fafc',
+                        border: parent.isOverdue ? '1.5px solid #fca5a5' : '1px solid #e2e8f0',
                         borderRadius: '8px',
                         padding: '0.55rem 0.75rem',
                         textAlign: 'left',
@@ -1231,13 +1253,19 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
                       }}
                     >
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <strong style={{ color: '#002238' }}>{parent.name}</strong>
-                          <span style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 700 }}>({parent.due} due)</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                          <strong style={{ color: parent.isOverdue ? '#991b1b' : '#002238' }}>{parent.name}</strong>
+                          {parent.isOverdue ? (
+                            <span style={{ fontSize: '0.675rem', color: '#b91c1c', fontWeight: 800, background: '#fee2e2', padding: '0.05rem 0.35rem', borderRadius: '4px' }}>
+                              ⚠️ 8 OVERDUE FEES ({parent.due})
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 700 }}>({parent.due} due)</span>
+                          )}
                         </div>
                         <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{parent.kids}</div>
                       </div>
-                      <span style={{ color: 'var(--sky-color-primary)', fontWeight: 700, fontSize: '0.75rem' }}>Login →</span>
+                      <span style={{ color: parent.isOverdue ? '#dc2626' : 'var(--sky-color-primary)', fontWeight: 700, fontSize: '0.75rem' }}>Login →</span>
                     </button>
                   ))}
                 </div>
