@@ -9,8 +9,11 @@ import {
   Smartphone, 
   Code2, 
   ExternalLink,
-  QrCode
+  QrCode,
+  Download,
+  FileSpreadsheet
 } from 'lucide-react';
+import { api } from '../services/api.js';
 
 interface SharePaymentLinkModalProps {
   isOpen: boolean;
@@ -31,7 +34,7 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedEmbed, setCopiedEmbed] = useState(false);
-  const [activeShareTab, setActiveShareTab] = useState<'link' | 'social' | 'embed' | 'qr'>('link');
+  const [activeShareTab, setActiveShareTab] = useState<'link' | 'social' | 'csv' | 'embed' | 'qr'>('link');
 
   if (!isOpen) return null;
 
@@ -118,11 +121,13 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
           display: 'flex',
           borderBottom: '1px solid var(--border-subtle)',
           background: 'var(--bg-surface-subtle)',
-          padding: '0 1rem'
+          padding: '0 1rem',
+          overflowX: 'auto'
         }}>
           {[
             { id: 'link', label: 'Direct Link', icon: Share2 },
             { id: 'social', label: 'SMS & Email', icon: MessageSquare },
+            { id: 'csv', label: 'Bulk CSV Dispatch', icon: Download },
             { id: 'embed', label: 'HTML Embed', icon: Code2 },
             { id: 'qr', label: 'QR Code', icon: QrCode }
           ].map(tab => {
@@ -142,7 +147,8 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
                   color: isActive ? 'var(--sky-color-primary)' : 'var(--text-muted)',
                   borderBottom: isActive ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
                   background: 'transparent',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 <Icon size={14} />
@@ -218,6 +224,89 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
                   <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>Share via SMS</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Open SMS composer on mobile devices</div>
                 </div>
+              </button>
+            </div>
+          )}
+
+          {activeShareTab === 'csv' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ padding: '1rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.85rem', color: 'var(--text-body)' }}>
+                <div style={{ fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <FileSpreadsheet size={16} color="var(--sky-color-primary)" />
+                  Bulk Messaging CSV Dispatch
+                </div>
+                Export pre-filled payment links mapped to student names, emails, mobile numbers, parent contacts, class grade, and fee schedules for bulk WhatsApp, SMS, and Email gateway uploads.
+              </div>
+
+              <button
+                className="sky-btn-primary"
+                onClick={async () => {
+                  try {
+                    const charges = await api.getCharges();
+                    const headers = [
+                      'student_id',
+                      'student_name',
+                      'student_email',
+                      'student_mobile',
+                      'class_grade',
+                      'parent_name',
+                      'parent_email',
+                      'parent_mobile',
+                      'fee_title',
+                      'total_fee_amount',
+                      'amount_paid',
+                      'balance_due',
+                      'last_date_of_payment',
+                      'payment_status',
+                      'prefilled_payment_link',
+                      'whatsapp_dispatch_link',
+                      'sms_message_template'
+                    ];
+
+                    const rows = charges.map(c => {
+                      const remaining = Math.max(0, Math.round((c.amount - c.amountPaid) * 100) / 100);
+                      const paymentLink = `${window.location.origin}/?chargeId=${c.id}`;
+                      const smsMsg = `Dear ${c.parentEmail.split('@')[0]}, payment of $${remaining.toFixed(2)} for ${c.feeTitle} (${c.studentName}) is due ${c.dueDate}. Settle securely: ${paymentLink}`;
+                      const waMsg = `*${c.feeTitle} - Payment Notice*\nStudent: ${c.studentName}\nDue Date: ${c.dueDate}\nOutstanding Balance: $${remaining.toFixed(2)}\nPay link: ${paymentLink}`;
+                      const waLink = `https://api.whatsapp.com/send?phone=${encodeURIComponent(c.parentPhone || '')}&text=${encodeURIComponent(waMsg)}`;
+
+                      return [
+                        `"${c.studentId}"`,
+                        `"${c.studentName}"`,
+                        `"${c.studentId.toLowerCase()}@oakridge.edu"`,
+                        `"${c.parentPhone || '+1-555-0100'}"`,
+                        `"Grade 8"`,
+                        `"${c.parentEmail.split('@')[0]}"`,
+                        `"${c.parentEmail}"`,
+                        `"${c.parentPhone}"`,
+                        `"${c.feeTitle.replace(/"/g, '""')}"`,
+                        c.amount.toFixed(2),
+                        c.amountPaid.toFixed(2),
+                        remaining.toFixed(2),
+                        `"${c.dueDate}"`,
+                        `"${c.paymentStatus}"`,
+                        `"${paymentLink}"`,
+                        `"${waLink.replace(/"/g, '""')}"`,
+                        `"${smsMsg.replace(/"/g, '""')}"`
+                      ].join(',');
+                    });
+
+                    const csvContent = headers.join(',') + '\n' + rows.join('\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `bulk_student_payment_links_${Date.now().toString().slice(-6)}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch (err) {
+                    console.error('Error generating CSV:', err);
+                  }
+                }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem' }}
+              >
+                <Download size={16} />
+                <span>Download Complete Student Payment Links CSV</span>
               </button>
             </div>
           )}

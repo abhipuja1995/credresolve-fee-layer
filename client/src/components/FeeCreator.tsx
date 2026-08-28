@@ -14,7 +14,9 @@ import {
   Share2,
   Check,
   Calendar,
-  DollarSign
+  DollarSign,
+  Download,
+  FileSpreadsheet
 } from 'lucide-react';
 import { 
   BlackbaudFeeType, 
@@ -199,6 +201,201 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleExportFeePaymentLinksCsv = async (fee: UniversalFeeDefinition) => {
+    try {
+      const allCharges = await api.getCharges();
+      const allStudents = (students && students.length > 0) ? students : await api.getStudents();
+      const feeType = activeFeeTypes.find(f => f.feeTypeId === fee.bbFeeTypeId);
+      
+      let targeted: StudentAccount[] = [];
+      if (fee.audience?.type === 'ALL_STUDENTS') {
+        targeted = allStudents;
+      } else if (fee.audience?.type === 'GRADE' && fee.audience.grades && fee.audience.grades.length > 0) {
+        targeted = allStudents.filter(s => fee.audience.grades?.includes(s.grade));
+      } else {
+        targeted = allStudents;
+      }
+
+      if (targeted.length === 0) {
+        targeted = allStudents;
+      }
+
+      const headers = [
+        'student_id',
+        'student_name',
+        'student_email',
+        'student_mobile',
+        'class_grade',
+        'school',
+        'parent_name',
+        'parent_email',
+        'parent_mobile',
+        'fee_id',
+        'fee_title',
+        'fee_category',
+        'gl_account_code',
+        'fee_base_amount',
+        'amount_paid',
+        'balance_due',
+        'last_date_of_payment',
+        'payment_status',
+        'prefilled_payment_link',
+        'whatsapp_dispatch_link',
+        'sms_message_template',
+        'email_subject_template',
+        'email_body_template'
+      ];
+
+      const csvRows = targeted.map(stu => {
+        const charge = allCharges.find(c => c.feeId === fee.id && c.studentId === stu.studentId);
+        const amountPaid = charge ? charge.amountPaid : 0;
+        const balanceDue = charge ? Math.max(0, charge.amount - charge.amountPaid) : fee.baseAmount;
+        const paymentStatus = charge ? charge.paymentStatus : (balanceDue === 0 ? 'PAID' : 'UNPAID');
+        const chargeId = charge ? charge.id : `CHG-${fee.id}-${stu.studentId}`;
+        const paymentLink = `${window.location.origin}/?chargeId=${chargeId}`;
+        
+        const smsMsg = `Oakridge Academy: Dear ${stu.parentName}, the payment for ${fee.title} ($${balanceDue.toFixed(2)}) for ${stu.studentName} is due by ${fee.dueDate}. Settle securely: ${paymentLink}`;
+        const waMsg = `*${fee.title} - Payment Notice*\nDear ${stu.parentName},\nStudent: ${stu.studentName} (${stu.grade})\nDue Date: ${fee.dueDate}\nOutstanding Balance: $${balanceDue.toFixed(2)}\nPay securely online: ${paymentLink}`;
+        const waLink = `https://api.whatsapp.com/send?phone=${encodeURIComponent(stu.parentMobile || stu.parentPhone || '')}&text=${encodeURIComponent(waMsg)}`;
+        const emailSubject = `Payment Due: ${fee.title} for ${stu.studentName}`;
+        const emailBody = `Dear ${stu.parentName},\n\nThis is a notification from Oakridge Academy regarding the fee for ${fee.title}.\n\nStudent: ${stu.studentName} (${stu.grade})\nTotal Fee: $${fee.baseAmount.toFixed(2)}\nAmount Paid: $${amountPaid.toFixed(2)}\nRemaining Balance: $${balanceDue.toFixed(2)}\nDue Date: ${fee.dueDate}\n\nPlease settle this payment online using your secure pre-filled link:\n${paymentLink}\n\nThank you,\nBursar Office, Oakridge International Preparatory Academy`;
+
+        const row = [
+          `"${stu.studentId}"`,
+          `"${stu.studentName}"`,
+          `"${stu.studentEmail || `${stu.studentId.toLowerCase()}@oakridge.edu`}"`,
+          `"${stu.studentMobile || stu.parentPhone || '+1-555-0100'}"`,
+          `"${stu.grade}"`,
+          `"${stu.school || 'Oakridge International Prep'}"`,
+          `"${stu.parentName}"`,
+          `"${stu.parentEmail}"`,
+          `"${stu.parentMobile || stu.parentPhone}"`,
+          `"${fee.id}"`,
+          `"${fee.title.replace(/"/g, '""')}"`,
+          `"${feeType?.category || 'ACTIVITY'}"`,
+          `"${feeType?.glAccountCode || 'GL-3030-40'}"`,
+          fee.baseAmount.toFixed(2),
+          amountPaid.toFixed(2),
+          balanceDue.toFixed(2),
+          `"${fee.dueDate}"`,
+          `"${paymentStatus}"`,
+          `"${paymentLink}"`,
+          `"${waLink.replace(/"/g, '""')}"`,
+          `"${smsMsg.replace(/"/g, '""')}"`,
+          `"${emailSubject.replace(/"/g, '""')}"`,
+          `"${emailBody.replace(/"/g, '""')}"`
+        ];
+        return row.join(',');
+      });
+
+      const csvContent = headers.join(',') + '\n' + csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const sanitizedTitle = fee.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').substring(0, 30);
+      a.download = `payment_links_${sanitizedTitle}_${fee.id}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error generating payment links CSV:', err);
+    }
+  };
+
+  const handleExportAllFeesPaymentLinksCsv = async () => {
+    try {
+      const allCharges = await api.getCharges();
+      const allStudents = (students && students.length > 0) ? students : await api.getStudents();
+      
+      const headers = [
+        'student_id',
+        'student_name',
+        'student_email',
+        'student_mobile',
+        'class_grade',
+        'school',
+        'parent_name',
+        'parent_email',
+        'parent_mobile',
+        'fee_id',
+        'fee_title',
+        'fee_category',
+        'gl_account_code',
+        'fee_base_amount',
+        'amount_paid',
+        'balance_due',
+        'last_date_of_payment',
+        'payment_status',
+        'prefilled_payment_link',
+        'whatsapp_dispatch_link',
+        'sms_message_template'
+      ];
+
+      const csvRows: string[] = [];
+
+      for (const fee of existingFees) {
+        const feeType = activeFeeTypes.find(f => f.feeTypeId === fee.bbFeeTypeId);
+        let targeted: StudentAccount[] = [];
+        if (fee.audience?.type === 'ALL_STUDENTS') {
+          targeted = allStudents;
+        } else if (fee.audience?.type === 'GRADE' && fee.audience.grades && fee.audience.grades.length > 0) {
+          targeted = allStudents.filter(s => fee.audience.grades?.includes(s.grade));
+        } else {
+          targeted = allStudents;
+        }
+        if (targeted.length === 0) targeted = allStudents;
+
+        targeted.forEach(stu => {
+          const charge = allCharges.find(c => c.feeId === fee.id && c.studentId === stu.studentId);
+          const amountPaid = charge ? charge.amountPaid : 0;
+          const balanceDue = charge ? Math.max(0, charge.amount - charge.amountPaid) : fee.baseAmount;
+          const paymentStatus = charge ? charge.paymentStatus : (balanceDue === 0 ? 'PAID' : 'UNPAID');
+          const chargeId = charge ? charge.id : `CHG-${fee.id}-${stu.studentId}`;
+          const paymentLink = `${window.location.origin}/?chargeId=${chargeId}`;
+          const smsMsg = `Oakridge Academy: Dear ${stu.parentName}, payment for ${fee.title} ($${balanceDue.toFixed(2)}) is due ${fee.dueDate}. Pay: ${paymentLink}`;
+          const waMsg = `*${fee.title} - Payment Notice*\nDear ${stu.parentName},\nStudent: ${stu.studentName} (${stu.grade})\nDue: ${fee.dueDate}\nBalance: $${balanceDue.toFixed(2)}\nPay link: ${paymentLink}`;
+          const waLink = `https://api.whatsapp.com/send?phone=${encodeURIComponent(stu.parentMobile || stu.parentPhone || '')}&text=${encodeURIComponent(waMsg)}`;
+
+          const row = [
+            `"${stu.studentId}"`,
+            `"${stu.studentName}"`,
+            `"${stu.studentEmail || `${stu.studentId.toLowerCase()}@oakridge.edu`}"`,
+            `"${stu.studentMobile || stu.parentPhone || '+1-555-0100'}"`,
+            `"${stu.grade}"`,
+            `"${stu.school || 'Oakridge International Prep'}"`,
+            `"${stu.parentName}"`,
+            `"${stu.parentEmail}"`,
+            `"${stu.parentMobile || stu.parentPhone}"`,
+            `"${fee.id}"`,
+            `"${fee.title.replace(/"/g, '""')}"`,
+            `"${feeType?.category || 'ACTIVITY'}"`,
+            `"${feeType?.glAccountCode || 'GL-3030-40'}"`,
+            fee.baseAmount.toFixed(2),
+            amountPaid.toFixed(2),
+            balanceDue.toFixed(2),
+            `"${fee.dueDate}"`,
+            `"${paymentStatus}"`,
+            `"${paymentLink}"`,
+            `"${waLink.replace(/"/g, '""')}"`,
+            `"${smsMsg.replace(/"/g, '""')}"`
+          ];
+          csvRows.push(row.join(','));
+        });
+      }
+
+      const csvContent = headers.join(',') + '\n' + csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `all_active_fees_payment_links_${Date.now().toString().slice(-6)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error exporting all fees CSV:', err);
+    }
   };
 
   // Calculations
@@ -427,6 +624,17 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
             Add Fee Category
           </button>
 
+          {existingFees.length > 0 && (
+            <button
+              className="sky-btn-default"
+              onClick={handleExportAllFeesPaymentLinksCsv}
+              title="Download CSV with pre-filled payment links for all active student fee obligations"
+            >
+              <Download size={15} />
+              Export All Links CSV
+            </button>
+          )}
+
           <button 
             className="sky-btn-primary" 
             onClick={() => {
@@ -533,7 +741,17 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                         ${fee.baseAmount.toFixed(2)}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        className="sky-btn-default"
+                        onClick={() => handleExportFeePaymentLinksCsv(fee)}
+                        title="Download CSV with student payment links, student & parent contact info, and messaging templates"
+                        style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                      >
+                        <Download size={13} color="var(--sky-color-primary)" />
+                        <span>Download Links CSV</span>
+                      </button>
+
                       <button
                         className="sky-btn-default"
                         onClick={() => onOpenShareModal ? onOpenShareModal(fee.id) : window.open(`${window.location.origin}/?view=quickpay`, '_blank')}
@@ -542,6 +760,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                         <Share2 size={13} />
                         Share Link
                       </button>
+
                       <div style={{ textAlign: 'right' }}>
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Due Date</span>
                         <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-heading)' }}>{fee.dueDate}</div>

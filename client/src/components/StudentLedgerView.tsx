@@ -12,7 +12,8 @@ import {
   DollarSign,
   Receipt,
   Users,
-  Share2
+  Share2,
+  Download
 } from 'lucide-react';
 import { StudentCharge, UniversalFeeDefinition, SchoolBranding } from '../types/index.js';
 import { PayerCheckout } from './PayerCheckout.js';
@@ -67,6 +68,76 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
     setActiveModalChargeId(chargeId);
   };
 
+  const handleExportLedgerCsv = () => {
+    try {
+      const headers = [
+        'student_id',
+        'student_name',
+        'student_email',
+        'student_mobile',
+        'class_grade',
+        'parent_name',
+        'parent_email',
+        'parent_mobile',
+        'fee_id',
+        'fee_title',
+        'fee_type',
+        'total_fee_amount',
+        'amount_paid',
+        'balance_due',
+        'due_date',
+        'payment_status',
+        'prefilled_payment_link',
+        'whatsapp_dispatch_link',
+        'sms_message_template'
+      ];
+
+      const csvRows = filteredCharges.map(c => {
+        const remaining = Math.max(0, Math.round((c.amount - c.amountPaid) * 100) / 100);
+        const paymentLink = `${window.location.origin}/?chargeId=${c.id}`;
+        const fee = fees.find(f => f.id === c.feeId);
+        const feeType = fee?.bbFeeTypeId || c.bbFeeTypeId;
+        const smsMsg = `Oakridge Academy: Dear ${c.parentEmail.split('@')[0]}, payment of $${remaining.toFixed(2)} for ${c.feeTitle} (${c.studentName}) is due ${c.dueDate}. Settle securely: ${paymentLink}`;
+        const waMsg = `*${c.feeTitle} - Payment Notice*\nStudent: ${c.studentName}\nDue Date: ${c.dueDate}\nOutstanding Balance: $${remaining.toFixed(2)}\nPay link: ${paymentLink}`;
+        const waLink = `https://api.whatsapp.com/send?phone=${encodeURIComponent(c.parentPhone || '')}&text=${encodeURIComponent(waMsg)}`;
+
+        const row = [
+          `"${c.studentId}"`,
+          `"${c.studentName}"`,
+          `"${c.studentId.toLowerCase()}@oakridge.edu"`,
+          `"${c.parentPhone || '+1-555-0100'}"`,
+          `"Grade 8"`,
+          `"${c.parentEmail.split('@')[0]}"`,
+          `"${c.parentEmail}"`,
+          `"${c.parentPhone}"`,
+          `"${c.feeId}"`,
+          `"${c.feeTitle.replace(/"/g, '""')}"`,
+          `"${feeType}"`,
+          c.amount.toFixed(2),
+          c.amountPaid.toFixed(2),
+          remaining.toFixed(2),
+          `"${c.dueDate}"`,
+          `"${c.paymentStatus}"`,
+          `"${paymentLink}"`,
+          `"${waLink.replace(/"/g, '""')}"`,
+          `"${smsMsg.replace(/"/g, '""')}"`
+        ];
+        return row.join(',');
+      });
+
+      const csvContent = headers.join(',') + '\n' + csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `student_payment_links_ledger_${Date.now().toString().slice(-6)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error exporting ledger CSV:', err);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       {/* SKY UX Page Header */}
@@ -79,19 +150,29 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
             Student Account Subledgers
           </h2>
           <p className="sky-font-deemphasized" style={{ marginTop: '0.25rem' }}>
-            Reconcile parent payments, review active receivables, and inspect synchronous SKY API subledger entries.
+            Reconcile parent payments, review active receivables, and export bulk messaging CSVs with personalized links.
           </p>
         </div>
+
+        <button
+          className="sky-btn-default"
+          onClick={handleExportLedgerCsv}
+          title="Export CSV containing all filtered student records with pre-filled payment links and communication templates"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
+        >
+          <Download size={15} color="var(--sky-color-primary)" />
+          <span>Export Bulk Dispatch CSV</span>
+        </button>
       </div>
 
       {/* SKY UX Summary Tiles Row */}
       <div className="grid-cols-3">
         <div className="sky-summary-tile">
           <span className="sky-summary-tile-label">
-            Active Obligations
+            Active Accounts
           </span>
           <div className="sky-summary-tile-value">
-            {filteredCharges.length} <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>charges</span>
+            {filteredCharges.length}
           </div>
         </div>
 
@@ -150,6 +231,16 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
               <option value="PARTIALLY_PAID">Partially Paid</option>
               <option value="UNPAID">Unpaid</option>
             </select>
+
+            <button
+              className="sky-btn-default"
+              onClick={handleExportLedgerCsv}
+              title="Download CSV file for bulk SMS, WhatsApp, and Email dispatch"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.85rem' }}
+            >
+              <Download size={14} />
+              <span>Export CSV</span>
+            </button>
           </div>
         </div>
       </div>
