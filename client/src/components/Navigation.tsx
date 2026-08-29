@@ -423,37 +423,39 @@ export const Navigation: React.FC<NavigationProps> = ({
               Student Account Subledgers
             </button>
 
-            <button
-              onClick={() => onTabChange('parent_hub')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                padding: '0.85rem 0.25rem',
-                fontWeight: activeTab === 'parent_hub' ? 700 : 500,
-                fontSize: '0.9rem',
-                background: 'transparent',
-                color: activeTab === 'parent_hub' ? 'var(--sky-color-primary)' : 'var(--text-body)',
-                borderBottom: activeTab === 'parent_hub' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
-                borderRadius: 0,
-                whiteSpace: 'nowrap',
-                cursor: 'pointer'
-              }}
-            >
-              <Users size={16} color={activeTab === 'parent_hub' ? 'var(--sky-color-primary)' : 'var(--text-muted)'} />
-              <span>CredResolve Parent Hub</span>
-              <span style={{
-                background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-                color: '#ffffff',
-                padding: '0.12rem 0.45rem',
-                borderRadius: '12px',
-                fontSize: '0.65rem',
-                fontWeight: 800,
-                letterSpacing: '0.02em'
-              }}>
-                Multi-School
-              </span>
-            </button>
+            {activeTab === 'parent_hub' && (
+              <button
+                onClick={() => onTabChange('parent_hub')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.85rem 0.25rem',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  background: 'transparent',
+                  color: 'var(--sky-color-primary)',
+                  borderBottom: '3px solid var(--sky-color-primary)',
+                  borderRadius: 0,
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer'
+                }}
+              >
+                <Users size={16} color="var(--sky-color-primary)" />
+                <span>CredResolve Parent Hub</span>
+                <span style={{
+                  background: 'var(--sky-color-primary)',
+                  color: '#ffffff',
+                  padding: '0.12rem 0.45rem',
+                  borderRadius: '12px',
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.02em'
+                }}>
+                  Multi-School
+                </span>
+              </button>
+            )}
 
             {activeTab === 'quickpay' && (
               <button

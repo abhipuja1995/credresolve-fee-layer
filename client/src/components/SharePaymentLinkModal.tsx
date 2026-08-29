@@ -34,7 +34,9 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedEmbed, setCopiedEmbed] = useState(false);
-  const [activeShareTab, setActiveShareTab] = useState<'link' | 'social' | 'csv' | 'embed' | 'qr'>('link');
+  const [copiedCta, setCopiedCta] = useState(false);
+  const [copiedAddin, setCopiedAddin] = useState(false);
+  const [activeShareTab, setActiveShareTab] = useState<'link' | 'bb_cta' | 'embed' | 'csv' | 'social' | 'qr'>('link');
 
   if (!isOpen) return null;
 
@@ -48,6 +50,25 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
 
   const shareText = `Pay school fees, sign digital waivers, and view dues for ${schoolName} securely online: ${shareUrl}`;
   const embedCode = `<iframe src="${shareUrl}" width="100%" height="700px" style="border:1px solid #cdcfd2; border-radius:6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" title="${title}"></iframe>`;
+  
+  const blackbaudCtaCode = `<!-- Blackbaud Parent Portal / Communication CTA Button -->
+<a href="${shareUrl}" 
+   target="_blank" 
+   rel="noopener noreferrer" 
+   style="display:inline-block; background:#007ea8; color:#ffffff; font-family:'Open Sans',Arial,sans-serif; font-size:14px; font-weight:700; text-decoration:none; padding:12px 24px; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.15);">
+  Pay Fees &amp; Sign Waivers &rarr;
+</a>`;
+
+  const blackbaudAddinManifest = `{
+  "id": "credresolve-universal-fee-addin",
+  "name": "CredResolve Universal Fee Studio",
+  "url": "${shareUrl}",
+  "icon": "credit-card",
+  "extensionPoints": [
+    "education-management-parent-portal-tile",
+    "financial-edge-nxt-subledger-action"
+  ]
+}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -59,6 +80,18 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
     navigator.clipboard.writeText(embedCode);
     setCopiedEmbed(true);
     setTimeout(() => setCopiedEmbed(false), 2500);
+  };
+
+  const handleCopyCta = () => {
+    navigator.clipboard.writeText(blackbaudCtaCode);
+    setCopiedCta(true);
+    setTimeout(() => setCopiedCta(false), 2500);
+  };
+
+  const handleCopyAddin = () => {
+    navigator.clipboard.writeText(blackbaudAddinManifest);
+    setCopiedAddin(true);
+    setTimeout(() => setCopiedAddin(false), 2500);
   };
 
   const handleWhatsApp = () => {
@@ -92,7 +125,7 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
     }}>
       <div className="sky-card" style={{
         width: '100%',
-        maxWidth: '560px',
+        maxWidth: '600px',
         padding: 0,
         overflow: 'hidden',
         boxShadow: 'var(--shadow-modal)'
@@ -102,9 +135,9 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <Share2 size={18} color="var(--sky-color-primary)" />
             <div>
-              <h3 className="sky-heading-2">Share Payment Link</h3>
+              <h3 className="sky-heading-2">Blackbaud Integration &amp; Payment Sharing</h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-                Distribute payment & waiver links to parents via email, SMS, or embeds.
+                Embed in Blackbaud portals, configure CTA redirection, or distribute direct payment links.
               </p>
             </div>
           </div>
@@ -125,10 +158,11 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
           overflowX: 'auto'
         }}>
           {[
-            { id: 'link', label: 'Direct Link', icon: Share2 },
-            { id: 'social', label: 'SMS & Email', icon: MessageSquare },
+            { id: 'link', label: 'Direct URL', icon: Share2 },
+            { id: 'bb_cta', label: 'Blackbaud CTA Redirection', icon: ExternalLink },
+            { id: 'embed', label: 'Blackbaud Embed / Add-in', icon: Code2 },
             { id: 'csv', label: 'Bulk CSV Dispatch', icon: Download },
-            { id: 'embed', label: 'HTML Embed', icon: Code2 },
+            { id: 'social', label: 'SMS & Email', icon: MessageSquare },
             { id: 'qr', label: 'QR Code', icon: QrCode }
           ].map(tab => {
             const Icon = tab.icon;
@@ -184,6 +218,94 @@ export const SharePaymentLinkModal: React.FC<SharePaymentLinkModalProps> = ({
 
               <div style={{ padding: '0.75rem 1rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-strong)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 Parents can open this link directly to sign digital waivers and pay through Apple Pay, Google Pay, credit cards, or ACH.
+              </div>
+            </div>
+          )}
+
+          {activeShareTab === 'bb_cta' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ padding: '0.85rem 1rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.825rem', color: 'var(--text-body)' }}>
+                <div style={{ fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.25rem' }}>
+                  Option A: Blackbaud Parent Portal Navigation CTA Button
+                </div>
+                Configure a direct action button in Blackbaud Education Management Core or Blackbaud SIS navigation. When parents click the CTA, they are seamlessly redirected to their authenticated fee checkout view.
+              </div>
+
+              <div>
+                <label>HTML / Email CTA Button Code</label>
+                <div style={{ position: 'relative', marginTop: '0.35rem' }}>
+                  <textarea
+                    readOnly
+                    rows={4}
+                    value={blackbaudCtaCode}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'var(--bg-surface-subtle)' }}
+                  />
+                  <button
+                    className="sky-btn-primary"
+                    onClick={handleCopyCta}
+                    style={{ position: 'absolute', right: '0.6rem', top: '0.6rem', padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
+                  >
+                    {copiedCta ? <Check size={13} /> : <Copy size={13} />}
+                    <span>{copiedCta ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ padding: '0.75rem 1rem', background: '#eff6ff', borderRadius: 'var(--radius-sm)', border: '1px solid #bfdbfe', fontSize: '0.8rem', color: '#1e40af' }}>
+                <strong>Dynamic Redirection Parameters:</strong><br />
+                • Student deep link: <code>?view=quickpay&amp;studentId={'{student_id}'}</code><br />
+                • Direct invoice deep link: <code>?chargeId={'{charge_id}'}</code>
+              </div>
+            </div>
+          )}
+
+          {activeShareTab === 'embed' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ padding: '0.85rem 1rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.825rem', color: 'var(--text-body)' }}>
+                <div style={{ fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.25rem' }}>
+                  Option B: Embedded Blackbaud SKY Add-in / iFrame
+                </div>
+                Embed CredResolve Universal Fee Studio directly inside Blackbaud Parent Portal Resource Boards, custom pages, or Financial Edge NXT subledger tabs.
+              </div>
+
+              <div>
+                <label>1. Blackbaud SKY Add-in Manifest (addin.json)</label>
+                <div style={{ position: 'relative', marginTop: '0.35rem' }}>
+                  <textarea
+                    readOnly
+                    rows={4}
+                    value={blackbaudAddinManifest}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'var(--bg-surface-subtle)' }}
+                  />
+                  <button
+                    className="sky-btn-primary"
+                    onClick={handleCopyAddin}
+                    style={{ position: 'absolute', right: '0.6rem', top: '0.6rem', padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
+                  >
+                    {copiedAddin ? <Check size={13} /> : <Copy size={13} />}
+                    <span>{copiedAddin ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label>2. Responsive HTML iFrame Embed Code</label>
+                <div style={{ position: 'relative', marginTop: '0.35rem' }}>
+                  <textarea
+                    readOnly
+                    rows={3}
+                    value={embedCode}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'var(--bg-surface-subtle)' }}
+                  />
+                  <button
+                    className="sky-btn-primary"
+                    onClick={handleCopyEmbed}
+                    style={{ position: 'absolute', right: '0.6rem', top: '0.6rem', padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
+                  >
+                    {copiedEmbed ? <Check size={13} /> : <Copy size={13} />}
+                    <span>{copiedEmbed ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -52,7 +52,7 @@ export const UserGuideView: React.FC<UserGuideViewProps> = ({
   const sections = [
     { id: 'architecture', title: '1. Architecture & System Overview', icon: Cpu },
     { id: 'errors', title: '2. Error Catalog & Diagnostic Matrix', icon: AlertTriangle },
-    { id: 'widget', title: '3. Zero-Code Website Widget (Embed)', icon: Code2 },
+    { id: 'widget', title: '3. Blackbaud Integration: Embed & Redirection', icon: Code2 },
     { id: 'quickpay', title: '4. Parent Quick-Pay & Waiver Portal', icon: Globe },
     { id: 'fees', title: '5. Universal Fee Studio & GL Rules', icon: Layers },
     { id: 'ledger', title: '6. Subledgers, Receipts & Audit', icon: Users },
@@ -61,13 +61,32 @@ export const UserGuideView: React.FC<UserGuideViewProps> = ({
   ];
 
   // Embed Code Snippets
-  const inlineIframeCode = `<!-- CredResolve Zero-Code Fee Widget for ${schoolName} -->
+  const inlineIframeCode = `<!-- Option A: Embedded Blackbaud SKY UX iFrame Tile for ${schoolName} -->
 <iframe 
   src="${baseUrl}/?view=quickpay" 
   style="width: 100%; min-height: 640px; border: 1px solid #cdcfd2; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" 
   frameborder="0"
   allow="payment">
 </iframe>`;
+
+  const blackbaudAddinCode = `{
+  "id": "credresolve-universal-fee-addin",
+  "name": "CredResolve Fee & Waiver Studio",
+  "url": "${baseUrl}/?view=quickpay",
+  "icon": "credit-card",
+  "extensionPoints": [
+    "education-management-parent-portal-tile",
+    "financial-edge-nxt-subledger-action"
+  ]
+}`;
+
+  const blackbaudCtaCode = `<!-- Option B: Blackbaud Platform Navigation CTA Button & Redirection -->
+<a href="${baseUrl}/?view=quickpay" 
+   target="_blank" 
+   rel="noopener noreferrer" 
+   style="display:inline-block; background:#007ea8; color:#ffffff; font-family:'Open Sans',Arial,sans-serif; font-size:14px; font-weight:700; text-decoration:none; padding:12px 24px; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.15);">
+  Pay Fees &amp; Sign Waivers &rarr;
+</a>`;
 
   const inlineScriptCode = `<!-- CredResolve Embeddable JavaScript SDK -->
 <div id="credresolve-fee-widget" data-school-id="bb-env-2026"></div>
@@ -393,25 +412,26 @@ export const UserGuideView: React.FC<UserGuideViewProps> = ({
           </div>
         )}
 
-        {/* SECTION 3: Zero-Code Website Widget (Embed) */}
+        {/* SECTION 3: Blackbaud Integration: Embed & Redirection */}
         {activeSection === 'widget' && (
           <div className="sky-card" style={{ padding: '1.75rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Code2 size={20} color="var(--sky-color-primary)" />
-                <h2 className="sky-heading-2">3. Zero-Code Website Widget (Embed)</h2>
+                <h2 className="sky-heading-2">3. Blackbaud Platform Integration: Embed &amp; Redirection</h2>
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.35rem', lineHeight: '1.6' }}>
-                Embed parent payment capabilities directly onto existing school web properties (WordPress, Wix, Squarespace, Webflow, custom CMS) with zero backend code.
+                Schools can integrate CredResolve into their existing Blackbaud ecosystem via two primary methods: <strong>In-Platform Embedding</strong> (Blackbaud SKY Add-in / iFrame tile) and <strong>CTA Button Redirection</strong> from Blackbaud Parent Portal Navigation or automated communications.
               </p>
             </div>
 
             {/* Embed Selector */}
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               {[
-                { id: 'INLINE', label: 'Option A: Responsive Iframe Embed' },
-                { id: 'FLOATING', label: 'Option B: Floating Action Button' },
-                { id: 'HOSTED', label: 'Option C: Hosted Dedicated URL' }
+                { id: 'INLINE', label: 'Option 1: Blackbaud Embed (iFrame & SKY Add-in)' },
+                { id: 'CTA', label: 'Option 2: Blackbaud CTA Redirection' },
+                { id: 'FLOATING', label: 'Option 3: Floating Action Button' },
+                { id: 'HOSTED', label: 'Option 4: Hosted Dedicated URL' }
               ].map(opt => (
                 <button
                   key={opt.id}
@@ -425,23 +445,85 @@ export const UserGuideView: React.FC<UserGuideViewProps> = ({
             </div>
 
             {embedType === 'INLINE' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <label>HTML Iframe Snippet</label>
-                <div style={{ position: 'relative' }}>
-                  <textarea
-                    readOnly
-                    rows={5}
-                    value={inlineIframeCode}
-                    style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', background: 'var(--bg-surface-subtle)' }}
-                  />
-                  <button
-                    className="sky-btn-primary"
-                    onClick={() => handleCopyCode(inlineIframeCode, 'iframe')}
-                    style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
-                  >
-                    {copiedCode === 'iframe' ? <Check size={13} /> : <Copy size={13} />}
-                    <span>{copiedCode === 'iframe' ? 'Copied' : 'Copy'}</span>
-                  </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ padding: '0.85rem 1rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.825rem', color: 'var(--text-body)' }}>
+                  <strong>How Blackbaud Embedding Works:</strong><br />
+                  CredResolve can be embedded directly into Blackbaud Education Management Core Parent Portal Resource Boards, custom pages, or Financial Edge NXT subledger tabs with no backend migration.
+                </div>
+
+                <div>
+                  <label>A. Blackbaud SKY Add-in Manifest (addin.json)</label>
+                  <div style={{ position: 'relative', marginTop: '0.35rem' }}>
+                    <textarea
+                      readOnly
+                      rows={5}
+                      value={blackbaudAddinCode}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', background: 'var(--bg-surface-subtle)' }}
+                    />
+                    <button
+                      className="sky-btn-primary"
+                      onClick={() => handleCopyCode(blackbaudAddinCode, 'addin')}
+                      style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                    >
+                      {copiedCode === 'addin' ? <Check size={13} /> : <Copy size={13} />}
+                      <span>{copiedCode === 'addin' ? 'Copied' : 'Copy Add-in'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label>B. HTML iFrame Embed Snippet (Blackbaud Resource Board / CMS)</label>
+                  <div style={{ position: 'relative', marginTop: '0.35rem' }}>
+                    <textarea
+                      readOnly
+                      rows={5}
+                      value={inlineIframeCode}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', background: 'var(--bg-surface-subtle)' }}
+                    />
+                    <button
+                      className="sky-btn-primary"
+                      onClick={() => handleCopyCode(inlineIframeCode, 'iframe')}
+                      style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                    >
+                      {copiedCode === 'iframe' ? <Check size={13} /> : <Copy size={13} />}
+                      <span>{copiedCode === 'iframe' ? 'Copied' : 'Copy Snippet'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {(embedType as string) === 'CTA' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ padding: '0.85rem 1rem', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.825rem', color: 'var(--text-body)' }}>
+                  <strong>How Blackbaud CTA Redirection Works:</strong><br />
+                  Configure a high-visibility CTA button in Blackbaud Parent Portal Navigation or automated email templates. When parents click the CTA button, they are redirected with encrypted single-click authentication parameters to the mobile-first fee checkout portal.
+                </div>
+
+                <div>
+                  <label>Blackbaud Parent Portal / Email CTA Button Code</label>
+                  <div style={{ position: 'relative', marginTop: '0.35rem' }}>
+                    <textarea
+                      readOnly
+                      rows={5}
+                      value={blackbaudCtaCode}
+                      style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', background: 'var(--bg-surface-subtle)' }}
+                    />
+                    <button
+                      className="sky-btn-primary"
+                      onClick={() => handleCopyCode(blackbaudCtaCode, 'cta')}
+                      style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                    >
+                      {copiedCode === 'cta' ? <Check size={13} /> : <Copy size={13} />}
+                      <span>{copiedCode === 'cta' ? 'Copied' : 'Copy CTA Code'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ padding: '0.85rem 1rem', background: '#eff6ff', borderRadius: 'var(--radius-sm)', border: '1px solid #bfdbfe', fontSize: '0.8rem', color: '#1e40af' }}>
+                  <strong>Dynamic URL Parameters:</strong><br />
+                  • Student deep link: <code>{baseUrl}/?view=quickpay&amp;studentId={'{student_id}'}</code><br />
+                  • Direct invoice deep link: <code>{baseUrl}/?chargeId={'{charge_id}'}</code>
                 </div>
               </div>
             )}

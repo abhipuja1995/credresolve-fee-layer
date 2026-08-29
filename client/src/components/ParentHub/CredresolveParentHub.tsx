@@ -170,33 +170,57 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
           </span>
         </div>
 
-        {/* Demo Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <span style={{ color: '#94a3b8', fontSize: '0.725rem' }}>Demo Parent Identity:</span>
-          <div style={{ display: 'flex', gap: '0.35rem' }}>
-            {profiles.map(p => (
-              <button
-                key={p.id}
-                onClick={() => {
-                  setActiveProfileId(p.id);
-                  setSelectedFeeIds([]);
-                }}
-                style={{
-                  background: activeProfileId === p.id ? '#0284c7' : 'rgba(255, 255, 255, 0.12)',
-                  color: '#ffffff',
-                  border: activeProfileId === p.id ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: '6px',
-                  padding: '0.25rem 0.65rem',
-                  fontSize: '0.725rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                {p.parentName} ({p.currencySymbol})
-              </button>
-            ))}
+        {/* Demo Switcher & Admin Return */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <span style={{ color: '#94a3b8', fontSize: '0.725rem' }}>Switch Profile:</span>
+            <div style={{ display: 'flex', gap: '0.35rem' }}>
+              {profiles.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setActiveProfileId(p.id);
+                    setSelectedFeeIds([]);
+                  }}
+                  style={{
+                    background: activeProfileId === p.id ? 'var(--sky-color-primary)' : 'rgba(255, 255, 255, 0.12)',
+                    color: '#ffffff',
+                    border: activeProfileId === p.id ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '4px',
+                    padding: '0.2rem 0.55rem',
+                    fontSize: '0.725rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {p.parentName}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {onNavigateToFeeStudio && (
+            <button
+              onClick={onNavigateToFeeStudio}
+              style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                borderRadius: '4px',
+                padding: '0.25rem 0.65rem',
+                fontSize: '0.725rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+            >
+              <span>Back to Fee Studio</span>
+              <ExternalLink size={12} />
+            </button>
+          )}
         </div>
       </div>
 
