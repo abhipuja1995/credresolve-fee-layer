@@ -80,11 +80,6 @@ export const FamilyIdentityGraph: React.FC<FamilyIdentityGraphProps> = ({ profil
             <div style={{ fontSize: '0.775rem', color: '#94a3b8', marginTop: '0.15rem' }}>
               {profile.parentPhone} • {profile.parentEmail}
             </div>
-            <div style={{ marginTop: '0.65rem', paddingTop: '0.65rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-around', fontSize: '0.7rem', color: '#cbd5e1' }}>
-              <span>Multi-School Account</span>
-              <span>•</span>
-              <span>1-Click Pay All</span>
-            </div>
           </div>
         </div>
 
@@ -198,30 +193,6 @@ export const FamilyIdentityGraph: React.FC<FamilyIdentityGraphProps> = ({ profil
               </div>
             );
           })}
-        </div>
-
-      </div>
-
-      {/* Value Comparison Cards */}
-      <div style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
-        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '1.25rem', borderRadius: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#166534', fontWeight: 800, fontSize: '0.9rem', marginBottom: '0.35rem' }}>
-            <Zap size={16} />
-            <span>For the Parent</span>
-          </div>
-          <p style={{ fontSize: '0.8rem', color: '#14532d', margin: 0, lineHeight: 1.5 }}>
-            No more switching between 2 or 3 separate portals, forgotten school passwords, or checking multiple WhatsApp groups. 1 unified login, 1 notification feed, and 1-click payment for the entire family.
-          </p>
-        </div>
-
-        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '1.25rem', borderRadius: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#1e40af', fontWeight: 800, fontSize: '0.9rem', marginBottom: '0.35rem' }}>
-            <Layers size={16} />
-            <span>For the Participating Schools</span>
-          </div>
-          <p style={{ fontSize: '0.8rem', color: '#1e3a8a', margin: 0, lineHeight: 1.5 }}>
-            Schools keep their existing ERP, general ledger, and payment accounts untouched. CredResolve injects payment posting and digital compliance updates directly into each school's subledger in real time.
-          </p>
         </div>
       </div>
     </div>
