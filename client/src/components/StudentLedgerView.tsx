@@ -150,11 +150,11 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
         <button
           className="sky-btn-default"
           onClick={handleExportLedgerCsv}
-          title="Export CSV containing all filtered student records with pre-filled payment links and communication templates"
+          title="Download CSV containing all filtered student records with pre-filled payment links and communication templates"
           style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700 }}
         >
           <Download size={15} color="var(--sky-color-primary)" />
-          <span>Export Bulk Dispatch CSV</span>
+          <span>Download CSV</span>
         </button>
       </div>
 
@@ -232,7 +232,7 @@ export const StudentLedgerView: React.FC<StudentLedgerViewProps> = ({
               style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.85rem' }}
             >
               <Download size={14} />
-              <span>Export CSV</span>
+              <span>Download CSV</span>
             </button>
           </div>
         </div>

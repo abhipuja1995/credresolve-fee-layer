@@ -45,6 +45,10 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
 }) => {
   const [profiles, setProfiles] = useState<MultiSchoolParentProfile[]>(DEFAULT_PARENT_HUB_PROFILES);
   const [activeProfileId, setActiveProfileId] = useState<string>(DEFAULT_PARENT_HUB_PROFILES[0].id);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [loginInput, setLoginInput] = useState<string>('alex.morgan@example.com');
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'FEES' | 'NOTICES' | 'HISTORY' | 'GRAPH'>('FEES');
   
   // Custom selection for fee payments
@@ -54,6 +58,42 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
   const [feeFilterChild, setFeeFilterChild] = useState<string>('ALL');
 
   const currentProfile = profiles.find(p => p.id === activeProfileId) || profiles[0];
+
+  const handleLogin = (targetEmailOrPhone?: string) => {
+    const query = (targetEmailOrPhone || loginInput).trim().toLowerCase();
+    if (!query) {
+      setLoginError('Please enter your registered mobile number or email.');
+      return;
+    }
+
+    setIsAuthenticating(true);
+    setLoginError(null);
+
+    setTimeout(() => {
+      const matched = profiles.find(
+        p => p.parentEmail.toLowerCase() === query || 
+             p.parentPhone.replace(/[^0-9]/g, '').includes(query.replace(/[^0-9]/g, '')) ||
+             p.parentName.toLowerCase().includes(query)
+      );
+
+      if (matched) {
+        setActiveProfileId(matched.id);
+        setIsLoggedIn(true);
+        setSelectedFeeIds([]);
+        setIsAuthenticating(false);
+      } else {
+        // Fallback match first profile or report error
+        setLoginError(`No active parent account found matching "${query}". Please check your registered email or phone.`);
+        setIsAuthenticating(false);
+      }
+    }, 450);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setSelectedFeeIds([]);
+    setLoginError(null);
+  };
 
   // Calculate Family Aggregates
   const allFees: MultiSchoolFeeItem[] = currentProfile.children.flatMap(c => c.fees);
@@ -137,67 +177,40 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
 
   const selectedFeesForCheckout = allFees.filter(f => selectedFeeIds.includes(f.id));
 
-  return (
-    <div style={{ background: '#f8fafc', color: '#0f172a', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-      
-      {/* 1. TOP PLATFORM BANNER & QUICK DEMO SWITCHER */}
-      <div style={{
-        background: 'linear-gradient(135deg, #001b2e 0%, #002b49 100%)',
-        color: '#ffffff',
-        padding: '0.65rem 1.5rem',
-        fontSize: '0.8rem',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '0.75rem'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span style={{
-            background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-            color: '#ffffff',
-            padding: '0.2rem 0.6rem',
-            borderRadius: '4px',
-            fontSize: '0.675rem',
-            fontWeight: 800,
-            letterSpacing: '0.04em'
-          }}>
-            FAMILY OS
-          </span>
-          <span style={{ color: '#e2e8f0', fontWeight: 600 }}>
-            CredResolve Parent Hub — <em>"Every school. Every child. One parent account."</em>
-          </span>
-        </div>
-
-        {/* Demo Switcher & Admin Return */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <span style={{ color: '#94a3b8', fontSize: '0.725rem' }}>Switch Profile:</span>
-            <div style={{ display: 'flex', gap: '0.35rem' }}>
-              {profiles.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => {
-                    setActiveProfileId(p.id);
-                    setSelectedFeeIds([]);
-                  }}
-                  style={{
-                    background: activeProfileId === p.id ? 'var(--sky-color-primary)' : 'rgba(255, 255, 255, 0.12)',
-                    color: '#ffffff',
-                    border: activeProfileId === p.id ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.15)',
-                    borderRadius: '4px',
-                    padding: '0.2rem 0.55rem',
-                    fontSize: '0.725rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {p.parentName}
-                </button>
-              ))}
-            </div>
+  // =========================================================================
+  // IF NOT LOGGED IN: RENDER UNIVERSAL PARENT LOGIN SCREEN
+  // =========================================================================
+  if (!isLoggedIn) {
+    return (
+      <div style={{ background: '#f8fafc', color: '#0f172a', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        {/* Top Platform Banner */}
+        <div style={{
+          background: 'linear-gradient(135deg, #001b2e 0%, #002b49 100%)',
+          color: '#ffffff',
+          padding: '0.65rem 1.5rem',
+          fontSize: '0.8rem',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '0.75rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{
+              background: 'var(--sky-color-primary)',
+              color: '#ffffff',
+              padding: '0.2rem 0.6rem',
+              borderRadius: '4px',
+              fontSize: '0.675rem',
+              fontWeight: 800,
+              letterSpacing: '0.04em'
+            }}>
+              FAMILY OS
+            </span>
+            <span style={{ color: '#e2e8f0', fontWeight: 600 }}>
+              CredResolve Parent Hub — <em>"Every school. Every child. One parent account."</em>
+            </span>
           </div>
 
           {onNavigateToFeeStudio && (
@@ -222,6 +235,219 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
             </button>
           )}
         </div>
+
+        {/* Login Container */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 1.5rem' }}>
+          <div className="sky-card" style={{
+            maxWidth: '520px',
+            width: '100%',
+            padding: '2.5rem 2rem',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-subtle)'
+          }}>
+            {/* Login Header */}
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #007ea8 0%, #002238 100%)',
+                color: '#ffffff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem',
+                boxShadow: '0 4px 14px rgba(0, 126, 168, 0.25)'
+              }}>
+                <Users size={32} />
+              </div>
+              <h2 className="sky-heading-1" style={{ fontSize: '1.65rem', marginBottom: '0.35rem' }}>
+                Universal Parent Login
+              </h2>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                One parent. Multiple children. Multiple schools. One secure portal.
+              </p>
+            </div>
+
+            {/* Error Message */}
+            {loginError && (
+              <div style={{
+                padding: '0.75rem 1rem',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: 'var(--radius-sm)',
+                color: '#b91c1c',
+                fontSize: '0.8rem',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <AlertTriangle size={15} />
+                <span>{loginError}</span>
+              </div>
+            )}
+
+            {/* Input Form */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '0.45rem' }}>
+                  Registered Mobile Number or Email
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={loginInput}
+                    onChange={e => setLoginInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                    placeholder="e.g. alex.morgan@example.com or +1 (555) 018-4921"
+                    style={{
+                      paddingLeft: '2.5rem',
+                      fontSize: '0.9rem',
+                      height: '44px',
+                      borderRadius: '6px'
+                    }}
+                  />
+                  <Mail size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
+              </div>
+
+              <button
+                className="sky-btn-primary"
+                onClick={() => handleLogin()}
+                disabled={isAuthenticating}
+                style={{
+                  height: '44px',
+                  fontSize: '0.925rem',
+                  fontWeight: 700,
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 2px 6px rgba(0, 126, 168, 0.25)'
+                }}
+              >
+                {isAuthenticating ? (
+                  <>
+                    <span>Matching Enrolled Children...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Authenticate &amp; Open Parent Hub</span>
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Quick Demo Identities */}
+            <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.75rem', textAlign: 'center' }}>
+                Or select demo parent identity:
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {profiles.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => handleLogin(p.parentEmail)}
+                    style={{
+                      background: 'var(--bg-surface-subtle)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '6px',
+                      padding: '0.65rem 0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '0.85rem' }}>
+                        {p.parentName}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        {p.parentEmail} • {p.children.length} Children ({p.children.map(c => c.studentName.split(' ')[0]).join(', ')})
+                      </div>
+                    </div>
+                    <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>
+                      {p.currencySymbol}{p.children.reduce((acc, c) => acc + c.totalDue, 0).toLocaleString()} Due
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* SSO Trust Note */}
+            <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem' }}>
+              <ShieldCheck size={14} color="var(--success)" />
+              <span>Protected by Blackbaud Universal SSO Identity Layer</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // LOGGED IN DASHBOARD VIEW
+  // =========================================================================
+  return (
+    <div style={{ background: '#f8fafc', color: '#0f172a', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+      
+      {/* 1. TOP PLATFORM BANNER */}
+      <div style={{
+        background: 'linear-gradient(135deg, #001b2e 0%, #002b49 100%)',
+        color: '#ffffff',
+        padding: '0.65rem 1.5rem',
+        fontSize: '0.8rem',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '0.75rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span style={{
+            background: 'var(--sky-color-primary)',
+            color: '#ffffff',
+            padding: '0.2rem 0.6rem',
+            borderRadius: '4px',
+            fontSize: '0.675rem',
+            fontWeight: 800,
+            letterSpacing: '0.04em'
+          }}>
+            FAMILY OS
+          </span>
+          <span style={{ color: '#e2e8f0', fontWeight: 600 }}>
+            CredResolve Parent Hub — <em>"Every school. Every child. One parent account."</em>
+          </span>
+        </div>
+
+        {/* Admin Return */}
+        {onNavigateToFeeStudio && (
+          <button
+            onClick={onNavigateToFeeStudio}
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              color: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              borderRadius: '4px',
+              padding: '0.25rem 0.65rem',
+              fontSize: '0.725rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem'
+            }}
+          >
+            <span>Back to Fee Studio</span>
+            <ExternalLink size={12} />
+          </button>
+        )}
       </div>
 
       {/* 2. UNIVERSAL PARENT IDENTITY HEADER */}
@@ -239,21 +465,21 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
               width: '52px',
               height: '52px',
               borderRadius: '14px',
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              background: 'linear-gradient(135deg, #007ea8 0%, #002238 100%)',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 800,
               fontSize: '1.35rem',
-              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)'
+              boxShadow: '0 4px 12px rgba(0, 126, 168, 0.25)'
             }}>
               {currentProfile.parentName.charAt(0)}
             </div>
 
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Universal Parent Identity
                 </span>
                 <span style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>
@@ -271,8 +497,8 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
             </div>
           </div>
 
-          {/* Quick Metrics */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          {/* Quick Metrics & Logout */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>
                 {currentProfile.children.length} CHILDREN • {distinctSchoolsCount} SCHOOLS
@@ -286,10 +512,10 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
               <button
                 onClick={handle1ClickPayAll}
                 style={{
-                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  background: 'linear-gradient(135deg, #007ea8 0%, #002238 100%)',
                   color: '#ffffff',
                   border: 'none',
-                  borderRadius: '10px',
+                  borderRadius: '6px',
                   padding: '0.75rem 1.4rem',
                   fontSize: '0.925rem',
                   fontWeight: 800,
@@ -297,7 +523,7 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  boxShadow: '0 4px 14px rgba(2, 132, 199, 0.3)',
+                  boxShadow: '0 4px 14px rgba(0, 126, 168, 0.3)',
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -305,6 +531,22 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                 <span>1-Click Pay All ({currentProfile.currencySymbol}{totalFamilyDue.toLocaleString()})</span>
               </button>
             )}
+
+            <button
+              onClick={handleLogout}
+              className="sky-btn-default"
+              title="Log out from this parent identity"
+              style={{
+                fontSize: '0.8rem',
+                padding: '0.65rem 0.95rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem'
+              }}
+            >
+              <LogOut size={14} />
+              <span>Log Out</span>
+            </button>
           </div>
 
         </div>

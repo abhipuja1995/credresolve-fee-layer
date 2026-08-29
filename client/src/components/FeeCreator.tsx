@@ -626,17 +626,6 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
             Add Fee Category
           </button>
 
-          {existingFees.length > 0 && (
-            <button
-              className="sky-btn-default"
-              onClick={handleExportAllFeesPaymentLinksCsv}
-              title="Download CSV with pre-filled payment links for all active student fee obligations"
-            >
-              <Download size={15} />
-              Export All Links CSV
-            </button>
-          )}
-
           <button 
             className="sky-btn-primary" 
             onClick={() => {
@@ -751,7 +740,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                         style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                       >
                         <Download size={13} color="var(--sky-color-primary)" />
-                        <span>Download Links CSV</span>
+                        <span>Download CSV</span>
                       </button>
 
                       <button
