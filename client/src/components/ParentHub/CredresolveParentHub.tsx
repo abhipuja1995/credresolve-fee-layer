@@ -460,50 +460,42 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
         <div style={{ maxWidth: '1360px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.25rem' }}>
           
           {/* Parent Profile Badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '14px',
+              width: '44px',
+              height: '44px',
+              borderRadius: '12px',
               background: 'linear-gradient(135deg, #007ea8 0%, #002238 100%)',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 800,
-              fontSize: '1.35rem',
-              boxShadow: '0 4px 12px rgba(0, 126, 168, 0.25)'
+              fontSize: '1.15rem',
+              boxShadow: '0 3px 10px rgba(0, 126, 168, 0.2)'
             }}>
               {currentProfile.parentName.charAt(0)}
             </div>
 
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Universal Parent Identity
-                </span>
-                <span style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>
-                  Active SSO
-                </span>
-              </div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: '0.1rem 0' }}>
-                Parent: {currentProfile.parentName}
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-heading)', margin: '0 0 0.15rem 0' }}>
+                {currentProfile.parentName}
               </h2>
-              <div style={{ fontSize: '0.775rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span><Smartphone size={12} style={{ display: 'inline', marginRight: '3px' }} /> {currentProfile.parentPhone}</span>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <span><Smartphone size={11} style={{ display: 'inline', marginRight: '2px' }} /> {currentProfile.parentPhone}</span>
                 <span>•</span>
-                <span><Mail size={12} style={{ display: 'inline', marginRight: '3px' }} /> {currentProfile.parentEmail}</span>
+                <span><Mail size={11} style={{ display: 'inline', marginRight: '2px' }} /> {currentProfile.parentEmail}</span>
               </div>
             </div>
           </div>
 
           {/* Quick Metrics & Logout */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
                 {currentProfile.children.length} CHILDREN • {distinctSchoolsCount} SCHOOLS
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: totalFamilyDue > 0 ? '#b45309' : '#16a34a', marginTop: '0.1rem' }}>
+              <div style={{ fontSize: '1.35rem', fontWeight: 800, color: totalFamilyDue > 0 ? '#b45309' : '#16a34a', marginTop: '0.05rem' }}>
                 {currentProfile.currencySymbol}{totalFamilyDue.toLocaleString()} Total Due
               </div>
             </div>
@@ -511,23 +503,20 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
             {totalFamilyDue > 0 && (
               <button
                 onClick={handle1ClickPayAll}
+                className="sky-btn-primary"
                 style={{
-                  background: 'linear-gradient(135deg, #007ea8 0%, #002238 100%)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '0.75rem 1.4rem',
-                  fontSize: '0.925rem',
+                  padding: '0.6rem 1.15rem',
+                  fontSize: '0.825rem',
                   fontWeight: 800,
-                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem',
-                  boxShadow: '0 4px 14px rgba(0, 126, 168, 0.3)',
-                  transition: 'all 0.15s ease'
+                  gap: '0.45rem',
+                  borderRadius: '8px',
+                  minHeight: '40px',
+                  boxShadow: '0 3px 10px rgba(0, 126, 168, 0.25)'
                 }}
               >
-                <Zap size={16} />
+                <Zap size={15} />
                 <span>1-Click Pay All ({currentProfile.currencySymbol}{totalFamilyDue.toLocaleString()})</span>
               </button>
             )}
@@ -611,15 +600,10 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
 
         {/* 4. WHAT THE PARENT SEES: SIDE-BY-SIDE MULTI-CHILD CARDS */}
         <section>
-          <div className="flex-between" style={{ marginBottom: '1rem', alignItems: 'flex-end', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <div>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Cross-School Multi-Child Roster
-              </span>
-              <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-heading)', margin: '0.15rem 0 0 0' }}>
-                Enrolled Children &amp; Participating Schools
-              </h3>
-            </div>
+          <div style={{ marginBottom: '0.85rem' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
+              Fees
+            </h3>
           </div>
 
           {/* Matrix Grid */}
@@ -785,7 +769,7 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
           </div>
         </section>
 
-        {/* 5. TABBED INTERFACE (Unified Fee Inbox, Notice Centre, History, Graph) */}
+        {/* 5. TABBED INTERFACE (Fee Inbox, Notice Centre, History, Graph) */}
         <section style={{ marginTop: '0.5rem' }}>
           
           {/* Tab Navigation */}
@@ -820,7 +804,7 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
               }}
             >
               <CreditCard size={16} />
-              <span>Unified Fee Inbox ({unpaidFees.length})</span>
+              <span>Fee Inbox ({unpaidFees.length})</span>
             </button>
 
             <button
@@ -843,7 +827,7 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
               }}
             >
               <Bell size={16} />
-              <span>Unified Notice Centre ({totalNoticesCount})</span>
+              <span>Notice Centre ({totalNoticesCount})</span>
             </button>
 
             <button

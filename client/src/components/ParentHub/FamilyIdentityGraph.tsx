@@ -26,34 +26,27 @@ export const FamilyIdentityGraph: React.FC<FamilyIdentityGraphProps> = ({ profil
   return (
     <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '2rem', boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.05)' }}>
       {/* Header Info */}
-      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', paddingBottom: '1.25rem', borderBottom: '1px solid #f1f5f9' }}>
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)' }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: '#eff6ff', color: '#0284c7', padding: '0.3rem 0.75rem', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-            <Sparkles size={13} />
-            <span>Strategic Moat &amp; Identity Architecture</span>
-          </div>
-          <h3 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-            Universal Family Identity Graph
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
+            Family Identity Graph
           </h3>
-          <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0.25rem 0 0 0' }}>
-            The school ERP remains the <em>system of record</em>; CredResolve becomes the parent's unified <em>system of engagement</em>.
-          </p>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '0.6rem 1rem', borderRadius: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>CHILDREN</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0284c7' }}>{profile.children.length}</div>
+          <div style={{ background: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', padding: '0.5rem 0.85rem', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700 }}>CHILDREN</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--sky-color-primary)' }}>{profile.children.length}</div>
           </div>
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '0.6rem 1rem', borderRadius: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>PARTICIPATING SCHOOLS</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#059669' }}>
+          <div style={{ background: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', padding: '0.5rem 0.85rem', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700 }}>PARTICIPATING SCHOOLS</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--success)' }}>
               {new Set(profile.children.map(c => c.schoolId)).size}
             </div>
           </div>
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '0.6rem 1rem', borderRadius: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>ERP CONNECTORS</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#7c3aed' }}>
+          <div style={{ background: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', padding: '0.5rem 0.85rem', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700 }}>ERP CONNECTORS</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#7c3aed' }}>
               {profile.children.length} Live
             </div>
           </div>
@@ -61,21 +54,21 @@ export const FamilyIdentityGraph: React.FC<FamilyIdentityGraphProps> = ({ profil
       </div>
 
       {/* Graph Visualizer Map */}
-      <div style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '2.5rem 1.5rem', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '2rem 1.25rem', position: 'relative', overflow: 'hidden' }}>
         
-        {/* Layer 1: Universal Parent Node */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2.5rem', position: 'relative' }}>
+        {/* Layer 1: Parent Node */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem', position: 'relative' }}>
           <div
             onClick={() => setSelectedNode('PARENT')}
             style={{
               background: '#002238',
               color: '#ffffff',
-              padding: '1.25rem 2rem',
-              borderRadius: '16px',
+              padding: '1.15rem 1.5rem',
+              borderRadius: '14px',
               border: selectedNode === 'PARENT' ? '3px solid #38bdf8' : '1px solid #003354',
-              boxShadow: '0 10px 25px -5px rgba(0, 34, 56, 0.3)',
+              boxShadow: '0 8px 20px -4px rgba(0, 34, 56, 0.3)',
               cursor: 'pointer',
-              maxWidth: '420px',
+              maxWidth: '380px',
               width: '100%',
               textAlign: 'center',
               position: 'relative',
@@ -83,18 +76,12 @@ export const FamilyIdentityGraph: React.FC<FamilyIdentityGraphProps> = ({ profil
               transition: 'all 0.2s ease'
             }}
           >
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '0.2rem 0.65rem', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 800, marginBottom: '0.5rem' }}>
-              <ShieldCheck size={12} />
-              <span>UNIVERSAL DIGITAL IDENTITY (ANCHOR)</span>
-            </div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{profile.parentName}</div>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{profile.parentName}</div>
+            <div style={{ fontSize: '0.775rem', color: '#94a3b8', marginTop: '0.15rem' }}>
               {profile.parentPhone} • {profile.parentEmail}
             </div>
-            <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-around', fontSize: '0.725rem', color: '#cbd5e1' }}>
-              <span>Single Sign-On (SSO)</span>
-              <span>•</span>
-              <span>Cross-School Ledger</span>
+            <div style={{ marginTop: '0.65rem', paddingTop: '0.65rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-around', fontSize: '0.7rem', color: '#cbd5e1' }}>
+              <span>Multi-School Account</span>
               <span>•</span>
               <span>1-Click Pay All</span>
             </div>
