@@ -199,12 +199,14 @@ export const App: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navigation
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        context={context}
-        onOpenBrandingModal={() => setIsBrandingModalOpen(true)}
-      />
+      {activeTab !== 'parent_hub' && activeTab !== 'school_site' && (
+        <Navigation
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          context={context}
+          onOpenBrandingModal={() => setIsBrandingModalOpen(true)}
+        />
+      )}
 
       <main className={activeTab === 'parent_hub' || activeTab === 'school_site' ? '' : 'container'} style={{ flex: 1, padding: activeTab === 'parent_hub' || activeTab === 'school_site' ? 0 : '2rem' }}>
         {loading ? (

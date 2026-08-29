@@ -16,7 +16,8 @@ import {
   Calendar,
   DollarSign,
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
 import { 
   BlackbaudFeeType, 
@@ -96,6 +97,19 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   const [csvFileName, setCsvFileName] = useState<string | null>(null);
   const [csvUploadStatus, setCsvUploadStatus] = useState<string | null>(null);
 
+  // Opt-in Electronic Terms Acceptance & Digital Legal Signature
+  const [requireWaiver, setRequireWaiver] = useState<boolean>(false);
+  const [waiverText, setWaiverText] = useState<string>(
+    'I hereby grant permission for the student(s) to participate in school activities, confirm accuracy of details, and authorize payment settlement.'
+  );
+  const [waiverCheckboxLabel, setWaiverCheckboxLabel] = useState<string>(
+    'I acknowledge and electronically accept the terms and fee settlement.'
+  );
+  const [requireSignature, setRequireSignature] = useState<boolean>(false);
+  const [signatureLabel, setSignatureLabel] = useState<string>(
+    'Electronic Signature (Type Full Legal Name)'
+  );
+
   // Custom Form Fields
   const [customFields, setCustomFields] = useState<FormFieldSchema[]>([
     {
@@ -111,13 +125,6 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
       type: 'emergency_contact',
       required: true,
       placeholder: '+1 (555) 000-0000'
-    },
-    {
-      id: 'medical_waiver',
-      label: 'Parent / Guardian Consent & Medical Waiver',
-      type: 'waiver_signature',
-      required: true,
-      waiverText: 'I hereby grant permission for my student to attend the event and authorize the school chaperone to obtain necessary medical care.'
     }
   ]);
 
@@ -528,6 +535,11 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
         academicYear: '2026-2027',
         allowPartialPayment,
         minPartialAmount: allowPartialPayment ? Number(minPartialAmount) : undefined,
+        requireWaiver,
+        requireSignature,
+        waiverText: requireWaiver ? waiverText : undefined,
+        waiverCheckboxLabel: requireWaiver ? waiverCheckboxLabel : undefined,
+        signatureLabel: requireSignature ? signatureLabel : undefined,
         audience: {
           type: audienceType,
           grades: audienceType === 'GRADE' ? (selectedGrades.length > 0 ? selectedGrades : ['Grade 8']) : undefined
@@ -539,6 +551,8 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
       setCurrentStep(1);
       setTitle('');
       setDescription('');
+      setRequireWaiver(false);
+      setRequireSignature(false);
       setSubView('deployed');
       if (res && res.fee) {
         onFeeCreated(res.fee);
@@ -1164,82 +1178,206 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                 </div>
               )}
 
-              {/* STEP 2: Custom Forms & Waivers */}
+              {/* STEP 2: Custom Forms & Compliance Options */}
               {currentStep === 2 && (
-                <div>
-                  <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-body)', fontWeight: 600 }}>
-                      Fields to be completed by parent prior to payment:
-                    </span>
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      <button className="sky-btn-default" style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }} onClick={() => addCustomField('text')}>
-                        + Text Field
-                      </button>
-                      <button className="sky-btn-default" style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }} onClick={() => addCustomField('select')}>
-                        + Dropdown
-                      </button>
-                      <button className="sky-btn-default" style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }} onClick={() => addCustomField('waiver_signature')}>
-                        + Legal Waiver
-                      </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  
+                  {/* Part A: Custom Form Fields */}
+                  <div>
+                    <div className="flex-between" style={{ marginBottom: '0.85rem' }}>
+                      <div>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-heading)', fontWeight: 700, display: 'block' }}>
+                          Custom Form Fields & Information Capture
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          Additional details collected from parent prior to checkout (e.g. sizes, emergency numbers).
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <button className="sky-btn-default" style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }} onClick={() => addCustomField('text')}>
+                          + Text Field
+                        </button>
+                        <button className="sky-btn-default" style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }} onClick={() => addCustomField('select')}>
+                          + Dropdown
+                        </button>
+                      </div>
                     </div>
+
+                    {customFields.length === 0 ? (
+                      <div style={{
+                        padding: '1rem',
+                        textAlign: 'center',
+                        background: 'var(--bg-surface-subtle)',
+                        border: '1px dashed var(--border-strong)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.8rem',
+                        color: 'var(--text-muted)'
+                      }}>
+                        No custom fields added. Use the buttons above to collect extra details from parents.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                        {customFields.map((field, idx) => (
+                          <div key={field.id} style={{
+                            padding: '0.85rem 1rem',
+                            background: 'var(--bg-surface-subtle)',
+                            border: '1px solid var(--border-strong)',
+                            borderRadius: 'var(--radius-sm)'
+                          }}>
+                            <div className="flex-between" style={{ marginBottom: '0.4rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                                <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>{field.type}</span>
+                                <input
+                                  type="text"
+                                  value={field.label}
+                                  onChange={e => {
+                                    const updated = [...customFields];
+                                    updated[idx].label = e.target.value;
+                                    setCustomFields(updated);
+                                  }}
+                                  style={{ padding: '0.25rem 0.5rem', fontSize: '0.85rem', width: '260px' }}
+                                />
+                              </div>
+                              <button onClick={() => removeCustomField(idx)} style={{ color: 'var(--danger)', cursor: 'pointer', background: 'none', border: 'none' }}>
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+
+                            {field.type === 'select' && (
+                              <input
+                                type="text"
+                                value={field.options?.join(', ') || ''}
+                                onChange={e => {
+                                  const updated = [...customFields];
+                                  updated[idx].options = e.target.value.split(',').map(s => s.trim());
+                                  setCustomFields(updated);
+                                }}
+                                placeholder="Comma-separated options e.g. Small, Medium, Large"
+                                style={{ fontSize: '0.8rem', marginTop: '0.35rem' }}
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {customFields.map((field, idx) => (
-                      <div key={field.id} style={{
-                        padding: '0.85rem 1rem',
-                        background: 'var(--bg-surface-subtle)',
-                        border: '1px solid var(--border-strong)',
-                        borderRadius: 'var(--radius-sm)'
-                      }}>
-                        <div className="flex-between" style={{ marginBottom: '0.4rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                            <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>{field.type}</span>
-                            <input
-                              type="text"
-                              value={field.label}
-                              onChange={e => {
-                                const updated = [...customFields];
-                                updated[idx].label = e.target.value;
-                                setCustomFields(updated);
-                              }}
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.85rem', width: '260px' }}
+                  {/* Part B: Opt-in Legal Terms & Electronic Signature Options */}
+                  <div style={{
+                    padding: '1.25rem',
+                    background: 'var(--sky-color-primary-light)',
+                    border: '1px solid var(--border-accent)',
+                    borderRadius: 'var(--radius-md)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem'
+                  }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <FileText size={17} color="var(--sky-color-primary)" />
+                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--sky-color-primary)' }}>
+                          Compliance, Terms Acceptance & Electronic Signature (Opt-in)
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '0.775rem', color: 'var(--text-body)', margin: 0 }}>
+                        Configure whether parents must electronically accept legal terms or type their full legal signature before settlement.
+                      </p>
+                    </div>
+
+                    {/* Opt-in 1: Terms & Fee Settlement Acceptance Checkbox */}
+                    <div style={{
+                      padding: '0.85rem 1rem',
+                      background: '#ffffff',
+                      border: requireWaiver ? '1.5px solid var(--sky-color-primary)' : '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-sm)'
+                    }}>
+                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', cursor: 'pointer', margin: 0 }}>
+                        <input
+                          type="checkbox"
+                          checked={requireWaiver}
+                          onChange={e => setRequireWaiver(e.target.checked)}
+                          style={{ marginTop: '0.2rem', width: 'auto' }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)', display: 'block' }}>
+                            Opt-in: Require Terms Acceptance Checkbox
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Displays: <em>"{waiverCheckboxLabel} *"</em> at checkout
+                          </span>
+                        </div>
+                      </label>
+
+                      {requireWaiver && (
+                        <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                          <div>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-heading)', display: 'block', marginBottom: '0.25rem' }}>
+                              Legal Terms / Consent Statement
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={waiverText}
+                              onChange={e => setWaiverText(e.target.value)}
+                              placeholder="Legal consent / activity terms statement..."
+                              style={{ fontSize: '0.8rem', background: '#f8fafc' }}
                             />
                           </div>
-                          <button onClick={() => removeCustomField(idx)} style={{ color: 'var(--danger)', cursor: 'pointer' }}>
-                            <Trash2 size={15} />
-                          </button>
+
+                          <div>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-heading)', display: 'block', marginBottom: '0.25rem' }}>
+                              Checkbox Agreement Label
+                            </label>
+                            <input
+                              type="text"
+                              value={waiverCheckboxLabel}
+                              onChange={e => setWaiverCheckboxLabel(e.target.value)}
+                              placeholder="I acknowledge and electronically accept the terms and fee settlement."
+                              style={{ fontSize: '0.8rem', background: '#f8fafc' }}
+                            />
+                          </div>
                         </div>
+                      )}
+                    </div>
 
-                        {field.type === 'waiver_signature' && (
-                          <textarea
-                            rows={2}
-                            value={field.waiverText || ''}
-                            onChange={e => {
-                              const updated = [...customFields];
-                              updated[idx].waiverText = e.target.value;
-                              setCustomFields(updated);
-                            }}
-                            placeholder="Legal consent text..."
-                            style={{ fontSize: '0.8rem', marginTop: '0.35rem' }}
-                          />
-                        )}
+                    {/* Opt-in 2: Electronic Digital Signature */}
+                    <div style={{
+                      padding: '0.85rem 1rem',
+                      background: '#ffffff',
+                      border: requireSignature ? '1.5px solid var(--sky-color-primary)' : '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-sm)'
+                    }}>
+                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', cursor: 'pointer', margin: 0 }}>
+                        <input
+                          type="checkbox"
+                          checked={requireSignature}
+                          onChange={e => setRequireSignature(e.target.checked)}
+                          style={{ marginTop: '0.2rem', width: 'auto' }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)', display: 'block' }}>
+                            Opt-in: Require Electronic Signature
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Displays: <em>"{signatureLabel} *"</em> name input at checkout
+                          </span>
+                        </div>
+                      </label>
 
-                        {field.type === 'select' && (
+                      {requireSignature && (
+                        <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)' }}>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-heading)', display: 'block', marginBottom: '0.25rem' }}>
+                            Signature Field Prompt Label
+                          </label>
                           <input
                             type="text"
-                            value={field.options?.join(', ') || ''}
-                            onChange={e => {
-                              const updated = [...customFields];
-                              updated[idx].options = e.target.value.split(',').map(s => s.trim());
-                              setCustomFields(updated);
-                            }}
-                            placeholder="Comma-separated options e.g. Small, Medium, Large"
-                            style={{ fontSize: '0.8rem', marginTop: '0.35rem' }}
+                            value={signatureLabel}
+                            onChange={e => setSignatureLabel(e.target.value)}
+                            placeholder="Electronic Signature (Type Full Legal Name)"
+                            style={{ fontSize: '0.8rem', background: '#f8fafc' }}
                           />
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1344,7 +1482,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                         </button>
                       </div>
 
-                      <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ maxHeight: '200px', overflow: 'auto', WebkitOverflowScrolling: 'touch', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
                         <table className="sky-table" style={{ fontSize: '0.75rem' }}>
                           <thead>
                             <tr>
@@ -1384,7 +1522,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                       flexDirection: 'column',
                       gap: '0.85rem'
                     }}>
-                      <div className="flex-between" style={{ alignItems: 'flex-start' }}>
+                      <div className="flex-between" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                         <div>
                           <strong style={{ color: 'var(--text-heading)', fontSize: '0.875rem' }}>
                             Upload Student & Parent Roster CSV
@@ -1419,7 +1557,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                       )}
 
                       {csvUploadedStudents.length > 0 && (
-                        <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+                        <div style={{ maxHeight: '180px', overflow: 'auto', WebkitOverflowScrolling: 'touch', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
                           <table className="sky-table" style={{ fontSize: '0.75rem' }}>
                             <thead>
                               <tr>

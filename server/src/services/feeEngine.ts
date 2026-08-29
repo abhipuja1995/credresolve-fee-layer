@@ -3,26 +3,13 @@ import {
   AudienceConfig, 
   StudentAccount, 
   StudentCharge,
-  FormFieldSchema 
+  FormFieldSchema,
+  CreateFeeInput
 } from '../types/fee.js';
 import { BlackbaudChargeItem } from '../types/blackbaud.js';
 import { dataStore } from './mockDataStore.js';
 import { batchQueueWorker } from './batchQueueWorker.js';
 import { v4 as uuidv4 } from 'uuid';
-
-export interface CreateFeeInput {
-  title: string;
-  description: string;
-  bbFeeTypeId: string;
-  baseAmount: number;
-  dueDate: string;
-  academicYear?: string;
-  allowPartialPayment?: boolean;
-  minPartialAmount?: number;
-  audience: AudienceConfig;
-  customFormSchema?: FormFieldSchema[];
-  glAccountOverride?: string;
-}
 
 export class FeeEngine {
   /**
@@ -91,6 +78,11 @@ export class FeeEngine {
       academicYear: input.academicYear || '2026-2027',
       allowPartialPayment: input.allowPartialPayment ?? feeType.allowPartialPayment,
       minPartialAmount: input.minPartialAmount,
+      requireWaiver: input.requireWaiver ?? false,
+      requireSignature: input.requireSignature ?? false,
+      waiverText: input.waiverText,
+      waiverCheckboxLabel: input.waiverCheckboxLabel,
+      signatureLabel: input.signatureLabel,
       audience: input.audience,
       customFormSchema: input.customFormSchema || [],
       glAccountOverride: input.glAccountOverride,

@@ -97,6 +97,11 @@ export interface UniversalFeeDefinition {
   academicYear: string;
   allowPartialPayment: boolean;
   minPartialAmount?: number;
+  requireWaiver?: boolean;
+  requireSignature?: boolean;
+  waiverText?: string;
+  waiverCheckboxLabel?: string;
+  signatureLabel?: string;
   audience: {
     type: string;
     grades?: string[];
@@ -108,6 +113,7 @@ export interface UniversalFeeDefinition {
   glAccountOverride?: string;
   status: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export const DEFAULT_FEES: UniversalFeeDefinition[] = [

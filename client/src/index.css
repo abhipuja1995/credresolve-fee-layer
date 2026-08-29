@@ -493,11 +493,27 @@ label {
   background-color: var(--bg-surface-hover);
 }
 
-/* Layout Utilities */
+/* Layout Utilities & Responsive Grids */
 .container {
   max-width: 1440px;
   margin: 0 auto;
   padding: 1.5rem 2rem;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
 }
 
 .flex-between {
@@ -524,11 +540,125 @@ label {
   gap: 1rem;
 }
 
+/* Payment Methods Grid */
+.payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+}
+
+/* Modal Overlay & Responsive Card */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 34, 56, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1.5rem;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 780px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-modal);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+}
+
+/* Touch Device & Mobile View Optimizations */
+@media (max-width: 900px) {
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .payment-methods-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .container {
-    padding: 1rem;
+    padding: 1rem 0.75rem;
   }
+
   .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .sky-heading-1 {
+    font-size: 1.4rem;
+  }
+
+  .sky-heading-2 {
+    font-size: 1.2rem;
+  }
+
+  .sky-heading-3 {
+    font-size: 1.05rem;
+  }
+
+  .modal-overlay {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    max-height: 94vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .payment-methods-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Prevent iOS Safari 16px zoom bug on inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Comfortable touch targets */
+  .btn-primary, .sky-btn-primary, .btn-secondary, .sky-btn-default {
+    min-height: 42px;
+    padding: 0.6rem 1rem;
+  }
+
+  /* Omnibar & Tabsets */
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .sky-summary-tile-value {
+    font-size: 1.45rem;
+  }
+
+  .payment-methods-grid {
     grid-template-columns: 1fr;
   }
 }

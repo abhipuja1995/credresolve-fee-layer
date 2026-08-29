@@ -190,7 +190,58 @@ export const DummySchoolWebsite: React.FC<DummySchoolWebsiteProps> = ({
   return (
     <div style={{ background: '#f8fafc', color: '#0f172a', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
       
+      {/* 1. SIMULATION TOP BANNER */}
+      <div style={{
+        background: 'linear-gradient(135deg, #001b2e 0%, #002b49 100%)',
+        color: '#ffffff',
+        padding: '0.6rem 1.5rem',
+        fontSize: '0.8rem',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '0.75rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span style={{
+            background: 'var(--sky-color-primary)',
+            color: '#ffffff',
+            padding: '0.15rem 0.5rem',
+            borderRadius: '4px',
+            fontSize: '0.65rem',
+            fontWeight: 800,
+            letterSpacing: '0.04em'
+          }}>
+            SIMULATION
+          </span>
+          <span style={{ color: '#e2e8f0', fontWeight: 600 }}>
+            {schoolName} — <em>Live Website &amp; Widget Integration Demo</em>
+          </span>
+        </div>
 
+        {onNavigateToAdmin && (
+          <button
+            onClick={onNavigateToAdmin}
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              color: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              borderRadius: '4px',
+              padding: '0.25rem 0.65rem',
+              fontSize: '0.725rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem'
+            }}
+          >
+            <span>Back to School Admin</span>
+            <ExternalLink size={12} />
+          </button>
+        )}
+      </div>
 
       {/* 2. ACADEMIC UTILITY & ANNOUNCEMENT TICKER */}
       <div style={{

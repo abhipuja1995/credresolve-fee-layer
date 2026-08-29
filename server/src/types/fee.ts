@@ -38,6 +38,25 @@ export interface AudienceConfig {
   studentIds?: string[];
 }
 
+export interface CreateFeeInput {
+  title: string;
+  description: string;
+  bbFeeTypeId: string;
+  baseAmount: number;
+  dueDate: string;
+  academicYear?: string;
+  allowPartialPayment?: boolean;
+  minPartialAmount?: number;
+  requireWaiver?: boolean;
+  requireSignature?: boolean;
+  waiverText?: string;
+  waiverCheckboxLabel?: string;
+  signatureLabel?: string;
+  audience: AudienceConfig;
+  customFormSchema?: FormFieldSchema[];
+  glAccountOverride?: string;
+}
+
 export interface UniversalFeeDefinition {
   id: string;
   schoolId: string;
@@ -49,6 +68,11 @@ export interface UniversalFeeDefinition {
   academicYear: string;
   allowPartialPayment: boolean;
   minPartialAmount?: number;
+  requireWaiver?: boolean;
+  requireSignature?: boolean;
+  waiverText?: string;
+  waiverCheckboxLabel?: string;
+  signatureLabel?: string;
   audience: AudienceConfig;
   customFormSchema: FormFieldSchema[];
   glAccountOverride?: string;

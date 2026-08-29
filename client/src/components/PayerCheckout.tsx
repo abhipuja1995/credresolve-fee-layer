@@ -240,6 +240,27 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
   const processingFee = useCompleteCover ? +(parsedAmount * 0.029 + 0.30).toFixed(2) : 0;
   const totalAmountToCharge = +(parsedAmount + processingFee).toFixed(2);
 
+  // Check if any selected item requires terms waiver or signature
+  const requiresWaiver = activeSelectedItems.some(item => 
+    item.fee?.requireWaiver || 
+    item.fee?.customFormSchema?.some(f => f.type === 'waiver_signature' && f.required)
+  );
+
+  const requiresSignature = activeSelectedItems.some(item => 
+    item.fee?.requireSignature || 
+    item.fee?.customFormSchema?.some(f => f.type === 'waiver_signature' && f.required)
+  );
+
+  const primaryWaiverText = activeSelectedItems.find(item => item.fee?.waiverText)?.fee?.waiverText ||
+    activeSelectedItems.find(item => item.fee?.customFormSchema?.find(f => f.waiverText))?.fee?.customFormSchema?.find(f => f.waiverText)?.waiverText ||
+    'I hereby grant permission for the student(s) to participate in school activities, confirm accuracy of details, and authorize payment settlement.';
+
+  const primaryWaiverCheckboxLabel = activeSelectedItems.find(item => item.fee?.waiverCheckboxLabel)?.fee?.waiverCheckboxLabel ||
+    'I acknowledge and electronically accept the terms and fee settlement.';
+
+  const primarySignatureLabel = activeSelectedItems.find(item => item.fee?.signatureLabel)?.fee?.signatureLabel ||
+    'Electronic Signature (Type Full Legal Name)';
+
   const handlePayWithBlackbaudCheckout = async () => {
     setErrorMsg(null);
     setIsProcessing(true);
@@ -253,17 +274,13 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
         throw new Error('Please select at least one fee item to pay.');
       }
 
-      // Check waiver agreements
-      for (const item of activeSelectedItems) {
-        if (item.fee.customFormSchema && item.fee.customFormSchema.length > 0) {
-          for (const field of item.fee.customFormSchema) {
-            if (field.type === 'waiver_signature' && field.required) {
-              if (!waiverAgreed || !signerName.trim()) {
-                throw new Error(`Please electronically sign the digital waiver consent before submitting payment.`);
-              }
-            }
-          }
-        }
+      // Check waiver agreements if required by fee template
+      if (requiresWaiver && !waiverAgreed) {
+        throw new Error('Please check the box to acknowledge and electronically accept the terms and fee settlement.');
+      }
+
+      if (requiresSignature && !signerName.trim()) {
+        throw new Error('Please provide your full legal name as your electronic signature.');
       }
 
       const checkoutToken = `chk_tok_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`;
@@ -827,56 +844,64 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 </div>
               )}
 
-              {/* Digital Waiver & Signature */}
-              <div style={{
-                border: '1px solid var(--sky-color-primary)',
-                background: 'var(--sky-color-primary-light)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '1.25rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.85rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--sky-color-primary)', fontWeight: 700, fontSize: '0.85rem' }}>
-                  <FileText size={16} />
-                  <span>Parent / Guardian Electronic Consent & Legal Authorization</span>
-                </div>
-
+              {/* Digital Waiver & Signature (Rendered only when opted-in on fee template) */}
+              {(requiresWaiver || requiresSignature) && (
                 <div style={{
-                  padding: '0.75rem',
-                  background: '#ffffff',
-                  border: '1px solid var(--border-subtle)',
+                  border: '1px solid var(--sky-color-primary)',
+                  background: 'var(--sky-color-primary-light)',
                   borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.775rem',
-                  color: 'var(--text-body)',
-                  lineHeight: '1.5'
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.85rem'
                 }}>
-                  I hereby grant permission for the student(s) to participate in school activities, confirm accuracy of details, and authorize payment settlement.
-                </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--sky-color-primary)', fontWeight: 700, fontSize: '0.85rem' }}>
+                    <FileText size={16} />
+                    <span>Parent / Guardian Electronic Consent & Legal Authorization</span>
+                  </div>
 
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-heading)', cursor: 'pointer', margin: 0 }}>
-                  <input
-                    type="checkbox"
-                    checked={waiverAgreed}
-                    onChange={e => setWaiverAgreed(e.target.checked)}
-                    style={{ marginTop: '0.15rem', width: 'auto' }}
-                  />
-                  <span>I acknowledge and electronically accept the terms and fee settlement. <span style={{ color: 'var(--danger)' }}>*</span></span>
-                </label>
+                  {requiresWaiver && (
+                    <>
+                      <div style={{
+                        padding: '0.75rem',
+                        background: '#ffffff',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.775rem',
+                        color: 'var(--text-body)',
+                        lineHeight: '1.5'
+                      }}>
+                        {primaryWaiverText}
+                      </div>
 
-                <div>
-                  <label style={{ fontSize: '0.775rem', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
-                    Electronic Signature (Type Full Legal Name) <span style={{ color: 'var(--danger)' }}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Michael Hayes"
-                    value={signerName}
-                    onChange={e => setSignerName(e.target.value)}
-                    style={{ background: '#ffffff' }}
-                  />
+                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-heading)', cursor: 'pointer', margin: 0 }}>
+                        <input
+                          type="checkbox"
+                          checked={waiverAgreed}
+                          onChange={e => setWaiverAgreed(e.target.checked)}
+                          style={{ marginTop: '0.15rem', width: 'auto' }}
+                        />
+                        <span>{primaryWaiverCheckboxLabel} <span style={{ color: 'var(--danger)' }}>*</span></span>
+                      </label>
+                    </>
+                  )}
+
+                  {requiresSignature && (
+                    <div>
+                      <label style={{ fontSize: '0.775rem', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>
+                        {primarySignatureLabel} <span style={{ color: 'var(--danger)' }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Michael Hayes"
+                        value={signerName}
+                        onChange={e => setSignerName(e.target.value)}
+                        style={{ background: '#ffffff' }}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
               {/* Blackbaud Merchant Services (BBMS) New Checkout Experience */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -890,7 +915,7 @@ export const PayerCheckout: React.FC<PayerCheckoutProps> = ({
                 </div>
 
                 {/* Method Tabs */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.4rem' }}>
+                <div className="payment-methods-grid">
                   {[
                     { id: 'APPLE_PAY', label: ' Apple Pay' },
                     { id: 'GOOGLE_PAY', label: 'G Pay' },

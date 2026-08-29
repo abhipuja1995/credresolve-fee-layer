@@ -182,7 +182,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                   right: 0,
                   top: '100%',
                   marginTop: '0.4rem',
-                  width: '240px',
+                  width: '260px',
                   background: 'var(--bg-card)',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-strong)',
@@ -200,7 +200,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                     textTransform: 'uppercase',
                     letterSpacing: '0.04em'
                   }}>
-                    Configuration & Tools
+                    Live Previews & Portals
                   </div>
 
                   <button
@@ -227,11 +227,41 @@ export const Navigation: React.FC<NavigationProps> = ({
                     <Users size={15} color="var(--sky-color-primary)" />
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <span>CredResolve Parent Hub</span>
-                        <span style={{ background: '#0284c7', color: '#ffffff', fontSize: '0.6rem', padding: '0.05rem 0.35rem', borderRadius: '4px', fontWeight: 800 }}>MULTI-SCHOOL</span>
+                        <span>Family OS Parent Hub</span>
+                        <span style={{ background: '#0284c7', color: '#ffffff', fontSize: '0.58rem', padding: '0.05rem 0.35rem', borderRadius: '4px', fontWeight: 800 }}>MULTI-SCHOOL</span>
                       </div>
                       <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-                        Unified family account across multiple children &amp; schools
+                        Cross-school unified parent account
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsSettingsOpen(false);
+                      onTabChange('school_site');
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.65rem',
+                      fontSize: '0.825rem',
+                      fontWeight: 600,
+                      color: 'var(--text-heading)',
+                      background: 'transparent',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-surface-subtle)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Globe size={15} color="var(--sky-color-primary)" />
+                    <div>
+                      <div>Demo School Website</div>
+                      <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                        Public website &amp; widget embed demo
                       </div>
                     </div>
                   </button>
@@ -261,40 +291,24 @@ export const Navigation: React.FC<NavigationProps> = ({
                     <div>
                       <div>Parent Quick-Pay Portal</div>
                       <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-                        Multi-child sibling balances & quick checkout
+                        Single-school fast lookup &amp; checkout
                       </div>
                     </div>
                   </button>
 
-                  <button
-                    onClick={() => {
-                      setIsSettingsOpen(false);
-                      onTabChange('school_site');
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '0.65rem 0.85rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.65rem',
-                      fontSize: '0.825rem',
-                      fontWeight: 600,
-                      color: 'var(--text-heading)',
-                      background: 'transparent',
-                      textAlign: 'left',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-surface-subtle)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <Globe size={15} color="var(--sky-color-primary)" />
-                    <div>
-                      <div>Dummy School Website</div>
-                      <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-                        Oakridge Academy portal & redirection simulation
-                      </div>
-                    </div>
-                  </button>
+                  <div style={{
+                    padding: '0.5rem 0.85rem',
+                    borderTop: '1px solid var(--border-subtle)',
+                    borderBottom: '1px solid var(--border-subtle)',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    marginTop: '0.25rem'
+                  }}>
+                    Administration &amp; Tools
+                  </div>
 
                   <button
                     onClick={() => {
@@ -319,9 +333,9 @@ export const Navigation: React.FC<NavigationProps> = ({
                   >
                     <Palette size={15} color="var(--sky-color-primary)" />
                     <div>
-                      <div>Theme & Brand</div>
+                      <div>Theme &amp; School Branding</div>
                       <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-                        Customize colors, logos & typography
+                        Crest, primary colors &amp; palette presets
                       </div>
                     </div>
                   </button>
@@ -349,9 +363,9 @@ export const Navigation: React.FC<NavigationProps> = ({
                   >
                     <BookOpen size={15} color="var(--sky-color-primary)" />
                     <div>
-                      <div>Document & Guide</div>
+                      <div>Integration Guide &amp; API Docs</div>
                       <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-                        API reference, error codes & integration
+                        Blackbaud SKY API reference &amp; error codes
                       </div>
                     </div>
                   </button>
@@ -422,109 +436,6 @@ export const Navigation: React.FC<NavigationProps> = ({
               <Users size={16} color={activeTab === 'ledger' ? 'var(--sky-color-primary)' : 'var(--text-muted)'} />
               Student Account Subledgers
             </button>
-
-            {activeTab === 'parent_hub' && (
-              <button
-                onClick={() => onTabChange('parent_hub')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.85rem 0.25rem',
-                  fontWeight: 700,
-                  fontSize: '0.9rem',
-                  background: 'transparent',
-                  color: 'var(--sky-color-primary)',
-                  borderBottom: '3px solid var(--sky-color-primary)',
-                  borderRadius: 0,
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer'
-                }}
-              >
-                <Users size={16} color="var(--sky-color-primary)" />
-                <span>CredResolve Parent Hub</span>
-                <span style={{
-                  background: 'var(--sky-color-primary)',
-                  color: '#ffffff',
-                  padding: '0.12rem 0.45rem',
-                  borderRadius: '12px',
-                  fontSize: '0.65rem',
-                  fontWeight: 800,
-                  letterSpacing: '0.02em'
-                }}>
-                  Multi-School
-                </span>
-              </button>
-            )}
-
-            {activeTab === 'quickpay' && (
-              <button
-                onClick={() => onTabChange('quickpay')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.85rem 0.25rem',
-                  fontWeight: 700,
-                  fontSize: '0.9rem',
-                  background: 'transparent',
-                  color: 'var(--sky-color-primary)',
-                  borderBottom: '3px solid var(--sky-color-primary)',
-                  borderRadius: 0,
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer'
-                }}
-              >
-                <CreditCard size={16} color="var(--sky-color-primary)" />
-                Parent Quick-Pay Portal
-              </button>
-            )}
-
-            {activeTab === 'school_site' && (
-              <button
-                onClick={() => onTabChange('school_site')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.85rem 0.25rem',
-                  fontWeight: 700,
-                  fontSize: '0.9rem',
-                  background: 'transparent',
-                  color: 'var(--sky-color-primary)',
-                  borderBottom: '3px solid var(--sky-color-primary)',
-                  borderRadius: 0,
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer'
-                }}
-              >
-                <Globe size={16} color="var(--sky-color-primary)" />
-                Dummy School Website
-              </button>
-            )}
-
-            {activeTab === 'guide' && (
-              <button
-                onClick={() => onTabChange('guide')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.85rem 0.25rem',
-                  fontWeight: 700,
-                  fontSize: '0.9rem',
-                  background: 'transparent',
-                  color: 'var(--sky-color-primary)',
-                  borderBottom: '3px solid var(--sky-color-primary)',
-                  borderRadius: 0,
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer'
-                }}
-              >
-                <BookOpen size={16} color="var(--sky-color-primary)" />
-                Document & Guide
-              </button>
-            )}
           </nav>
         </div>
       </div>
