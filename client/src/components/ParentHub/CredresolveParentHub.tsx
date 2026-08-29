@@ -611,24 +611,21 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
 
         {/* 4. WHAT THE PARENT SEES: SIDE-BY-SIDE MULTI-CHILD CARDS */}
         <section>
-          <div className="flex-between" style={{ marginBottom: '1rem', alignItems: 'flex-end' }}>
+          <div className="flex-between" style={{ marginBottom: '1rem', alignItems: 'flex-end', flexWrap: 'wrap', gap: '0.5rem' }}>
             <div>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sky-color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Cross-School Multi-Child Roster
               </span>
-              <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: '0.15rem 0 0 0' }}>
+              <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-heading)', margin: '0.15rem 0 0 0' }}>
                 Enrolled Children &amp; Participating Schools
               </h3>
             </div>
-            <span style={{ fontSize: '0.775rem', color: '#64748b' }}>
-              Normalized from distinct school ERP databases
-            </span>
           </div>
 
           {/* Matrix Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: `repeat(auto-fit, minmax(${Math.max(280, 1000 / currentProfile.children.length)}px, 1fr))`,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
             gap: '1.25rem'
           }}>
             {currentProfile.children.map((child, idx) => {
@@ -641,9 +638,9 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                   style={{
                     background: '#ffffff',
                     borderRadius: '16px',
-                    border: hasOverdue ? '1.5px solid #fca5a5' : '1px solid #e2e8f0',
-                    padding: '1.5rem',
-                    boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.05)',
+                    border: hasOverdue ? '1.5px solid #fca5a5' : '1px solid var(--border-strong)',
+                    padding: '1.25rem',
+                    boxShadow: 'var(--shadow-card)',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -653,11 +650,11 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                 >
                   <div>
                     {/* Child Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '0.5rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{
-                          width: '46px',
-                          height: '46px',
+                          width: '44px',
+                          height: '44px',
                           borderRadius: '50%',
                           background: `${child.schoolBadgeColor}15`,
                           color: child.schoolBadgeColor,
@@ -665,8 +662,9 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 800,
-                          fontSize: '1.15rem',
-                          border: `2px solid ${child.schoolBadgeColor}`
+                          fontSize: '1.1rem',
+                          border: `2px solid ${child.schoolBadgeColor}`,
+                          flexShrink: 0
                         }}>
                           {child.studentName.charAt(0)}
                         </div>
@@ -674,11 +672,11 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                           <div style={{ fontSize: '0.7rem', fontWeight: 800, color: child.schoolBadgeColor, textTransform: 'uppercase' }}>
                             CHILD #{idx + 1}
                           </div>
-                          <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                          <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                             {child.studentName}
                           </h4>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.1rem' }}>
-                            {child.grade} • Roll: <strong style={{ color: '#0f172a' }}>{child.studentId}</strong>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
+                            {child.grade} • Roll: <strong style={{ color: 'var(--text-heading)' }}>{child.studentId}</strong>
                           </div>
                         </div>
                       </div>
@@ -689,7 +687,9 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                         padding: '0.25rem 0.6rem',
                         borderRadius: '20px',
                         fontSize: '0.7rem',
-                        fontWeight: 800
+                        fontWeight: 800,
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0
                       }}>
                         {child.totalDue > 0 ? `${currentProfile.currencySymbol}${child.totalDue.toLocaleString()} Due` : 'Settled'}
                       </span>
@@ -697,48 +697,48 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
 
                     {/* School Identity Badge */}
                     <div style={{
-                      background: '#f8fafc',
+                      background: 'var(--bg-surface-subtle)',
                       borderRadius: '10px',
-                      padding: '0.75rem 1rem',
-                      border: '1px solid #e2e8f0',
+                      padding: '0.7rem 0.9rem',
+                      border: '1px solid var(--border-subtle)',
                       marginBottom: '1rem'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Building size={16} color={child.schoolBadgeColor} />
-                        <strong style={{ fontSize: '0.85rem', color: '#0f172a' }}>{child.schoolName}</strong>
+                        <strong style={{ fontSize: '0.85rem', color: 'var(--text-heading)' }}>{child.schoolName}</strong>
                       </div>
-                      <div style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '0.2rem' }}>
+                      <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
                         ERP: {child.schoolErpSystem}
                       </div>
                     </div>
 
                     {/* Matrix Comparison Metrics */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', fontSize: '0.775rem' }}>
-                      <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', padding: '0.6rem', borderRadius: '8px' }}>
-                        <div style={{ color: '#64748b', fontSize: '0.7rem' }}>FEES DUE</div>
-                        <strong style={{ fontSize: '1rem', color: child.totalDue > 0 ? '#0f172a' : '#16a34a' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.65rem', fontSize: '0.775rem' }}>
+                      <div style={{ background: '#ffffff', border: '1px solid var(--border-subtle)', padding: '0.6rem 0.75rem', borderRadius: '8px' }}>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 600 }}>FEES DUE</div>
+                        <strong style={{ fontSize: '1rem', color: child.totalDue > 0 ? 'var(--text-heading)' : 'var(--success)' }}>
                           {currentProfile.currencySymbol}{child.totalDue.toLocaleString()}
                         </strong>
                       </div>
 
-                      <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', padding: '0.6rem', borderRadius: '8px' }}>
-                        <div style={{ color: '#64748b', fontSize: '0.7rem' }}>NEXT DUE DATE</div>
-                        <strong style={{ fontSize: '0.85rem', color: hasOverdue ? '#dc2626' : '#0f172a' }}>
+                      <div style={{ background: '#ffffff', border: '1px solid var(--border-subtle)', padding: '0.6rem 0.75rem', borderRadius: '8px' }}>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 600 }}>NEXT DUE DATE</div>
+                        <strong style={{ fontSize: '0.85rem', color: hasOverdue ? 'var(--danger)' : 'var(--text-heading)' }}>
                           {hasOverdue ? '⚠️ Overdue' : earliestDue}
                         </strong>
                       </div>
 
-                      <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', padding: '0.6rem', borderRadius: '8px' }}>
-                        <div style={{ color: '#64748b', fontSize: '0.7rem' }}>SCHOOL NOTICES</div>
-                        <strong style={{ fontSize: '0.9rem', color: '#0284c7' }}>
+                      <div style={{ background: '#ffffff', border: '1px solid var(--border-subtle)', padding: '0.6rem 0.75rem', borderRadius: '8px' }}>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 600 }}>SCHOOL NOTICES</div>
+                        <strong style={{ fontSize: '0.85rem', color: 'var(--sky-color-primary)' }}>
                           {child.notices.length} New Circular{child.notices.length !== 1 ? 's' : ''}
                         </strong>
                       </div>
 
-                      <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', padding: '0.6rem', borderRadius: '8px' }}>
-                        <div style={{ color: '#64748b', fontSize: '0.7rem' }}>ACTIVE OBLIGATIONS</div>
-                        <strong style={{ fontSize: '0.9rem', color: '#475569' }}>
-                          {child.fees.filter(f => f.paymentStatus !== 'PAID').length} Items
+                      <div style={{ background: '#ffffff', border: '1px solid var(--border-subtle)', padding: '0.6rem 0.75rem', borderRadius: '8px' }}>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 600 }}>OBLIGATIONS</div>
+                        <strong style={{ fontSize: '0.85rem', color: 'var(--text-heading)' }}>
+                          {child.fees.filter(f => f.paymentStatus !== 'PAID').length} Active Items
                         </strong>
                       </div>
                     </div>
@@ -753,28 +753,26 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                           setSelectedFeeIds(childFeeIds);
                           setIsCheckoutOpen(true);
                         }}
+                        className="sky-btn-primary"
                         style={{
                           width: '100%',
-                          background: child.schoolBadgeColor,
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          padding: '0.6rem',
-                          fontSize: '0.825rem',
+                          padding: '0.7rem 1rem',
+                          fontSize: '0.85rem',
                           fontWeight: 700,
-                          cursor: 'pointer',
+                          borderRadius: '8px',
+                          minHeight: '42px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '0.35rem',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                          gap: '0.45rem',
+                          boxShadow: '0 2px 6px rgba(0, 126, 168, 0.25)'
                         }}
                       >
-                        <CreditCard size={14} />
-                        <span>Pay {child.studentName}'s Dues ({currentProfile.currencySymbol}{child.totalDue.toLocaleString()})</span>
+                        <CreditCard size={15} />
+                        <span>Pay {child.studentName.split(' ')[0]}'s Dues ({currentProfile.currencySymbol}{child.totalDue.toLocaleString()})</span>
                       </button>
                     ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.6rem', background: '#f0fdf4', color: '#16a34a', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', padding: '0.65rem', background: '#f0fdf4', color: '#16a34a', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, border: '1px solid #bbf7d0' }}>
                         <CheckCircle2 size={15} />
                         <span>All Fees Settled</span>
                       </div>
@@ -791,21 +789,33 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
         <section style={{ marginTop: '0.5rem' }}>
           
           {/* Tab Navigation */}
-          <div style={{ display: 'flex', borderBottom: '2px solid #e2e8f0', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{
+            display: 'flex',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            borderBottom: '2px solid var(--border-subtle)',
+            gap: '0.5rem',
+            marginBottom: '1.25rem',
+            whiteSpace: 'nowrap',
+            paddingBottom: '2px'
+          }}>
             <button
               onClick={() => setActiveTab('FEES')}
               style={{
                 background: 'none',
                 border: 'none',
-                borderBottom: activeTab === 'FEES' ? '3px solid #0284c7' : '3px solid transparent',
-                padding: '0.75rem 1.25rem',
-                fontSize: '0.925rem',
-                fontWeight: 800,
-                color: activeTab === 'FEES' ? '#0284c7' : '#64748b',
+                borderBottom: activeTab === 'FEES' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                padding: '0.75rem 1rem',
+                fontSize: '0.875rem',
+                fontWeight: activeTab === 'FEES' ? 800 : 600,
+                color: activeTab === 'FEES' ? 'var(--sky-color-primary)' : 'var(--text-muted)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.45rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
                 marginBottom: '-2px'
               }}
             >
@@ -818,15 +828,17 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
               style={{
                 background: 'none',
                 border: 'none',
-                borderBottom: activeTab === 'NOTICES' ? '3px solid #0284c7' : '3px solid transparent',
-                padding: '0.75rem 1.25rem',
-                fontSize: '0.925rem',
-                fontWeight: 800,
-                color: activeTab === 'NOTICES' ? '#0284c7' : '#64748b',
+                borderBottom: activeTab === 'NOTICES' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                padding: '0.75rem 1rem',
+                fontSize: '0.875rem',
+                fontWeight: activeTab === 'NOTICES' ? 800 : 600,
+                color: activeTab === 'NOTICES' ? 'var(--sky-color-primary)' : 'var(--text-muted)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.45rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
                 marginBottom: '-2px'
               }}
             >
@@ -839,15 +851,17 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
               style={{
                 background: 'none',
                 border: 'none',
-                borderBottom: activeTab === 'HISTORY' ? '3px solid #0284c7' : '3px solid transparent',
-                padding: '0.75rem 1.25rem',
-                fontSize: '0.925rem',
-                fontWeight: 800,
-                color: activeTab === 'HISTORY' ? '#0284c7' : '#64748b',
+                borderBottom: activeTab === 'HISTORY' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                padding: '0.75rem 1rem',
+                fontSize: '0.875rem',
+                fontWeight: activeTab === 'HISTORY' ? 800 : 600,
+                color: activeTab === 'HISTORY' ? 'var(--sky-color-primary)' : 'var(--text-muted)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.45rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
                 marginBottom: '-2px'
               }}
             >
@@ -860,15 +874,17 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
               style={{
                 background: 'none',
                 border: 'none',
-                borderBottom: activeTab === 'GRAPH' ? '3px solid #0284c7' : '3px solid transparent',
-                padding: '0.75rem 1.25rem',
-                fontSize: '0.925rem',
-                fontWeight: 800,
-                color: activeTab === 'GRAPH' ? '#0284c7' : '#64748b',
+                borderBottom: activeTab === 'GRAPH' ? '3px solid var(--sky-color-primary)' : '3px solid transparent',
+                padding: '0.75rem 1rem',
+                fontSize: '0.875rem',
+                fontWeight: activeTab === 'GRAPH' ? 800 : 600,
+                color: activeTab === 'GRAPH' ? 'var(--sky-color-primary)' : 'var(--text-muted)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.45rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
                 marginBottom: '-2px'
               }}
             >
@@ -879,33 +895,34 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
 
           {/* TAB 1: UNIFIED FEE INBOX */}
           {activeTab === 'FEES' && (
-            <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '2rem', boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.05)' }}>
+            <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid var(--border-strong)', padding: '1.25rem', boxShadow: 'var(--shadow-card)' }}>
               
               {/* Fee Filter Controls & Actions */}
-              <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', paddingBottom: '1.25rem', borderBottom: '1px solid #f1f5f9' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
+              <div className="flex-between" style={{ flexWrap: 'wrap', gap: '0.85rem', marginBottom: '1.25rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', alignItems: 'center', width: '100%' }}>
                   <button
                     onClick={handleSelectAll}
+                    className="sky-btn-default"
                     style={{
-                      background: selectedFeeIds.length === unpaidFees.length && unpaidFees.length > 0 ? '#0284c7' : '#f1f5f9',
-                      color: selectedFeeIds.length === unpaidFees.length && unpaidFees.length > 0 ? '#ffffff' : '#334155',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      padding: '0.45rem 0.85rem',
-                      fontSize: '0.775rem',
+                      fontSize: '0.8rem',
                       fontWeight: 700,
-                      cursor: 'pointer'
+                      padding: '0.5rem 0.95rem',
+                      minHeight: '38px',
+                      borderRadius: '8px',
+                      background: selectedFeeIds.length === unpaidFees.length && unpaidFees.length > 0 ? 'var(--sky-color-primary-light)' : 'var(--bg-surface-subtle)',
+                      borderColor: selectedFeeIds.length === unpaidFees.length && unpaidFees.length > 0 ? 'var(--sky-color-primary)' : 'var(--border-strong)',
+                      color: selectedFeeIds.length === unpaidFees.length && unpaidFees.length > 0 ? 'var(--sky-color-primary)' : 'var(--text-heading)'
                     }}
                   >
                     {selectedFeeIds.length === unpaidFees.length && unpaidFees.length > 0 ? 'Deselect All' : 'Select All Dues'}
                   </button>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>Filter School:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flex: '1 1 auto', minWidth: '150px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>School:</span>
                     <select
                       value={feeFilterSchool}
                       onChange={e => setFeeFilterSchool(e.target.value)}
-                      style={{ padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.775rem', background: '#ffffff', color: '#0f172a', fontWeight: 600 }}
+                      style={{ padding: '0.45rem 0.65rem', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '0.8rem', background: '#ffffff', color: 'var(--text-heading)', fontWeight: 600, width: '100%' }}
                     >
                       <option value="ALL">All Schools ({distinctSchoolsCount})</option>
                       {Array.from(new Set(currentProfile.children.map(c => JSON.stringify({ id: c.schoolId, name: c.schoolName })))).map(s => {
@@ -915,12 +932,12 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                     </select>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>Filter Child:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flex: '1 1 auto', minWidth: '150px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Child:</span>
                     <select
                       value={feeFilterChild}
                       onChange={e => setFeeFilterChild(e.target.value)}
-                      style={{ padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.775rem', background: '#ffffff', color: '#0f172a', fontWeight: 600 }}
+                      style={{ padding: '0.45rem 0.65rem', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '0.8rem', background: '#ffffff', color: 'var(--text-heading)', fontWeight: 600, width: '100%' }}
                     >
                       <option value="ALL">All Children ({currentProfile.children.length})</option>
                       {currentProfile.children.map(c => (
@@ -931,30 +948,30 @@ export const CredresolveParentHub: React.FC<CredresolveParentHubProps> = ({
                 </div>
 
                 {/* Bulk Pay Action */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  {selectedFeeIds.length > 0 && (
+                {selectedFeeIds.length > 0 && (
+                  <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginTop: '0.35rem' }}>
                     <button
                       onClick={handlePaySelected}
+                      className="sky-btn-primary"
                       style={{
-                        background: '#0284c7',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '0.55rem 1.15rem',
-                        fontSize: '0.825rem',
+                        width: '100%',
+                        padding: '0.65rem 1.25rem',
+                        fontSize: '0.85rem',
                         fontWeight: 800,
-                        cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.4rem',
-                        boxShadow: '0 2px 8px rgba(2, 132, 199, 0.25)'
+                        justifyContent: 'center',
+                        gap: '0.45rem',
+                        borderRadius: '8px',
+                        minHeight: '42px',
+                        boxShadow: '0 2px 8px rgba(0, 126, 168, 0.25)'
                       }}
                     >
-                      <CreditCard size={14} />
+                      <CreditCard size={15} />
                       <span>Pay Selected ({selectedFeeIds.length}) • {currentProfile.currencySymbol}{selectedFeesForCheckout.reduce((acc, f) => acc + (f.amount - f.amountPaid), 0).toLocaleString()}</span>
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Fee Table */}
