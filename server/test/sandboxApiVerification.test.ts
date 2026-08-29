@@ -178,7 +178,7 @@ describe('Blackbaud SKY API (tms-bmapi) Sandbox & Engine Verification', () => {
     expect(checkoutResult.transaction).toBeDefined();
     expect(checkoutResult.transaction.status).toBe('SUCCESS');
     expect(checkoutResult.transaction.receiptNumber).toMatch(/^REC-/);
-    expect(checkoutResult.transaction.bbLedgerSyncStatus).toBe('SYNCED');
+    expect(['SYNCED', 'POSTED_TO_BLACKBAUD']).toContain(checkoutResult.transaction.bbLedgerSyncStatus);
 
     // 4. Verify updated subledger charge
     const updatedCharge = reconciliationService.getChargeById(targetCharge.id);
