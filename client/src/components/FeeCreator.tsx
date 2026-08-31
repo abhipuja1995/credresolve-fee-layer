@@ -17,7 +17,8 @@ import {
   DollarSign,
   Download,
   FileSpreadsheet,
-  FileText
+  FileText,
+  Sparkles
 } from 'lucide-react';
 import { 
   BlackbaudFeeType, 
@@ -45,6 +46,274 @@ interface FeeCreatorProps {
 
 export type FeeStudioSubView = 'deployed' | 'categories';
 
+/**
+ * Generates dynamic, domain-specific custom forms and compliance/waiver presets
+ * automatically tailored based on the selected fee classification / Blackbaud fee category.
+ */
+export const getFeeTypeFormAndWaiverPresets = (feeTypeId: string, feeType?: BlackbaudFeeType) => {
+  const name = feeType?.name?.toLowerCase() || '';
+  const cat = feeType?.category?.toUpperCase() || '';
+  const id = feeTypeId?.toUpperCase() || '';
+
+  // 1. Field Trip / Educational Excursions
+  if (id.includes('TRIP') || name.includes('trip') || name.includes('excursion') || name.includes('tour') || name.includes('visit')) {
+    return {
+      customFields: [
+        {
+          id: 'emergency_phone',
+          label: 'Emergency Contact Phone Number',
+          type: 'emergency_contact' as const,
+          required: true,
+          placeholder: '+1 (555) 000-0000'
+        },
+        {
+          id: 'dietary_restrictions',
+          label: 'Dietary Restrictions & Food Allergies',
+          type: 'select' as const,
+          required: true,
+          options: ['None / Standard Meal', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Severe Nut Allergy / EpiPen']
+        },
+        {
+          id: 'medication_notes',
+          label: 'Medical Conditions & Inhaler/Medication Notes',
+          type: 'text' as const,
+          required: false,
+          placeholder: 'Specify any special medical care, medications, or travel needs'
+        }
+      ],
+      requireWaiver: true,
+      waiverText: 'I hereby grant permission for the student(s) to participate in off-campus educational excursions, confirm accuracy of emergency contact details, release the school from excursion liability, and authorize emergency medical treatment if necessary.',
+      waiverCheckboxLabel: 'I acknowledge and electronically accept the off-campus excursion terms and liability release.',
+      requireSignature: true,
+      signatureLabel: 'Parent / Guardian Legal Electronic Signature',
+      defaultTitle: '8th Grade Science Excursion & Planetarium Visit',
+      defaultDescription: 'Covers chartered coach transportation, museum entry, guided STEM workshop, and planetarium admission.'
+    };
+  }
+
+  // 2. Athletic / Sports / Uniforms
+  if (id.includes('ATHL') || cat === 'ATHLETIC' || name.includes('athletic') || name.includes('sport') || name.includes('uniform') || name.includes('jersey') || name.includes('varsity')) {
+    return {
+      customFields: [
+        {
+          id: 'jersey_size',
+          label: 'Varsity Uniform / Jersey Size',
+          type: 'select' as const,
+          required: true,
+          options: ['Youth M', 'Youth L', 'Adult S', 'Adult M', 'Adult L', 'Adult XL']
+        },
+        {
+          id: 'jersey_number',
+          label: 'Preferred Jersey Number (Top 3 Choices)',
+          type: 'text' as const,
+          required: true,
+          placeholder: 'e.g. 7, 10, 23'
+        },
+        {
+          id: 'sports_physical',
+          label: 'Sports Physical & Medical Clearance',
+          type: 'select' as const,
+          required: true,
+          options: ['Physical On File with Health Office', 'Will Submit Before First Practice']
+        },
+        {
+          id: 'emergency_phone',
+          label: 'Emergency Contact Phone Number',
+          type: 'emergency_contact' as const,
+          required: true,
+          placeholder: '+1 (555) 000-0000'
+        }
+      ],
+      requireWaiver: true,
+      waiverText: 'I grant authorization for the student to participate in interscholastic sports, acknowledge the inherent physical risks of competitive athletics, certify medical fitness, and consent to emergency athletic injury care.',
+      waiverCheckboxLabel: 'I acknowledge and electronically accept the athletic code of conduct, sports safety waiver, and fee settlement.',
+      requireSignature: true,
+      signatureLabel: 'Parent / Guardian Athletic Electronic Signature',
+      defaultTitle: 'Fall Varsity Athletic Participation & Uniform Package',
+      defaultDescription: 'Includes official home/away game jerseys, league registration, certified referee officiating, and athletic training room access.'
+    };
+  }
+
+  // 3. STEM / Technology / 1-to-1 Device
+  if (id.includes('TECH') || name.includes('stem') || name.includes('device') || name.includes('lab') || name.includes('robotics') || name.includes('ipad') || name.includes('chromebook')) {
+    return {
+      customFields: [
+        {
+          id: 'device_protection',
+          label: '1-to-1 Device Protection Plan Option',
+          type: 'select' as const,
+          required: true,
+          options: [
+            'Standard School Device Coverage ($0 Deductible)',
+            'Comprehensive Accidental Damage & Loss ($25 Deductible)',
+            'Decline School Insurance (Family Assumes Full Replacement Liability)'
+          ]
+        },
+        {
+          id: 'student_email',
+          label: 'Student Institutional School Email',
+          type: 'text' as const,
+          required: true,
+          placeholder: 'student.name@oakridge.edu'
+        }
+      ],
+      requireWaiver: true,
+      waiverText: 'I acknowledge receipt and custody of the school-issued 1-to-1 computing device and STEM robotics equipment, agree to the Technology Acceptable Use Policy, and accept responsibility for responsible student device care.',
+      waiverCheckboxLabel: 'I acknowledge and electronically accept the Student Device & Technology Acceptable Use Policy.',
+      requireSignature: true,
+      signatureLabel: 'Parent / Guardian Device Custody Signature',
+      defaultTitle: 'Middle School 1-to-1 Device & STEM Lab Fee',
+      defaultDescription: 'Covers dedicated Chromebook/iPad deployment, enterprise software licensing, classroom STEM lab consumables, and cloud safety filtering.'
+    };
+  }
+
+  // 4. Senior Graduation & Yearbook Package
+  if (id.includes('GRAD') || name.includes('grad') || name.includes('yearbook') || name.includes('commencement')) {
+    return {
+      customFields: [
+        {
+          id: 'cap_gown_fit',
+          label: 'Cap & Gown Height / Fit (ft & in)',
+          type: 'select' as const,
+          required: true,
+          options: ["5'0\" - 5'2\"", "5'3\" - 5'5\"", "5'6\" - 5'8\"", "5'9\" - 5'11\"", "6'0\" - 6'2\"", "6'3\"+"]
+        },
+        {
+          id: 'diploma_name',
+          label: 'Diploma Legal Name Spelling (Exact as Printed)',
+          type: 'text' as const,
+          required: true,
+          placeholder: 'e.g. Alexander James Sterling Jr.'
+        },
+        {
+          id: 'yearbook_note',
+          label: 'Yearbook Tribute Dedication (Optional)',
+          type: 'text' as const,
+          required: false,
+          placeholder: 'Optional 120-character tribute note for senior album...'
+        }
+      ],
+      requireWaiver: false,
+      waiverText: "I confirm the spelling of the student's legal name for official commencement printing and authorize the publication of senior portraits in the school yearbook.",
+      waiverCheckboxLabel: 'I confirm graduation commencement details and authorize yearbook publication.',
+      requireSignature: false,
+      signatureLabel: 'Parent / Guardian Electronic Signature',
+      defaultTitle: 'Senior Graduation Commencement & Hardcover Yearbook',
+      defaultDescription: 'Includes custom-fitted cap and gown regalia, official embossed diploma parchment, commencement guest tickets, and annual hardcover yearbook.'
+    };
+  }
+
+  // 5. Summer Camp / Workshop
+  if (id.includes('CAMP') || name.includes('camp') || name.includes('workshop') || name.includes('summer')) {
+    return {
+      customFields: [
+        {
+          id: 'camp_tshirt',
+          label: 'Camp T-Shirt Size',
+          type: 'select' as const,
+          required: true,
+          options: ['Youth M', 'Youth L', 'Adult S', 'Adult M', 'Adult L']
+        },
+        {
+          id: 'camp_track',
+          label: 'Specialization Track Selection',
+          type: 'select' as const,
+          required: true,
+          options: ['Autonomous Robotics & Sensors', 'Python AI & Machine Learning', '3D Modeling & Mechanical Fabrication']
+        },
+        {
+          id: 'emergency_phone',
+          label: 'Emergency Contact Phone Number',
+          type: 'emergency_contact' as const,
+          required: true,
+          placeholder: '+1 (555) 000-0000'
+        },
+        {
+          id: 'pickup_names',
+          label: 'Authorized Afternoon Pickup Adult Names',
+          type: 'text' as const,
+          required: true,
+          placeholder: 'Names of adults authorized for afternoon sign-out'
+        }
+      ],
+      requireWaiver: true,
+      waiverText: 'I hereby enroll the student in the summer enrichment camp program, authorize camp staff to oversee laboratory and fabrication tools, and agree to camp emergency and dismissal procedures.',
+      waiverCheckboxLabel: 'I acknowledge and electronically accept the summer camp terms and safety guidelines.',
+      requireSignature: true,
+      signatureLabel: 'Parent / Guardian Electronic Signature',
+      defaultTitle: 'Summer Robotics & Applied Engineering Camp',
+      defaultDescription: 'Two-week hands-on engineering academy including hardware microcontroller kit, 3D printing supplies, and competition entry.'
+    };
+  }
+
+  // 6. Tuition - Standard Term
+  if (id.includes('TUIT') || cat === 'TUITION' || name.includes('tuition')) {
+    return {
+      customFields: [
+        {
+          id: 'tuition_schedule',
+          label: 'Payment Plan Preference',
+          type: 'select' as const,
+          required: true,
+          options: [
+            'Annual One-Time Full Settlement (5% Discount Applied)',
+            'Semi-Annual Term Split (Sept & Jan)',
+            'Monthly 10-Month Automatic Installments'
+          ]
+        },
+        {
+          id: 'tuition_insurance',
+          label: 'Tuition Refund Protection Plan',
+          type: 'select' as const,
+          required: true,
+          options: ['Yes - Enroll in Dewars Tuition Refund Plan', 'No - Decline Tuition Insurance']
+        },
+        {
+          id: 'billing_email',
+          label: 'Primary Billing & Invoice Email',
+          type: 'text' as const,
+          required: true,
+          placeholder: 'billing.parent@example.com'
+        }
+      ],
+      requireWaiver: true,
+      waiverText: 'I acknowledge and agree to the institutional Enrollment Contract and Tuition Schedule for the 2026-2027 Academic Year. I understand that overhead, faculty salaries, and facility expenses are committed annually and withdrawal terms are governed by the student handbook.',
+      waiverCheckboxLabel: 'I acknowledge and electronically accept the Financial Enrollment Agreement and Tuition Terms.',
+      requireSignature: true,
+      signatureLabel: 'Financial Obligor Legal Electronic Signature',
+      defaultTitle: '2026-2027 Academic Tuition — Standard Term',
+      defaultDescription: 'Comprehensive academic tuition covering core curriculum, laboratory sciences, physical education, and co-curricular programs.'
+    };
+  }
+
+  // 7. General / Activity Default Fallback
+  return {
+    customFields: [
+      {
+        id: 'emergency_phone',
+        label: 'Emergency Contact Phone Number',
+        type: 'emergency_contact' as const,
+        required: true,
+        placeholder: '+1 (555) 000-0000'
+      },
+      {
+        id: 'student_notes',
+        label: 'Student Notes & Special Instructions',
+        type: 'text' as const,
+        required: false,
+        placeholder: 'Any notes for the school administration...'
+      }
+    ],
+    requireWaiver: false,
+    waiverText: 'I hereby grant permission for the student(s) to participate in school activities, confirm accuracy of details, and authorize payment settlement.',
+    waiverCheckboxLabel: 'I acknowledge and electronically accept the terms and fee settlement.',
+    requireSignature: false,
+    signatureLabel: 'Electronic Signature (Type Full Legal Name)',
+    defaultTitle: `${feeType?.name || 'School Fee Program'}`,
+    defaultDescription: `Standard fee program for ${feeType?.name || 'Students'}. Synchronized with General Ledger ${feeType?.glAccountCode || 'GL-3030-40'}.`
+  };
+};
+
 export const FeeCreator: React.FC<FeeCreatorProps> = ({
   feeTypes = [],
   existingFees,
@@ -71,13 +340,17 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [categorySuccessMsg, setCategorySuccessMsg] = useState<string | null>(null);
 
+  // Initial category
+  const initialCategory = activeFeeTypes[0] || DEFAULT_FEE_TYPES[0];
+  const initialPreset = getFeeTypeFormAndWaiverPresets(initialCategory.feeTypeId, initialCategory);
+
   // Form State
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [bbFeeTypeId, setBbFeeTypeId] = useState<string>(activeFeeTypes[0]?.feeTypeId || 'FT-TRIP-03');
-  const [baseAmount, setBaseAmount] = useState<number>(125.00);
+  const [title, setTitle] = useState(initialPreset.defaultTitle || '');
+  const [description, setDescription] = useState(initialPreset.defaultDescription || '');
+  const [bbFeeTypeId, setBbFeeTypeId] = useState<string>(initialCategory.feeTypeId);
+  const [baseAmount, setBaseAmount] = useState<number>(initialCategory.defaultAmount || 125.00);
   const [dueDate, setDueDate] = useState('2026-09-30');
-  const [allowPartialPayment, setAllowPartialPayment] = useState(true);
+  const [allowPartialPayment, setAllowPartialPayment] = useState(initialCategory.allowPartialPayment);
   const [minPartialAmount, setMinPartialAmount] = useState<number>(50.00);
   
   // New Category Form State
@@ -97,45 +370,45 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
   const [csvFileName, setCsvFileName] = useState<string | null>(null);
   const [csvUploadStatus, setCsvUploadStatus] = useState<string | null>(null);
 
-  // Opt-in Electronic Terms Acceptance & Digital Legal Signature
-  const [requireWaiver, setRequireWaiver] = useState<boolean>(false);
-  const [waiverText, setWaiverText] = useState<string>(
-    'I hereby grant permission for the student(s) to participate in school activities, confirm accuracy of details, and authorize payment settlement.'
-  );
-  const [waiverCheckboxLabel, setWaiverCheckboxLabel] = useState<string>(
-    'I acknowledge and electronically accept the terms and fee settlement.'
-  );
-  const [requireSignature, setRequireSignature] = useState<boolean>(false);
-  const [signatureLabel, setSignatureLabel] = useState<string>(
-    'Electronic Signature (Type Full Legal Name)'
-  );
+  // Opt-in Electronic Terms Acceptance & Digital Legal Signature (Initialized dynamically from preset)
+  const [requireWaiver, setRequireWaiver] = useState<boolean>(initialPreset.requireWaiver);
+  const [waiverText, setWaiverText] = useState<string>(initialPreset.waiverText);
+  const [waiverCheckboxLabel, setWaiverCheckboxLabel] = useState<string>(initialPreset.waiverCheckboxLabel);
+  const [requireSignature, setRequireSignature] = useState<boolean>(initialPreset.requireSignature);
+  const [signatureLabel, setSignatureLabel] = useState<string>(initialPreset.signatureLabel);
 
-  // Custom Form Fields
-  const [customFields, setCustomFields] = useState<FormFieldSchema[]>([
-    {
-      id: 'tshirt_size',
-      label: 'Student T-Shirt Size',
-      type: 'select',
-      required: true,
-      options: ['Youth L', 'Adult S', 'Adult M', 'Adult L', 'Adult XL']
-    },
-    {
-      id: 'emergency_contact',
-      label: 'Emergency Contact Phone Number',
-      type: 'emergency_contact',
-      required: true,
-      placeholder: '+1 (555) 000-0000'
+  // Custom Form Fields (Initialized dynamically from preset)
+  const [customFields, setCustomFields] = useState<FormFieldSchema[]>(initialPreset.customFields);
+
+  /**
+   * Applies dynamic custom forms and compliance/waiver presets based on the chosen fee category
+   */
+  const applyCategoryPresets = (feeType: BlackbaudFeeType, updateTitleAndDesc = true) => {
+    const preset = getFeeTypeFormAndWaiverPresets(feeType.feeTypeId, feeType);
+    setCustomFields(preset.customFields);
+    setRequireWaiver(preset.requireWaiver);
+    setWaiverText(preset.waiverText);
+    setWaiverCheckboxLabel(preset.waiverCheckboxLabel);
+    setRequireSignature(preset.requireSignature);
+    setSignatureLabel(preset.signatureLabel);
+    if (updateTitleAndDesc && preset.defaultTitle) {
+      setTitle(preset.defaultTitle);
     }
-  ]);
+    if (updateTitleAndDesc && preset.defaultDescription) {
+      setDescription(preset.defaultDescription);
+    }
+  };
 
   // Keep bbFeeTypeId synchronized when activeFeeTypes changes
   useEffect(() => {
     if (activeFeeTypes.length > 0) {
       if (!bbFeeTypeId || !activeFeeTypes.some(f => f.feeTypeId === bbFeeTypeId)) {
-        setBbFeeTypeId(activeFeeTypes[0].feeTypeId);
-        if (activeFeeTypes[0].defaultAmount && (!baseAmount || baseAmount === 0)) {
-          setBaseAmount(activeFeeTypes[0].defaultAmount);
+        const firstFt = activeFeeTypes[0];
+        setBbFeeTypeId(firstFt.feeTypeId);
+        if (firstFt.defaultAmount && (!baseAmount || baseAmount === 0)) {
+          setBaseAmount(firstFt.defaultAmount);
         }
+        applyCategoryPresets(firstFt, false);
       }
     }
   }, [activeFeeTypes]);
@@ -469,8 +742,7 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
     setBbFeeTypeId(ft.feeTypeId);
     setBaseAmount(ft.defaultAmount || 100);
     setAllowPartialPayment(ft.allowPartialPayment);
-    setTitle(ft.name);
-    setDescription(`Standard fee for ${ft.name} (${ft.category}). Synchronized to General Ledger ${ft.glAccountCode}.`);
+    applyCategoryPresets(ft, true);
     setCurrentStep(1);
     setShowModal(true);
   };
@@ -643,12 +915,14 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
           <button 
             className="sky-btn-primary" 
             onClick={() => {
-              setTitle('9th Grade STEM Robotics & Lab Kit');
-              setDescription('Consumables kit and hardware access for Term 1 STEM Robotics curriculum.');
-              if (activeFeeTypes.length > 0) {
-                setBbFeeTypeId(activeFeeTypes[0].feeTypeId);
-                setBaseAmount(activeFeeTypes[0].defaultAmount || 125.00);
+              const selectedFt = activeFeeTypes.find(f => f.feeTypeId === bbFeeTypeId) || activeFeeTypes[0];
+              if (selectedFt) {
+                setBbFeeTypeId(selectedFt.feeTypeId);
+                setBaseAmount(selectedFt.defaultAmount || 125.00);
+                setAllowPartialPayment(selectedFt.allowPartialPayment);
+                applyCategoryPresets(selectedFt, true);
               }
+              setCurrentStep(1);
               setShowModal(true);
             }}
           >
@@ -1087,9 +1361,12 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
                         onChange={e => {
                           const selected = activeFeeTypes.find(f => f.feeTypeId === e.target.value);
                           setBbFeeTypeId(e.target.value);
-                          if (selected && selected.defaultAmount) {
-                            setBaseAmount(selected.defaultAmount);
-                            setAllowPartialPayment(selected.allowPartialPayment);
+                          if (selected) {
+                            if (selected.defaultAmount) {
+                              setBaseAmount(selected.defaultAmount);
+                              setAllowPartialPayment(selected.allowPartialPayment);
+                            }
+                            applyCategoryPresets(selected, true);
                           }
                         }}
                         style={{ fontWeight: 600 }}
@@ -1180,8 +1457,64 @@ export const FeeCreator: React.FC<FeeCreatorProps> = ({
 
               {/* STEP 2: Custom Forms & Compliance Options */}
               {currentStep === 2 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   
+                  {/* Dynamic Category Preset Banner */}
+                  <div style={{
+                    padding: '0.85rem 1.15rem',
+                    background: '#f0fdf4',
+                    border: '1px solid #86efac',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                      <div style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        background: '#16a34a',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Sparkles size={14} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#14532d' }}>
+                          Dynamic Forms &amp; Waivers Active for: {selectedFeeType?.name || 'Selected Category'}
+                        </div>
+                        <div style={{ fontSize: '0.725rem', color: '#15803d' }}>
+                          Category: <strong>{selectedFeeType?.category}</strong> • Form fields, legal waiver terms, and signature prompts are auto-tailored. Customize below as needed.
+                        </div>
+                      </div>
+                    </div>
+
+                    {selectedFeeType && (
+                      <button
+                        type="button"
+                        onClick={() => applyCategoryPresets(selectedFeeType, false)}
+                        className="sky-btn-default"
+                        style={{
+                          fontSize: '0.725rem',
+                          padding: '0.35rem 0.65rem',
+                          background: '#ffffff',
+                          border: '1px solid #86efac',
+                          color: '#166534',
+                          fontWeight: 700
+                        }}
+                        title="Reset custom form fields and waiver clauses to category defaults"
+                      >
+                        🔄 Re-apply Category Defaults
+                      </button>
+                    )}
+                  </div>
+
                   {/* Part A: Custom Form Fields */}
                   <div>
                     <div className="flex-between" style={{ marginBottom: '0.85rem' }}>
